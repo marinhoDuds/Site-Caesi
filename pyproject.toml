@@ -1,0 +1,31 @@
+[project]
+name = "site-caesi"
+version = "0.1.0"
+description = "Repositorio do site do centro academico de computação"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",          
+    "pymysql",            
+    "boto3",            
+    "pyjwt",              
+    "passlib[bcrypt]",   
+    "cryptography",     
+]
+
+[dependency-groups]
+dev = [
+    "pytest",             
+    "httpx",             
+    "pytest-cov",
+    "ruff",         
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q --cov=src --cov-report=term-missing --cov-fail-under=95"
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
