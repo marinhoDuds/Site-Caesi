@@ -21,3 +21,5 @@ dist/
 *.egg-info/
 .eggs/
 *.egg
+
+.env
