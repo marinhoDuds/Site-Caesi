@@ -6,10 +6,10 @@ CREATE TABLE `attachment_owner` (
     CONSTRAINT pk_attachment_owner PRIMARY KEY (id)
 );
 
--- TODO: adicionar public_id nanoID
 CREATE TABLE `ticket` (
     `id` BIGINT,
-    `protocol` VARCHAR(20) UNIQUE NOT NULL,
+    `public_id` VARCHAR(16) COLLATE ascii_bin NOT NULL,
+    `protocol` VARCHAR(20) NOT NULL,
     `semester` VARCHAR(4) NOT NULL,
     `content` VARCHAR(2200) NOT NULL,
     `ticket_type` ENUM(
@@ -18,12 +18,14 @@ CREATE TABLE `ticket` (
     `author` VARCHAR(120),
     `email` VARCHAR(255),
     CONSTRAINT pk_ticket PRIMARY KEY (id),
-    CONSTRAINT fk_ticket_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id)
+    CONSTRAINT fk_ticket_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id),
+    CONSTRAINT unique_ticket_public_id UNIQUE (public_id),
+    CONSTRAINT unique_ticket_protocol UNIQUE (protocol)
 );
 
 CREATE TABLE `operation` (
     `id` BIGINT,
-    `register_date` DATE NOT NULL,
+    `created_at` DATE NOT NULL,
     `value` FLOAT NOT NULL,
     `description` VARCHAR(2200) NOT NULL,
     `operation_type` ENUM(
@@ -48,8 +50,8 @@ CREATE TABLE `information` (
 CREATE TABLE `post` (
     `id` BIGINT,
     `title` VARCHAR(255) NOT NULL,
-    `post_date` DATE NOT NULL,
-    `last_modification_date` DATE NOT NULL,
+    `created_at` DATE NOT NULL,
+    `updated_at` DATE NOT NULL,
     `caption` VARCHAR(2200),
     CONSTRAINT pk_post PRIMARY KEY (id),
     CONSTRAINT fk_post_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id)
@@ -82,7 +84,7 @@ CREATE TABLE `attachment` (
 CREATE TABLE `event` (
     `id` BIGINT AUTO_INCREMENT,
     `title` VARCHAR(255) NOT NULL,
-    `event_date` DATE NOT NULL,
+    `scheduled_to` DATE NOT NULL,
     `description` VARCHAR(200),
     CONSTRAINT pk_event PRIMARY KEY (id)
 );
