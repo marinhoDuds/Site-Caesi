@@ -29,7 +29,7 @@ CREATE TABLE `operation` (
     `value` FLOAT NOT NULL,
     `description` VARCHAR(2200) NOT NULL,
     `operation_type` ENUM(
-        'aids', 'events', 'incomes', 'infrastructure', 'procurement', 'reimbursement', 'other'
+        'aid', 'events', 'incomes', 'infrastructure', 'procurement', 'reimbursement', 'other'
     ) NOT NULL,
     `previous` BIGINT,
     CONSTRAINT pk_operation PRIMARY KEY (id),
