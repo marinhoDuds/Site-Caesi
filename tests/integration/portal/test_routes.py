@@ -9,6 +9,7 @@ from src.routes.portal.schemas import (
     OperationHistoryResponse,
     OperationType,
 )
+from src.service.authentication.auth import get_current_admin
 
 app = FastAPI()
 app.include_router(router, prefix="/portal")
@@ -20,7 +21,12 @@ def override_get_portal_service():
     return mock_service
 
 
+def override_get_current_admin():
+    return {"id": 1}
+
+
 app.dependency_overrides[get_portal_service] = override_get_portal_service
+app.dependency_overrides[get_current_admin] = override_get_current_admin
 
 client = TestClient(app)
 
