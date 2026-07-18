@@ -1,14 +1,14 @@
 import os
 import boto3
-from botocore.client import BaseClient
 from botocore.exceptions import ClientError
+from mypy_boto3_s3 import S3Client
 from typing import BinaryIO, Optional
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def get_s3_client() -> BaseClient:
+def get_s3_client() -> S3Client:
     """Initialize and return a configured boto3 client for Garage S3."""
     return boto3.client(
         "s3",
