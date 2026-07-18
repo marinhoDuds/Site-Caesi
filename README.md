@@ -8,6 +8,11 @@ Current repository layout:
 
 ```text
 .
+├── infra/
+│   └── garage/
+│       ├── Dockerfile
+│       ├── entrypoint.sh
+│       └── garage.toml.template
 ├── src/
 │   ├── routes/
 │   │   ├── calendar/
@@ -34,6 +39,7 @@ Current repository layout:
 ├── tests/
 │   ├── integration/
 │   └── unit/
+├── docker-compose.yml
 ├── pyproject.toml
 ├── uv.lock
 └── CONTRIBUTING.md
@@ -188,19 +194,62 @@ docker exec -i site-caesi-mysql mysql -usite_caesi -ppwd site_caesi_db < databas
 ```
 
 ## Bucket
-This project uses [Garage S3](https://garagehq.deuxfleurs.fr/documentation/quick-start/) for object storage. The bucket configuration is available in [garage.toml](garage.toml).
+This project uses [Garage](https://garagehq.deuxfleurs.fr/) as a local S3-compatible server, managed via Docker Compose.
+
+Make sure your user has permission to access the Docker socket:
 
 ```bash
-docker run \
-	-d \
-	--name site-caesi-s3 \
-	-p 3900:3900 -p 3901:3901 -p 3902:3902 -p 3903:3903 \
-	-v "$(pwd)/garage.toml:/etc/garage.toml" \
-	-e GARAGE_DEFAULT_ACCESS_KEY \
-	-e GARAGE_DEFAULT_SECRET_KEY \
-	-e GARAGE_DEFAULT_BUCKET \
-	dxflrs/garage:v2.3.0 \
-	/garage server --single-node --default-bucket
+sudo usermod -aG docker $USER && newgrp docker
+```
+
+Build the image (required on first run or after changes to `infra/garage/Dockerfile`):
+
+```bash
+docker compose build
+```
+
+Start the service:
+
+```bash
+docker compose up -d garage
+```
+
+The service is ready when the logs show:
+
+```
+S3 API server listening on http://[::]:3900
+```
+
+Verify with a health check:
+
+```bash
+source .env
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:3903/v1/health
+```
+
+The following environment variables control both the Garage server and the Python S3 client:
+
+| Variable | Description |
+|---|---|
+| `GARAGE_DEFAULT_ACCESS_KEY` | Access key created by Garage on first boot, used by boto3 |
+| `GARAGE_DEFAULT_SECRET_KEY` | Secret key created by Garage on first boot, used by boto3 |
+| `GARAGE_DEFAULT_BUCKET` | Bucket created automatically on first boot |
+| `AWS_ENDPOINT_URL` | S3 endpoint (`http://localhost:3900` in development) |
+| `AWS_REGION` | Region configured in Garage (`garage`) |
+| `RPC_SECRET` | Internal cluster secret (not exposed to the app) |
+| `ADMIN_TOKEN` | Garage admin API token (port 3903) |
+| `METRICS_TOKEN` | Garage metrics token |
+
+To stop without losing data:
+
+```bash
+docker compose stop garage
+```
+
+To reset all stored objects:
+
+```bash
+docker compose down && rm -rf infra/garage/meta/* infra/garage/data/*
 ```
 
 ## Patterns

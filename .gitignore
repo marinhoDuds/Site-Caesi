@@ -23,3 +23,7 @@ dist/
 *.egg
 
 .env
+
+# Garage S3
+infra/garage/meta/
+infra/garage/data/
