@@ -1,7 +1,7 @@
 import os
 import dotenv
 from typing import Any
-from pypika import Query, QmarkParameter
+from pypika import QmarkParameter
 from sqlalchemy import text, create_engine as sa_create_engine, Engine
 
 dotenv.load_dotenv()

@@ -24,6 +24,7 @@ dev = [
     "httpx",
     "pytest-cov",
     "ruff",
+    "pyright",
     "boto3-stubs[s3]>=1.43.51",
 ]
 
