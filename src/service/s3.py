@@ -81,6 +81,9 @@ def generate_presigned_url(object_name: str, expiration: int = 3600) -> Optional
         The presigned URL on success, None on error.
     """
     bucket_name = os.getenv("GARAGE_DEFAULT_BUCKET")
+    if not bucket_name:
+        raise ValueError("GARAGE_DEFAULT_BUCKET env var is not set.")
+
     client = get_s3_client()
 
     try:

@@ -806,7 +806,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "boto3" },
-    { name = "boto3-stubs", extra = ["s3"] },
     { name = "cryptography" },
     { name = "dotenv" },
     { name = "fastapi" },
@@ -820,6 +819,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "boto3-stubs", extra = ["s3"] },
     { name = "httpx" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -829,7 +829,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "boto3", specifier = ">=1.43.40" },
-    { name = "boto3-stubs", extras = ["s3"], specifier = ">=1.43.51" },
     { name = "cryptography" },
     { name = "dotenv" },
     { name = "fastapi" },
@@ -843,6 +842,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "boto3-stubs", extras = ["s3"], specifier = ">=1.43.51" },
     { name = "httpx" },
     { name = "pytest" },
     { name = "pytest-cov" },
