@@ -1,0 +1,21 @@
+services:
+  garage:
+    build: ./infra/garage
+    container_name: garage
+    restart: unless-stopped
+    ports:
+      - "3900:3900"
+      - "3901:3901"
+      - "3902:3902"
+      - "3903:3903"
+    volumes:
+      - ./infra/garage/garage.toml.template:/etc/garage.toml.template
+      - ./infra/garage/meta:/meta
+      - ./infra/garage/data:/data
+    environment:
+      - RPC_SECRET
+      - ADMIN_TOKEN
+      - METRICS_TOKEN
+      - GARAGE_DEFAULT_ACCESS_KEY
+      - GARAGE_DEFAULT_SECRET_KEY
+      - GARAGE_DEFAULT_BUCKET
