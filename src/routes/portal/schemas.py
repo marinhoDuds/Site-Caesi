@@ -28,6 +28,7 @@ class OperationResponse(OperationBase):
     id: int
     created_at: date
     previous: Optional[int] = None
+    attachment_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

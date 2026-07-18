@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from typing import List, Optional
 
 from src.routes.portal.schemas import (
@@ -27,45 +27,94 @@ def get_portal_service() -> PortalService:
 
 
 @router.post("/operations", response_model=OperationResponse, status_code=201)
-def create_operation(
-    payload: OperationCreate, 
+async def create_operation(
+    value: float = Form(...),
+    description: str = Form(...),
+    operation_type: OperationType = Form(...),
+    attachment: Optional[UploadFile] = File(None),
     service: PortalService = Depends(get_portal_service),
-    admin: dict = Depends(get_current_admin)
+    admin: dict = Depends(get_current_admin),
 ) -> OperationResponse:
     """Create a new operation endpoint.
 
+    Accepts a multipart/form-data request with the operation fields and an
+    optional comprobatory document file.
+
     Parameters
     ----------
-    payload : OperationCreate
-        The JSON payload containing operation details.
+    value : float
+        Monetary value of the operation.
+    description : str
+        Description or object of the operation.
+    operation_type : OperationType
+        Category of the operation.
+    attachment : Optional[UploadFile]
+        The comprobatory document file to upload to S3, if any.
     service : PortalService, optional
         The injected portal service dependency.
+    admin : dict
+        The authenticated administrator payload.
 
     Returns
     -------
     OperationResponse
         The created operation data.
     """
-    return service.create_operation(payload)
+    payload = OperationCreate(
+        value=value,
+        description=description,
+        operation_type=operation_type,
+    )
+
+    file_obj = None
+    filename = None
+    content_type = "application/octet-stream"
+
+    if attachment:
+        file_obj = attachment.file
+        filename = attachment.filename
+        content_type = attachment.content_type or "application/octet-stream"
+
+    return service.create_operation(
+        payload,
+        file_obj=file_obj,
+        filename=filename,
+        content_type=content_type,
+    )
 
 
 @router.put("/operations/{operation_id}", response_model=OperationResponse)
-def update_operation(
+async def update_operation(
     operation_id: int,
-    payload: OperationCreate,
+    value: float = Form(...),
+    description: str = Form(...),
+    operation_type: OperationType = Form(...),
+    attachment: Optional[UploadFile] = File(None),
     service: PortalService = Depends(get_portal_service),
-    admin: dict = Depends(get_current_admin)
+    admin: dict = Depends(get_current_admin),
 ) -> OperationResponse:
     """Update an existing operation using append-only logic.
+
+    If an attachment is provided it replaces the previous one (a new S3 object
+    is created). If omitted, the previous operation's attachment URL is
+    inherited.
 
     Parameters
     ----------
     operation_id : int
         The ID of the operation to update.
-    payload : OperationCreate
-        The JSON payload containing the updated operation details.
+    value : float
+        Monetary value of the updated operation.
+    description : str
+        Description or object of the updated operation.
+    operation_type : OperationType
+        Category of the updated operation.
+    attachment : Optional[UploadFile]
+        Replacement comprobatory document, if any.
     service : PortalService, optional
         The injected portal service dependency.
+    admin : dict
+        The authenticated administrator payload.
 
     Returns
     -------
@@ -81,7 +130,28 @@ def update_operation(
     if not existing:
         raise HTTPException(status_code=404, detail="Operation not found")
 
-    return service.update_operation(operation_id, payload)
+    payload = OperationCreate(
+        value=value,
+        description=description,
+        operation_type=operation_type,
+    )
+
+    file_obj = None
+    filename = None
+    content_type = "application/octet-stream"
+
+    if attachment:
+        file_obj = attachment.file
+        filename = attachment.filename
+        content_type = attachment.content_type or "application/octet-stream"
+
+    return service.update_operation(
+        operation_id,
+        payload,
+        file_obj=file_obj,
+        filename=filename,
+        content_type=content_type,
+    )
 
 
 @router.get("/operations", response_model=List[OperationResponse])
