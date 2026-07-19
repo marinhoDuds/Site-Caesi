@@ -26,12 +26,15 @@ class TestAuthenticateWithPassword:
     def test_success_returns_token(self):
         engine = MagicMock()
         admin = _make_admin()
-        with patch(
-            "src.service.authentication.service.repository.get_admin_by_email",
-            return_value=admin,
-        ), patch(
-            "src.service.authentication.service.create_access_token",
-            return_value="fake-jwt",
+        with (
+            patch(
+                "src.service.authentication.service.repository.get_admin_by_email",
+                return_value=admin,
+            ),
+            patch(
+                "src.service.authentication.service.create_access_token",
+                return_value="fake-jwt",
+            ),
         ):
             result = service.authenticate_with_password(
                 engine, "admin@caesi.com", "correct-password"
@@ -46,12 +49,15 @@ class TestAuthenticateWithPassword:
     def test_first_login_flags_must_change_password(self):
         engine = MagicMock()
         admin = _make_admin(must_change_password=True)
-        with patch(
-            "src.service.authentication.service.repository.get_admin_by_email",
-            return_value=admin,
-        ), patch(
-            "src.service.authentication.service.create_access_token",
-            return_value="fake-jwt",
+        with (
+            patch(
+                "src.service.authentication.service.repository.get_admin_by_email",
+                return_value=admin,
+            ),
+            patch(
+                "src.service.authentication.service.create_access_token",
+                return_value="fake-jwt",
+            ),
         ):
             result = service.authenticate_with_password(
                 engine, "admin@caesi.com", "correct-password"
@@ -94,15 +100,19 @@ class TestAuthenticateWithGoogle:
             "email_verified": True,
             "sub": "google-sub-123",
         }
-        with patch(
-            "src.service.authentication.service.google_id_token.verify_oauth2_token",
-            return_value=fake_payload,
-        ), patch(
-            "src.service.authentication.service.repository.get_admin_by_google_id",
-            return_value=None,
-        ), patch(
-            "src.service.authentication.service.repository.get_admin_by_email",
-            return_value=None,
+        with (
+            patch(
+                "src.service.authentication.service.google_id_token.verify_oauth2_token",
+                return_value=fake_payload,
+            ),
+            patch(
+                "src.service.authentication.service.repository.get_admin_by_google_id",
+                return_value=None,
+            ),
+            patch(
+                "src.service.authentication.service.repository.get_admin_by_email",
+                return_value=None,
+            ),
         ):
             with pytest.raises(HTTPException) as exc_info:
                 service.authenticate_with_google(engine, "fake-google-token")
@@ -118,20 +128,26 @@ class TestAuthenticateWithGoogle:
             "email_verified": True,
             "sub": "google-sub-123",
         }
-        with patch(
-            "src.service.authentication.service.google_id_token.verify_oauth2_token",
-            return_value=fake_payload,
-        ), patch(
-            "src.service.authentication.service.repository.get_admin_by_google_id",
-            return_value=None,
-        ), patch(
-            "src.service.authentication.service.repository.get_admin_by_email",
-            return_value=admin,
-        ) as get_by_email, patch(
-            "src.service.authentication.service.repository.link_google_account"
-        ) as link_google, patch(
-            "src.service.authentication.service.create_access_token",
-            return_value="fake-jwt",
+        with (
+            patch(
+                "src.service.authentication.service.google_id_token.verify_oauth2_token",
+                return_value=fake_payload,
+            ),
+            patch(
+                "src.service.authentication.service.repository.get_admin_by_google_id",
+                return_value=None,
+            ),
+            patch(
+                "src.service.authentication.service.repository.get_admin_by_email",
+                return_value=admin,
+            ) as get_by_email,
+            patch(
+                "src.service.authentication.service.repository.link_google_account"
+            ) as link_google,
+            patch(
+                "src.service.authentication.service.create_access_token",
+                return_value="fake-jwt",
+            ),
         ):
             result = service.authenticate_with_google(engine, "fake-google-token")
 
@@ -207,12 +223,15 @@ class TestChangePassword:
     def test_success_updates_password_and_clears_flag(self):
         engine = MagicMock()
         admin = _make_admin(must_change_password=True)
-        with patch(
-            "src.service.authentication.service.repository.get_admin_by_id",
-            return_value=admin,
-        ), patch(
-            "src.service.authentication.service.repository.update_password"
-        ) as update_password:
+        with (
+            patch(
+                "src.service.authentication.service.repository.get_admin_by_id",
+                return_value=admin,
+            ),
+            patch(
+                "src.service.authentication.service.repository.update_password"
+            ) as update_password,
+        ):
             service.change_password(
                 engine, admin["id"], "correct-password", "new-password1"
             )

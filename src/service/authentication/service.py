@@ -85,8 +85,10 @@ def authenticate_with_google(engine: Engine, google_token: str) -> dict:
 
     email = payload.get("email")
     google_id = payload.get("sub")
-    if not email or not payload.get("email_verified"):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Google account is not verified")
+    if not email or not google_id or not payload.get("email_verified"):
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED, "Google account is not verified"
+        )
 
     admin = repository.get_admin_by_google_id(engine, google_id)
     if not admin:
@@ -135,7 +137,9 @@ def change_password(
     if admin.get("password") and not verify_password(
         current_password, admin["password"], admin["salt"]
     ):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Current password is incorrect")
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED, "Current password is incorrect"
+        )
 
     salt = generate_salt()
     password_hash = hash_password(new_password, salt)

@@ -49,9 +49,7 @@ def get_admin_by_google_id(engine: Engine, google_id: str) -> Optional[dict]:
         The administrator row as a dict, or None if not found.
     """
     query = (
-        Query.from_(ADMINS_TABLE)
-        .select("*")
-        .where(ADMINS_TABLE.google_id == google_id)
+        Query.from_(ADMINS_TABLE).select("*").where(ADMINS_TABLE.google_id == google_id)
     )
     rows = run_query(engine, query)
     return _row_to_dict(rows[0]) if rows else None
@@ -77,7 +75,9 @@ def get_admin_by_id(engine: Engine, admin_id: int) -> Optional[dict]:
     return _row_to_dict(rows[0]) if rows else None
 
 
-def update_password(engine: Engine, admin_id: int, password_hash: str, salt: str) -> None:
+def update_password(
+    engine: Engine, admin_id: int, password_hash: str, salt: str
+) -> None:
     """Update an administrator's password hash and clear the forced-change flag.
 
     Parameters

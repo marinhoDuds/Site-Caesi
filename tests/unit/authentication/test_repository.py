@@ -71,9 +71,7 @@ class TestGetAdminById:
 class TestUpdatePassword:
     def test_calls_run_query_with_engine(self):
         engine = MagicMock()
-        with patch(
-            "src.service.authentication.repository.run_query"
-        ) as run_query:
+        with patch("src.service.authentication.repository.run_query") as run_query:
             repository.update_password(engine, 1, "new-hash", "new-salt")
 
         run_query.assert_called_once()
@@ -84,9 +82,7 @@ class TestUpdatePassword:
 class TestLinkGoogleAccount:
     def test_calls_run_query_with_engine(self):
         engine = MagicMock()
-        with patch(
-            "src.service.authentication.repository.run_query"
-        ) as run_query:
+        with patch("src.service.authentication.repository.run_query") as run_query:
             repository.link_google_account(engine, 1, "google-sub-123")
 
         run_query.assert_called_once()

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import Engine
 
-from src.service.auth import get_current_admin
+from src.service.authentication.auth import get_current_admin
 from src.service.authentication import service
 from src.service.authentication.models import (
     ChangePasswordRequest,
@@ -24,7 +24,8 @@ def login(
     payload: LoginRequest, engine: Engine = Depends(get_db_engine)
 ) -> TokenResponse:
     """Authenticate an administrator with email and password."""
-    return service.authenticate_with_password(engine, payload.email, payload.password)
+    result = service.authenticate_with_password(engine, payload.email, payload.password)
+    return TokenResponse(**result)
 
 
 @router.post("/login/google", response_model=TokenResponse)
@@ -32,7 +33,8 @@ def login_with_google(
     payload: GoogleLoginRequest, engine: Engine = Depends(get_db_engine)
 ) -> TokenResponse:
     """Authenticate an administrator using a Google ID token."""
-    return service.authenticate_with_google(engine, payload.id_token)
+    result = service.authenticate_with_google(engine, payload.id_token)
+    return TokenResponse(**result)
 
 
 @router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
