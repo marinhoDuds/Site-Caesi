@@ -63,13 +63,18 @@ CREATE TABLE `administrator` (
     `name` VARCHAR(120) NOT NULL,
     `email` VARCHAR(255) NOT NULL,
     `password` VARCHAR(255) NOT NULL,
+    `salt` VARCHAR(32),
+    `google_id` VARCHAR(255),
+    `must_change_password` BOOLEAN NOT NULL DEFAULT TRUE,
     `semester` VARCHAR(4),
     `bio` VARCHAR(200),
     `linkedin` VARCHAR(2083),
     `github` VARCHAR(2083),
     `lattes` VARCHAR(2083),
     CONSTRAINT pk_administrator PRIMARY KEY (id),
-    CONSTRAINT fk_administrator_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id)
+    CONSTRAINT fk_administrator_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id),
+    CONSTRAINT unique_administrator_email UNIQUE (email),
+    CONSTRAINT unique_administrator_google_id UNIQUE (google_id)
 );
 
 -- TODO: ver sobre hash da url gerada pelo S3, pra poder fazer UNIQUE KEY com owner_id
@@ -87,4 +92,21 @@ CREATE TABLE `event` (
     `scheduled_to` DATE NOT NULL,
     `description` VARCHAR(200),
     CONSTRAINT pk_event PRIMARY KEY (id)
+
 );
+
+CREATE TABLE `chapa` (
+    `id` BIGINT AUTO_INCREMENT,
+    `nome` VARCHAR(255) NOT NULL,
+    `ano` INT NOT NULL,
+    `descricao` VARCHAR(2200),
+    CONSTRAINT pk_chapa PRIMARY KEY (id)
+);
+
+CREATE TABLE `caesi` (
+    `id` BIGINT AUTO_INCREMENT,
+    `nome` VARCHAR(255) NOT NULL,
+    `descricao` VARCHAR(2200),
+    CONSTRAINT pk_caesi PRIMARY KEY (id)
+);
+

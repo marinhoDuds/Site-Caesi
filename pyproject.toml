@@ -26,6 +26,7 @@ dev = [
     "ruff",
     "pyright",
     "boto3-stubs[s3]>=1.43.51",
+    "httpx2>=2.7.0",
 ]
 
 [tool.pytest.ini_options]
