@@ -16,6 +16,10 @@ dependencies = [
     "garage-admin-sdk",
     "boto3>=1.43.40",
     "python-multipart>=0.0.32",
+    "google-auth>=2.56.0",
+    "requests>=2.34.2",
+    "pydantic[email]>=2.13.4",
+    "service>=0.6.0",
 ]
 
 [dependency-groups]

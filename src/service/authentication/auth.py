@@ -96,4 +96,7 @@ def get_current_admin(token: str = Depends(oauth2_scheme)) -> dict:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return {"id": admin_id}
+    return {
+        "id": admin_id,
+        "must_change_password": payload.get("must_change_password", False),    
+    }
