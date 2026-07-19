@@ -6,7 +6,7 @@ from src.routes.tickets.schemas import TicketUpdate, TicketType
 
 @pytest.fixture
 def mock_engine():
-    return MagicMock();
+    return MagicMock()
 
 
 @pytest.fixture
@@ -53,8 +53,8 @@ def test_list_all_tickets(ticket_service, mock_engine):
         assert results[0].semester == "25.1"
         assert results[0].content == "Mensagem de teste"
         assert results[0].ticket_type == TicketType.infrastructure
-        assert results[0].author == None
-        assert results[0].email == None
+        assert results[0].author is None
+        assert results[0].email is None
 
         assert results[1].id == 2
         assert results[1].public_id == "PUB-002"
@@ -139,7 +139,7 @@ def test_update_ticket_without_email_notification(ticket_service, mock_engine):
 
         with patch("src.service.ticket_management.service.send_email_notification") as mock_email:
             
-            result = ticket_service.update_ticket(ticket_id=1, payload=payload)
+            ticket_service.update_ticket(ticket_id=1, payload=payload)
 
             mock_conn.commit.assert_called_once()
 
@@ -165,7 +165,7 @@ def test_update_ticket_with_email_notification(ticket_service, mock_engine):
 
         with patch("src.service.ticket_management.service.send_email_notification") as mock_email:
 
-            result = ticket_service.update_ticket(ticket_id=2, payload=payload)
+            ticket_service.update_ticket(ticket_id=2, payload=payload)
 
             mock_conn.commit.assert_called_once()
 
