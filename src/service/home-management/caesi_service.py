@@ -1,8 +1,6 @@
 from sqlalchemy import Engine
 
-from service.database import run_query
 from .models import Caesi
-from .tables import caesi_table
 
 
 class CaesiService:

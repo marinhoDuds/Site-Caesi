@@ -1,8 +1,6 @@
 from sqlalchemy import Engine
 
-from service.database import run_query
 from .models import Admin, Chapa
-from .tables import admin_table, chapa_table
 from .password_service import PasswordService
 from .storage_service import StorageService
 from .email_service import EmailService
