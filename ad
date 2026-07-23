@@ -1,0 +1,56 @@
+[33mcommit 5591579bc247158967fbc97e5f969dbfcb38a8da[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/test_journal[m[33m)[m
+Author: Arthyp <artrodriguesm@gmail.com>
+Date:   Sun Jul 19 13:31:28 2026 -0300
+
+    initial unit and integration tests for journal
+
+[33mcommit bdc472808af18ce9d50c7d8c162b7f7ad36b434e[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m
+Merge: 0008f87 71d80c9
+Author: Eduarda Marinho <maria.eduarda.marinho.cavalcanti@ccc.ufcg.edu.br>
+Date:   Tue Jul 14 20:31:26 2026 -0300
+
+    Merge pull request #1 from marinhoDuds/homolog
+    
+    Homolog
+
+[33mcommit 71d80c94b7c8b0680fdc0d1409152d6b4410ad67[m
+Author: Eduarda Marinho <maria.eduarda.marinho.cavalcanti@ccc.ufcg.edu.br>
+Date:   Thu Jul 9 21:46:51 2026 -0300
+
+    feat: database utils
+
+[33mcommit 0d24256001a1eaa21ccf67ecfd2ce79e0cd29b5b[m
+Author: Eduarda Marinho <maria.eduarda.marinho.cavalcanti@ccc.ufcg.edu.br>
+Date:   Thu Jul 9 21:46:38 2026 -0300
+
+    feat: crypto utils
+
+[33mcommit 15244cdb2abf68741fd938529e9e238bdeca8ca0[m
+Author: Eduarda Marinho <maria.eduarda.marinho.cavalcanti@ccc.ufcg.edu.br>
+Date:   Thu Jul 9 21:46:01 2026 -0300
+
+    chore: create an enviroment file example and update gitignore
+
+[33mcommit b977f454b048a65cda069bfcb1578d550f35f8da[m
+Author: Eduarda Marinho <maria.eduarda.marinho.cavalcanti@ccc.ufcg.edu.br>
+Date:   Thu Jul 9 21:44:47 2026 -0300
+
+    docs: update documentation
+
+[33mcommit a239264f95404b8c533510fd97341b9f4c3230a9[m
+Author: Eduarda Marinho <maria.eduarda.marinho.cavalcanti@ccc.ufcg.edu.br>
+Date:   Thu Jul 9 21:44:14 2026 -0300
+
+    chore: update dependecies
+
+[33mcommit 0008f87222a3c66ee6e4292fba7a4e84007d2149[m
+Author: Eduarda Marinho <maria.eduarda.marinho.cavalcanti@ccc.ufcg.edu.br>
+Date:   Sat Jul 4 15:28:37 2026 -0300
+
+    chore:project structute
+
+[33mcommit 9ea16adc45665e6b5c74a952c32a97d8df70d5eb[m
+Author: Eduarda Marinho <maria.eduarda.marinho.cavalcanti@ccc.ufcg.edu.br>
+Date:   Sat Jul 4 15:15:21 2026 -0300
+
+    Initial commit
