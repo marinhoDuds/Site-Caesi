@@ -53,7 +53,7 @@ async def list_events(
         )
 
 
-@router.get("events/{event_id}", response_model=EventResponse)
+@router.get("/events/{event_id}", response_model=EventResponse)
 async def get_event(
     event_id: int,
     service: CalendarService = Depends(get_calendar_service)

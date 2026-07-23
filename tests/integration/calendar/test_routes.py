@@ -23,15 +23,16 @@ client = TestClient(app)
 
 
 def _make_event(
-    event_id=1,
-    name="Semana Acadêmica",
-    description="Evento de teste",
+    id=1,
+    title="Semana Acadêmica",
+    scheduled_to=None,
+    description="Evento de teste"
 ):
     return {
-        "id": event_id,
-        "name": name,
-        "date": date.today(),
-        "description": description,
+        "id": id,
+        "title": title,
+        "scheduled_to": scheduled_to or date.today(),
+        "description": description
     }
 
 
@@ -39,8 +40,8 @@ def test_list_events_route():
     mock_service.list_events.return_value = [
         _make_event(),
         _make_event(
-            event_id=2,
-            name="Workshop Python",
+            id=2,
+            title="Workshop Python",
         ),
     ]
 
@@ -64,15 +65,17 @@ def test_list_events_empty():
 
 def test_get_event_route():
     mock_service.get_event.return_value = _make_event(
-        event_id=5,
-        name="Palestra IA",
+        id=5,
+        title="Palestra IA",
+        scheduled_to=date(2026, 12, 1)
     )
 
     response = client.get("/calendar/events/5")
 
     assert response.status_code == 200
     assert response.json()["id"] == 5
-    assert response.json()["name"] == "Palestra IA"
+    assert response.json()["title"] == "Palestra IA"
+    assert response.json()["scheduled_to"] == "2026-12-01" 
 
 
 def test_get_event_not_found():
