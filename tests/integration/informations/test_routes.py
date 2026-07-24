@@ -42,15 +42,14 @@ def _make_info(
 
 def test_create_information_route_without_file():
     mock_service.create_information.return_value = _make_info(
-        content="Novo Laboratório de Redes",
-        info_type=InformationTypeEnum.laboratories
+        content="Novo Laboratório de Redes", info_type=InformationTypeEnum.laboratories
     )
 
     response = client.post(
         "/admin/informations",
         data={
             "content": "Novo Laboratório de Redes",
-            "information_type": "laboratories"
+            "information_type": "laboratories",
         },
     )
 
@@ -70,7 +69,7 @@ def test_create_information_route_with_file():
         "/admin/informations",
         data={
             "content": "Aviso geral para a comunidade.",
-            "information_type": "announcements"
+            "information_type": "announcements",
         },
         files={"attachment": ("mapa.pdf", b"pdf-bytes", "application/pdf")},
     )
@@ -82,17 +81,12 @@ def test_create_information_route_with_file():
 
 def test_update_information_route():
     mock_service.update_information.return_value = _make_info(
-        info_id=5,
-        content="Conteúdo Editado",
-        info_type=InformationTypeEnum.map
+        info_id=5, content="Conteúdo Editado", info_type=InformationTypeEnum.map
     )
 
     response = client.patch(
         "/admin/informations/5",
-        data={
-            "content": "Conteúdo Editado",
-            "information_type": "map"
-        },
+        data={"content": "Conteúdo Editado", "information_type": "map"},
     )
 
     assert response.status_code == 200
@@ -105,15 +99,12 @@ def test_update_information_route_with_new_file():
     mock_service.update_information.return_value = _make_info(
         info_id=5,
         content="Aviso com novo anexo",
-        attachment_url="http://s3/information/5/novo_anexo.pdf"
+        attachment_url="http://s3/information/5/novo_anexo.pdf",
     )
 
     response = client.patch(
         "/admin/informations/5",
-        data={
-            "content": "Aviso com novo anexo",
-            "information_type": "announcements"
-        },
+        data={"content": "Aviso com novo anexo", "information_type": "announcements"},
         files={"attachment": ("novo_anexo.pdf", b"new-pdf-bytes", "application/pdf")},
     )
 
@@ -128,7 +119,7 @@ def test_update_information_not_found():
         "/admin/informations/999",
         data={
             "content": "Tentando atualizar fantasma",
-            "information_type": "professors"
+            "information_type": "professors",
         },
     )
 
@@ -142,7 +133,7 @@ def test_delete_information_route():
     response = client.delete("/admin/informations/10")
 
     assert response.status_code == 204
-    assert not response.content 
+    assert not response.content
 
 
 def test_delete_information_not_found():

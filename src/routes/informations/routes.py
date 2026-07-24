@@ -5,7 +5,7 @@ from src.routes.informations.schemas import (
     InformationCreate,
     InformationUpdate,
     InformationResponse,
-    InformationTypeEnum
+    InformationTypeEnum,
 )
 from src.service.informations_management.service import InformationService
 from src.service.database import create_engine
@@ -33,7 +33,7 @@ async def create_information(
     information_type: InformationTypeEnum = Form(...),
     attachment: Optional[UploadFile] = File(None),
     service: InformationService = Depends(get_information_service),
-    admin: dict = Depends(get_current_admin)
+    admin: dict = Depends(get_current_admin),
 ) -> InformationResponse:
     """Create a new information endpoint for administrators.
 
@@ -59,10 +59,7 @@ async def create_information(
     InformationResponse
         The created information data.
     """
-    payload = InformationCreate(
-        content=content,
-        information_type=information_type
-    )
+    payload = InformationCreate(content=content, information_type=information_type)
 
     file_obj = None
     filename = None
@@ -71,13 +68,10 @@ async def create_information(
     if attachment:
         file_obj = attachment.file
         filename = attachment.filename
-        content_type = attachment.content_type or content_type 
+        content_type = attachment.content_type or content_type
 
     return service.create_information(
-        payload,
-        file_obj=file_obj,
-        filename=filename,
-        content_type=content_type
+        payload, file_obj=file_obj, filename=filename, content_type=content_type
     )
 
 
@@ -88,11 +82,11 @@ async def update_information(
     information_type: Optional[InformationTypeEnum] = Form(None),
     attachment: Optional[UploadFile] = File(None),
     service: InformationService = Depends(get_information_service),
-    admin: dict = Depends(get_current_admin)
+    admin: dict = Depends(get_current_admin),
 ) -> InformationResponse:
     """Update an existing information record.
 
-    Allows partial updates. If a new attachment is provided, it replaces 
+    Allows partial updates. If a new attachment is provided, it replaces
     the existing S3 object reference.
 
     Parameters
@@ -120,10 +114,7 @@ async def update_information(
     HTTPException
         If the given info_id is not found in the database.
     """
-    payload = InformationUpdate(
-        content=content,
-        information_type=information_type
-    )
+    payload = InformationUpdate(content=content, information_type=information_type)
 
     file_obj = None
     filename = None
@@ -139,7 +130,7 @@ async def update_information(
         payload,
         file_obj=file_obj,
         filename=filename,
-        content_type=content_type
+        content_type=content_type,
     )
 
     if not result:
@@ -152,7 +143,7 @@ async def update_information(
 async def delete_information(
     info_id: int,
     service: InformationService = Depends(get_information_service),
-    admin: dict = Depends(get_current_admin)
+    admin: dict = Depends(get_current_admin),
 ) -> None:
     """Delete an existing information and its attachments.
 

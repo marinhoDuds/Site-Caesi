@@ -4,11 +4,11 @@ from typing import Optional
 
 
 class InformationTypeEnum(str, Enum):
-    announcements = 'announcements'
-    laboratories = 'laboratories'
-    map = 'map'
-    professors = 'professors'
-    tamburetei = 'tamburetei'
+    announcements = "announcements"
+    laboratories = "laboratories"
+    map = "map"
+    professors = "professors"
+    tamburetei = "tamburetei"
 
 
 class InformationCreate(BaseModel):

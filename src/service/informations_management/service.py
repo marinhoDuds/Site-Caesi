@@ -7,7 +7,7 @@ from src.service.s3 import upload_fileobj_to_s3
 from src.routes.informations.schemas import (
     InformationCreate,
     InformationUpdate,
-    InformationResponse
+    InformationResponse,
 )
 
 
@@ -18,12 +18,12 @@ attachment_table = Table("attachment")
 
 class InformationService:
     """Service to handle business logic for the informations management.
-    
+
     This service manages the creation, updating, retrieval, and listing of
     informations (like announcements, laboratories, professors, etc).
     Attachments (e.g., map links) are stored in S3 and referenced via
     the attachment table
-    
+
     Attributes
     ----------
     engine : Engine
@@ -32,7 +32,7 @@ class InformationService:
 
     def __init__(self, engine: Engine) -> None:
         """Initialize a new InformationService.
-        
+
         Parameters
         ----------
         engine : Engine
@@ -59,7 +59,7 @@ class InformationService:
             info_id=info_id,
             content=content,
             information_type=info_type,
-            attachment_url=attachment_url
+            attachment_url=attachment_url,
         )
 
     def _insert_attachment_owner(self) -> int:
@@ -73,7 +73,7 @@ class InformationService:
         with self.engine.connect() as conn:
             conn.execute(
                 text("INSERT INTO attachment_owner (owner_type) VALUES (:t)"),
-                {"t": "information"}
+                {"t": "information"},
             )
             owner_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
             conn.commit()
@@ -103,7 +103,7 @@ class InformationService:
         ----------
         owner_id : int
             The ID of the attachment owner.
-        
+
         Returns
         -------
         Optional[str]
@@ -121,11 +121,7 @@ class InformationService:
         return None
 
     def _upload_file(
-        self,
-        info_id: int,
-        file_obj: BinaryIO,
-        filename: str,
-        content_type: str
+        self, info_id: int, file_obj: BinaryIO, filename: str, content_type: str
     ) -> Optional[str]:
         """Upload a file to S3 and persist the URL in the attachment table.
 
@@ -188,7 +184,7 @@ class InformationService:
         payload: InformationCreate,
         file_obj: Optional[BinaryIO] = None,
         filename: Optional[str] = None,
-        content_type: str = "application/octet-stream"
+        content_type: str = "application/octet-stream",
     ) -> InformationResponse:
         """Create a new information record, optionally with a map/attachment.
 
@@ -219,8 +215,8 @@ class InformationService:
                 {
                     "id": owner_id,
                     "cnt": payload.content,
-                    "it": payload.information_type.value
-                }
+                    "it": payload.information_type.value,
+                },
             )
             conn.commit()
 
@@ -234,7 +230,7 @@ class InformationService:
             id=owner_id,
             content=payload.content,
             information_type=payload.information_type,
-            attachment_url=attachment_url
+            attachment_url=attachment_url,
         )
 
     def update_information(
@@ -243,7 +239,7 @@ class InformationService:
         payload: InformationUpdate,
         file_obj: Optional[BinaryIO] = None,
         filename: Optional[str] = None,
-        content_type: str = "application/octet-stream"
+        content_type: str = "application/octet-stream",
     ) -> Optional[InformationResponse]:
         """Update an existing information record in the database.
 
@@ -270,7 +266,7 @@ class InformationService:
 
         Raises
         ------
-        Exception  
+        Exception
             If the database execution fails during the update process.
         """
         existing = self.get_information(info_id)
@@ -280,16 +276,18 @@ class InformationService:
         update_data = payload.model_dump(exclude_unset=True)
 
         if update_data:
-            query = (
-                Query.update(information_table)
-                .where(information_table.id == info_id)
+            query = Query.update(information_table).where(
+                information_table.id == info_id
             )
 
             if "content" in update_data:
                 query = query.set(information_table.content, update_data["content"])
             if "information_type" in update_data:
                 val = update_data["information_type"]
-                query = query.set(information_table.information_type, val.value if hasattr(val, 'value') else val)
+                query = query.set(
+                    information_table.information_type,
+                    val.value if hasattr(val, "value") else val,
+                )
 
             run_query(self.engine, query)
 
@@ -300,9 +298,9 @@ class InformationService:
 
     def delete_information(self, info_id: int) -> bool:
         """Delete an information record and all its dependencies.
-        
+
         Removes the record hierarchically: first deleting any associated
-        attachments, then the main information record, and finally the 
+        attachments, then the main information record, and finally the
         polymorphic attachment_owner record.
 
         Parameters
@@ -313,7 +311,7 @@ class InformationService:
         Returns
         -------
         bool
-            True if the deletion was successful, False if the record 
+            True if the deletion was successful, False if the record
             did not exist in the database.
 
         Raises
