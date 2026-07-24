@@ -56,7 +56,7 @@ class InformationService:
         """
         info_id, content, info_type, attachment_url = row
         return InformationResponse(
-            info_id=info_id,
+            id=info_id,
             content=content,
             information_type=info_type,
             attachment_url=attachment_url,
