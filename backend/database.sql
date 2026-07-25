@@ -50,8 +50,9 @@ CREATE TABLE `information` (
 CREATE TABLE `post` (
     `id` BIGINT,
     `title` VARCHAR(255) NOT NULL,
+    `post_type` VARCHAR(100) NOT NULL,
     `created_at` DATE NOT NULL,
-    `updated_at` DATE NOT NULL,
+    `updated_at` DATE,
     `caption` VARCHAR(2200),
     CONSTRAINT pk_post PRIMARY KEY (id),
     CONSTRAINT fk_post_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id)

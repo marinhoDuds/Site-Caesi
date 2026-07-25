@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { marked } from 'marked'
 import { markdownParaHtmlSeguro } from '../utils/markdown.ts'
@@ -10,11 +10,17 @@ import SiteFooter from '../components/SiteFooter.vue'
 import BackLink from '../components/BackLink.vue'
 import EmptyState from '../components/EmptyState.vue'
 import Lightbox from '../components/Lightbox.vue'
-import { publicacoes } from '../stores/mural.ts'
+import { publicacoes, fetchPublicacoes } from '../stores/mural.ts'
 
 marked.use({ breaks: true, gfm: true })
 
 const route  = useRoute()
+
+onMounted(async () => {
+  if (publicacoes.value.length === 0) {
+    await fetchPublicacoes()
+  }
+})
 
 const publicacao = computed(() =>
   publicacoes.value.find(p => p.id === Number(route.params.id))

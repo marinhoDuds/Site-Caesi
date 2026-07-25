@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { marked } from 'marked'
 import Navbar from '../components/Navbar.vue'
 import SiteFooter from '../components/SiteFooter.vue'
@@ -11,22 +11,26 @@ import GaleriaImagens from '../components/GaleriaImagens.vue'
 import { usePagination } from '../composables/usePagination.ts'
 import { usePersistedFilter } from '../composables/usePersistedFilter.ts'
 import { useEscapeKey } from '../composables/useEscapeKey.ts'
-import { publicacoes, addPublicacao, updatePublicacao, deletePublicacao, type Publicacao } from '../stores/mural.ts'
+import { publicacoes, addPublicacao, updatePublicacao, deletePublicacao, fetchPublicacoes, type Publicacao } from '../stores/mural.ts'
 import { isAdmin } from '../stores/auth.ts'
 import { showToast } from '../stores/toast.ts'
 function validarTitulo(titulo: string)     { return titulo.trim().length < 3     ? 'Título obrigatório (mín. 3 caracteres).'     : '' }
 function validarMensagem(mensagem: string) { return mensagem.trim().length < 10 ? 'Mensagem obrigatória (mín. 10 caracteres).' : '' }
+
+onMounted(async () => {
+  await fetchPublicacoes()
+})
 
 // ── Admin: publicar nova ──────────────────────────────────
 const mostrarForm = ref(false)
 const formAdd = reactive({ titulo: '', tipo: '', mensagem: '', imagens: [] as string[] })
 const erros   = reactive({ titulo: '', mensagem: '' })
 
-function publicar() {
+async function publicar() {
   erros.titulo   = validarTitulo(formAdd.titulo)
   erros.mensagem = validarMensagem(formAdd.mensagem)
   if (erros.titulo || erros.mensagem) return
-  addPublicacao({ ...formAdd, imagens: [...formAdd.imagens] })
+  await addPublicacao({ ...formAdd, imagens: [...formAdd.imagens] })
   Object.assign(formAdd, { titulo: '', tipo: '', mensagem: '', imagens: [] })
   mostrarForm.value = false
   showToast('Publicação adicionada ao mural.', 'success')
@@ -55,12 +59,12 @@ function abrirEdit(p: Publicacao) {
 }
 function fecharEdit() { editModal.value = null }
 
-function salvarEdit() {
+async function salvarEdit() {
   errosEdit.titulo   = validarTitulo(formEdit.titulo)
   errosEdit.mensagem = validarMensagem(formEdit.mensagem)
   if (errosEdit.titulo || errosEdit.mensagem) return
   if (!editModal.value) return
-  updatePublicacao(editModal.value.id, {
+  await updatePublicacao(editModal.value.id, {
     titulo:   formEdit.titulo.trim(),
     tipo:     formEdit.tipo.trim(),
     mensagem: formEdit.mensagem.trim(),
@@ -70,9 +74,9 @@ function salvarEdit() {
   showToast('Publicação atualizada.', 'success')
 }
 
-function excluir(p: Publicacao) {
+async function excluir(p: Publicacao) {
   if (!confirm(`Remover "${p.titulo}" do mural?`)) return
-  deletePublicacao(p.id)
+  await deletePublicacao(p.id)
   showToast('Publicação removida.', 'info')
 }
 
