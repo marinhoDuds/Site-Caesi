@@ -52,11 +52,9 @@ import linkedinIcon from '../assets/icons/linkedin.svg?raw'
 import githubIcon from '../assets/icons/github.svg?raw'
 import lattesIcon from '../assets/icons/lattes.svg?raw'
 
-// ── Modo de edição (admin) ──────────────────────────────────
 const route = useRoute()
 const editando = ref(isAdmin.value && route.query.editar === '1')
 
-// --- Missão e história ---
 const missaoEdit = ref(missaoTexto.value)
 const missaoImagemEdit = ref(missaoImagem.value)
 const fileMissaoRef = ref<HTMLInputElement | null>(null)
@@ -77,7 +75,6 @@ function salvarMissao() {
   showToast('Missão atualizada.', 'success')
 }
 
-// --- Contato ---
 const contatoEdit = ref({ ...contatoInfo.value })
 function salvarContato() {
   saveContato({
@@ -88,7 +85,6 @@ function salvarContato() {
   showToast('Contato atualizado.', 'success')
 }
 
-// --- Informações da gestão ---
 const info      = ref<GestaoInfo>({ ...gestaoInfo.value })
 const descricao = ref(descricaoGestao.value)
 const errosInfo = ref<Record<string, string>>({})
@@ -128,12 +124,10 @@ function salvarInfo() {
   showToast('Informações salvas.', 'success')
 }
 
-// Fotos de perfil/histórico usam um teto menor que o padrão (galerias de laboratório etc.)
 function comprimirImagemPerfil(file: File): Promise<string> {
   return comprimirImagem(file, 400, 0.75)
 }
 
-// --- Editar membro existente ---
 interface MembroFormRascunho extends Membro {
   linkedin: string
   git: string
@@ -190,7 +184,6 @@ function confirmarRemocaoMembro(id: number, nome: string) {
   }
 }
 
-// --- Modal de detalhes do membro ---
 const membroModal = ref<Membro | null>(null)
 function abrirMembroModal(membro: Membro) { membroModal.value = membro }
 function fecharMembroModal() { membroModal.value = null }
@@ -202,7 +195,6 @@ watch(algumModalMembroAberto, (aberto) => {
 onBeforeUnmount(() => { document.body.style.overflow = '' })
 useEscapeKey(() => { fecharMembroModal(); if (editandoMembroId.value) cancelarEdicaoMembro() })
 
-// --- Carrossel de membros (setas + arraste no clique) ───────
 const membroScrollEl = ref<HTMLElement | null>(null)
 const membroDragging = ref(false)
 let membroStartX = 0
@@ -239,7 +231,6 @@ function membroClickGuard(a: Membro) {
   if (!editando.value) abrirMembroModal(a)
 }
 
-// --- Adicionar novo membro ---
 const mostraFormAdd = ref(false)
 const formAdd = ref({ nome: '', email: '', diretoria: '', periodo: '', foto: '', descricao: '', linkedin: '', git: '', lattes: '' })
 const errorsAdd  = ref<Record<string, boolean>>({})
@@ -281,7 +272,6 @@ function cadastrarMembro() {
   mostraFormAdd.value = false
 }
 
-// --- Gestões anteriores ---
 const confirmandoArquivar = ref(false)
 const mostraFormManual    = ref(false)
 
@@ -330,7 +320,6 @@ function arquivar() {
   showToast('Gestão arquivada no histórico.', 'success')
 }
 
-// --- Seções customizadas ---
 const mostraFormSecao = ref(false)
 const formSecao = ref({ titulo: '', conteudo: '', imagem: '' })
 const fileSecaoAddRef = ref<HTMLInputElement | null>(null)
@@ -457,7 +446,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
             <button class="btn btn-primary btn-sm" style="margin-top:0.6rem;" @click="salvarMissao">Salvar missão →</button>
           </div>
 
-          <!-- Foto: upload real (admin) -->
           <div v-if="editando" class="sobre-img-edit">
             <div v-if="missaoImagemEdit" class="sobre-img-preview">
               <img :src="missaoImagemEdit" alt="" class="sobre-img-preview-img">
@@ -543,7 +531,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
           </button>
         </div>
 
-        <!-- Formulário de adição de membro -->
         <div v-if="editando && mostraFormAdd" class="paper paper-mb add-form-box" style="margin-top:1rem;">
           <p class="secao-sep" style="margin-top:0;">Novo membro</p>
           <p style="font-size:0.82rem;color:var(--cinza);margin-bottom:1.2rem;line-height:1.6;">
@@ -646,7 +633,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
         </div>
       </div>
 
-      <!-- Modal: detalhes do membro -->
       <Modal v-if="membroModal" class="membro-modal-box" @close="fecharMembroModal">
         <div class="membro-modal-grid">
           <div class="membro-modal-foto-col">
@@ -681,7 +667,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
         </div>
       </Modal>
 
-      <!-- Modal: editar membro -->
       <Modal v-if="editForm" @close="cancelarEdicaoMembro">
         <p class="secao-sep" style="margin-top:0;">Editar membro</p>
         <div class="field">
@@ -756,7 +741,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
           </div>
         </div>
 
-        <!-- Formulário adição manual -->
         <div v-if="editando && mostraFormManual" class="hist-form">
           <div class="label-sm" style="margin-bottom:0.8rem;">Nova gestão anterior</div>
           <div class="field">
@@ -797,7 +781,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
           </div>
         </div>
 
-        <!-- Confirmação arquivar atual -->
         <div v-if="editando && confirmandoArquivar" class="hist-confirm">
           <p style="font-size:0.88rem;margin:0 0 0.8rem;">
             Salva um snapshot da gestão <strong>{{ gestaoInfo.nomeChapa || 'atual' }}</strong> no histórico público. Confirma?
@@ -839,7 +822,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
         </div>
       </div>
 
-      <!-- Seções customizadas -->
       <div v-for="(s, idx) in secoesCustom" :key="s.id" class="paper paper-mb-lg paper--meio">
         <template v-if="!editando || editandoSecaoId !== s.id">
           <div class="gestao-header">
@@ -887,7 +869,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
         </template>
       </div>
 
-      <!-- Adicionar seção customizada -->
       <div v-if="editando" class="paper paper-mb-lg paper--meio secao-add-box">
         <div v-if="!mostraFormSecao" style="text-align:center;">
           <button class="btn btn-outline btn-sm" @click="toggleFormSecao">+ Adicionar seção</button>
@@ -970,7 +951,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
 </template>
 
 <style scoped>
-/* ── Missão: texto + placeholder de imagem ────────────────── */
 .sobre-missao-grid {
   display: grid;
   grid-template-columns: 1.3fr 1fr;
@@ -1041,7 +1021,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
   .sobre-missao-grid { grid-template-columns: 1fr; text-align: center; }
 }
 
-/* ── Equipe: carrossel de tamanho fixo ─────────────────────── */
 .membro-carrossel-wrap {
   display: flex;
   align-items: center;
@@ -1133,7 +1112,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
 }
 .membro-modal-avatar .membro-inicial { font-size: 2.8rem; }
 
-/* ── Modal de membro: foto à esquerda, info à direita ─────── */
 .membro-modal-grid {
   display: grid;
   grid-template-columns: 150px 1fr;
@@ -1344,7 +1322,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
   margin: 0;
 }
 
-/* Gestões anteriores */
 .hist-lista { display: flex; flex-direction: column; gap: 0.5rem; }
 
 .hist-item {
@@ -1448,7 +1425,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
   margin: 1.2rem 0 0.8rem;
 }
 
-/* ── Contato: informações + mapa embed ────────────────────── */
 .sobre-contato-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1533,7 +1509,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
   .carrossel-nav-btn { display: none; }
 }
 
-/* ── Modo de edição (admin) ────────────────────────────────── */
 .sobre-topo {
   display: flex;
   align-items: center;
@@ -1766,7 +1741,6 @@ onBeforeUnmount(() => { mapaMini?.remove() })
   }
 }
 
-/* ── Seções customizadas ───────────────────────────────────── */
 .secao-admin-btns {
   display: flex;
   gap: 4px;

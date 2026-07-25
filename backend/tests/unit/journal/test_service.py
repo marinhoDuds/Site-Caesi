@@ -14,7 +14,7 @@ def mock_engine():
     conn = MagicMock()
     engine.connect.return_value.__enter__.return_value = conn
     
-    # Mocking LAST_INSERT_ID / last_insert_rowid
+    
     conn.execute.return_value.scalar.return_value = 1
     return engine
 
@@ -48,7 +48,7 @@ def test_create_post_mysql(mock_engine):
 def test_get_post(mock_engine):
     service = JournalService(mock_engine)
     with patch("src.service.journal_management.service.run_query") as mock_run_query:
-        # Mocking the return of run_query
+        
         mock_run_query.return_value = [(1, "Title", "aviso", date(2024, 1, 1), None, "Caption")]
         
         post = service.get_post(1)
@@ -92,7 +92,7 @@ def test_list_posts_with_filter(mock_engine):
 def test_update_post(mock_engine):
     service = JournalService(mock_engine)
     with patch.object(service, 'get_post') as mock_get_post:
-        # First call returns existing, second returns updated
+        
         mock_get_post.side_effect = [
             MagicMock(id=1, title="Old"),
             MagicMock(id=1, title="New Title")
@@ -114,7 +114,7 @@ def test_update_post_no_fields(mock_engine):
     service = JournalService(mock_engine)
     existing_mock = MagicMock(id=1, title="Old")
     with patch.object(service, 'get_post', return_value=existing_mock):
-        payload = PostUpdate()  # Empty payload
+        payload = PostUpdate()  
         updated = service.update_post(1, payload)
         assert updated == existing_mock
 

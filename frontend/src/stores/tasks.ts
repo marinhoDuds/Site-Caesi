@@ -61,7 +61,6 @@ function persistMembros(data: Membro[]) {
 export const tasks   = computed(() => _tasks.value)
 export const membros = computed(() => _membros.value)
 
-// ── Membros ───────────────────────────────────────────────
 
 export function addMembro(nome: string): Membro {
   const membro: Membro = {
@@ -85,7 +84,6 @@ export function getMembroByToken(token: string): Membro | null {
   return _membros.value.find(m => m.token === token) || null
 }
 
-// ── Tasks ─────────────────────────────────────────────────
 
 export function criarTask(dados: NovaTask): Task {
   const task: Task = {

@@ -85,7 +85,7 @@ class TicketService:
             )
             conn.commit()
 
-        # TODO: Send email notification to payload.email if provided
+        
 
         return TicketResponse(
             id=owner_id,
@@ -174,6 +174,6 @@ class TicketService:
             conn.execute(text(sql), params)
             conn.commit()
 
-        # TODO: Send email notification to ticket.email on update if not None
+        
 
         return self.get_ticket_by_protocol(protocol)

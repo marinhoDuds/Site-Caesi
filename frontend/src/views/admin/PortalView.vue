@@ -11,7 +11,6 @@ function formatValor(valor: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
 }
 
-// --------------- Formulário adicionar ---------------
 const mostrarForm = ref(false)
 const fileAddRef  = ref<HTMLInputElement | null>(null)
 const formAdd = reactive({ tipo: '', descricao: '', valor: '', anexoNome: '' })
@@ -58,7 +57,6 @@ function cancelarAdd() {
   mostrarForm.value = false
 }
 
-// --------------- Edição inline ---------------
 const editandoId  = ref<number | null>(null)
 const fileEditRef = ref<HTMLInputElement | null>(null)
 const formEdit = reactive({ tipo: '', descricao: '', valor: '', anexoNome: '' })
@@ -101,7 +99,6 @@ function salvarEdit(id: number) {
 
 function cancelarEdit() { editandoId.value = null }
 
-// --------------- Exclusão ---------------
 const confirmarDeleteId = ref<number | null>(null)
 function pedirDelete(id: number)  { confirmarDeleteId.value = id }
 function cancelarDelete() { confirmarDeleteId.value = null }
@@ -116,7 +113,6 @@ const tiposUsados = computed(() => {
   return [...set].sort()
 })
 
-// --------------- Busca ---------------
 const busca = ref('')
 const lista = computed(() => {
   const t = busca.value.toLowerCase()
@@ -144,7 +140,6 @@ const lista = computed(() => {
         </button>
       </div>
 
-      <!-- Formulário adicionar -->
       <div v-if="mostrarForm" class="paper" style="margin-bottom:1.2rem;">
         <div class="label-sm" style="margin-bottom:1rem;">Novo artefato</div>
 
@@ -179,22 +174,18 @@ const lista = computed(() => {
         </div>
       </div>
 
-      <!-- Busca -->
       <div class="mural-search-row">
         <input v-model="busca" type="search" class="mural-search" placeholder="Buscar artefatos…">
         <span class="mural-count">{{ artefatos.length }} artefato{{ artefatos.length === 1 ? '' : 's' }}</span>
       </div>
 
-      <!-- Lista vazia -->
       <EmptyState
         v-if="lista.length === 0"
         :title="artefatos.length === 0 ? 'Nenhum artefato cadastrado ainda.' : 'Nenhum artefato encontrado.'"
       />
 
-      <!-- Cards -->
       <div v-for="a in lista" :key="a.id" class="pub-card">
 
-        <!-- Sumário -->
         <template v-if="editandoId !== a.id">
           <div class="pub-card-top">
             <span v-if="a.tipo" class="pub-tipo">{{ a.tipo }}</span>
@@ -225,7 +216,6 @@ const lista = computed(() => {
           </div>
         </template>
 
-        <!-- Inline edit -->
         <template v-else>
           <div class="label-sm" style="margin-bottom:0.8rem;">Editando artefato</div>
 

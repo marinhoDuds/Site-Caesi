@@ -175,12 +175,10 @@ const donutOptions = {
         <h2>Painel <span>Geral</span></h2>
       </div>
 
-      <!-- ── Atendimento: canais de contato com o estudante ───── -->
       <div class="painel-secao">
         <p class="painel-secao-titulo">Atendimento</p>
         <div class="painel-bento" :class="inscricoes.length > 0 ? 'painel-bento--3' : 'painel-bento--2'">
 
-          <!-- Ouvidoria -->
           <div class="paper paper-sm bento-tile bento-tile--roxo">
             <div class="bento-header">
               <span class="bento-icon bento-icon--roxo" v-html="inboxIcon"></span>
@@ -218,7 +216,6 @@ const donutOptions = {
             <RouterLink to="/admin/ouvidoria" class="bento-link">Ver painel →</RouterLink>
           </div>
 
-          <!-- Formulários -->
           <div class="paper paper-sm bento-tile bento-tile--verde">
             <div class="bento-header">
               <span class="bento-icon bento-icon--verde" v-html="clipboardIcon"></span>
@@ -264,7 +261,6 @@ const donutOptions = {
             <RouterLink to="/admin/formularios" class="bento-link">Ver formulários →</RouterLink>
           </div>
 
-          <!-- Inscrições por status (só aparece quando há dado real) -->
           <div v-if="inscricoes.length > 0" class="paper paper-sm bento-tile bento-tile--kraft">
             <p class="label-sm" style="margin-bottom:0.9rem;">Inscrições por status</p>
             <div class="painel-chart-wrap">
@@ -275,12 +271,10 @@ const donutOptions = {
         </div>
       </div>
 
-      <!-- ── Conteúdo do site: módulos públicos ───────────────── -->
       <div class="painel-secao">
         <p class="painel-secao-titulo">Conteúdo do site</p>
         <div class="painel-bento painel-bento--4">
 
-          <!-- Informações -->
           <div class="paper paper-sm bento-tile bento-tile--roxo-escuro">
             <div class="bento-header">
               <span class="bento-icon bento-icon--roxo-escuro" v-html="bookOpenIcon"></span>
@@ -312,7 +306,6 @@ const donutOptions = {
             <RouterLink to="/admin/portal" class="bento-link">Ver Portal →</RouterLink>
           </div>
 
-          <!-- Mural -->
           <div class="paper paper-sm bento-tile bento-tile--verde">
             <div class="bento-header">
               <span class="bento-icon bento-icon--verde" v-html="bellIcon"></span>
@@ -325,7 +318,6 @@ const donutOptions = {
             <RouterLink to="/mural" class="bento-link">Ver mural →</RouterLink>
           </div>
 
-          <!-- Calendário -->
           <div class="paper paper-sm bento-tile bento-tile--roxo">
             <div class="bento-header">
               <span class="bento-icon bento-icon--roxo" v-html="calendarIcon"></span>
@@ -340,7 +332,6 @@ const donutOptions = {
             <RouterLink to="/#calendario" class="bento-link">Ver calendário →</RouterLink>
           </div>
 
-          <!-- Mapa -->
           <div class="paper paper-sm bento-tile bento-tile--amarelo">
             <div class="bento-header">
               <span class="bento-icon bento-icon--amarelo" v-html="mapPinIcon"></span>
@@ -356,12 +347,10 @@ const donutOptions = {
         </div>
       </div>
 
-      <!-- ── Gestão interna: organização do próprio CAESI ─────── -->
       <div class="painel-secao">
         <p class="painel-secao-titulo">Gestão interna</p>
         <div class="painel-bento painel-bento--2">
 
-          <!-- Tasks -->
           <div class="paper paper-sm bento-tile bento-tile--amarelo">
             <div class="bento-header">
               <span class="bento-icon bento-icon--amarelo" v-html="checkCircleIcon"></span>
@@ -391,7 +380,6 @@ const donutOptions = {
             <RouterLink to="/admin/tasks" class="bento-link">Ver tasks →</RouterLink>
           </div>
 
-          <!-- Equipe -->
           <div class="paper paper-sm bento-tile bento-tile--vermelho">
             <div class="bento-header">
               <span class="bento-icon bento-icon--vermelho" v-html="usersIcon"></span>

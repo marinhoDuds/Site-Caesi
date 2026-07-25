@@ -25,7 +25,6 @@ const _list = ref<Publicacao[]>([])
 
 export const publicacoes = computed(() => _list.value)
 
-// Mapper: Backend PostResponse -> Frontend Publicacao
 function mapBackendToFrontend(post: any): Publicacao {
   return {
     id: post.id,

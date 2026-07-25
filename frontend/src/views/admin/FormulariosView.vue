@@ -48,7 +48,6 @@ function formatData(data: string | null | undefined) {
   return `${dia}/${mes}/${ano}`
 }
 
-// ── Criação de formulário ────────────────────────────────
 interface CampoRascunho {
   _id: number
   label: string
@@ -189,7 +188,6 @@ function submitNovoForm() {
         </div>
       </div>
 
-      <!-- Painel de criação -->
       <div v-if="showNovoForm" class="paper paper-mb-lg">
         <h3 class="paper-subtitle">Criar formulário</h3>
 
@@ -269,7 +267,6 @@ function submitNovoForm() {
 
           <hr class="divider">
 
-          <!-- Campos dinâmicos -->
           <div class="campos-section-header">
             <p class="label-sm">Campos do formulário</p>
             <button type="button" class="btn btn-outline btn-sm" @click="addCampo">+ Adicionar campo</button>
@@ -319,7 +316,6 @@ function submitNovoForm() {
         </form>
       </div>
 
-      <!-- Busca + filtros -->
       <div class="filter-bar" role="group" aria-label="Filtrar formulários">
         <input v-model="busca" type="search" placeholder="Buscar por título ou descrição…">
         <button class="filter-btn" :class="{ active: filtro === 'todos' }"     :aria-pressed="filtro === 'todos'"     @click="filtro = 'todos'">Todos</button>
@@ -327,7 +323,6 @@ function submitNovoForm() {
         <button class="filter-btn" :class="{ active: filtro === 'encerrado' }" :aria-pressed="filtro === 'encerrado'" @click="filtro = 'encerrado'">Encerrados</button>
       </div>
 
-      <!-- Lista de formulários -->
       <RouterLink
         v-for="f in formulariosFiltrados"
         :key="f.id"

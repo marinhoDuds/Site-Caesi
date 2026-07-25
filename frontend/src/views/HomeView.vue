@@ -12,7 +12,6 @@ import clipboardIcon from '../assets/icons/clipboard.svg?raw'
 import usersIcon from '../assets/icons/users.svg?raw'
 import mailIcon from '../assets/icons/mail.svg?raw'
 
-// ── Carrossel do Instagram (setas + arraste no clique) ───────
 import { ref } from 'vue'
 const instaScrollEl = ref<HTMLElement | null>(null)
 const instaDragging = ref(false)
@@ -27,7 +26,6 @@ function instaScrollBy(dir: number) {
   const passo = card ? card.offsetWidth + 16 : 260
   const maxScroll = el.scrollWidth - el.clientWidth
 
-  // Carrossel cíclico: no fim, "próximo" volta pro início (e vice-versa).
   if (dir > 0 && el.scrollLeft >= maxScroll - 20) {
     el.scrollTo({ left: 0, behavior: 'smooth' })
     return
@@ -77,7 +75,6 @@ const posts = [
 
     <Navbar />
 
-    <!-- Introdução -->
     <section class="home-hero-full">
       <div class="hero">
         <div class="hero-brand">
@@ -117,7 +114,6 @@ const posts = [
       </div>
     </section>
 
-    <!-- Explore o site -->
     <section class="home-section">
       <div class="section-label">Explore o site</div>
       <h2 class="section-title">Tudo o que o <span>CAESI</span> oferece</h2>
@@ -197,12 +193,10 @@ const posts = [
       </div>
     </section>
 
-    <!-- Calendário -->
     <div id="calendario" style="scroll-margin-top: 80px;">
       <CalendarioSecao />
     </div>
 
-    <!-- Contato -->
     <section class="home-section" id="contato" style="scroll-margin-top: 80px;">
       <div class="section-label">Contato</div>
       <h2 class="section-title" style="margin-bottom:0.6rem;">Fale com o <span>CAESI</span></h2>
@@ -241,7 +235,6 @@ const posts = [
       </div>
     </section>
 
-    <!-- Instagram -->
     <section class="home-section" id="instagram" style="scroll-margin-top: 80px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2rem;flex-wrap:wrap;gap:12px;">
         <div>
@@ -375,7 +368,6 @@ const posts = [
   .hero-kicker { font-size: 0.68rem; letter-spacing: 0.1em; }
 }
 
-/* ── Explore o site ───────────────────────────────────────── */
 .explore-list {
   display: flex;
   flex-direction: column;
@@ -459,7 +451,6 @@ const posts = [
   .explore-desc { font-size: 0.8rem; }
 }
 
-/* ── Contato ──────────────────────────────────────────────── */
 .contato-sub {
   font-size: 0.95rem;
   color: rgba(242,230,196,0.8);

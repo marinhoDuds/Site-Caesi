@@ -52,7 +52,6 @@ onBeforeUnmount(() => {
       <div class="section-label">Documentação oficial</div>
       <h1 class="section-title">Estatuto do <span>CAESI</span></h1>
 
-      <!-- Meta -->
       <div class="paper paper-mb-lg est-meta">
         <div>
           <div class="label-sm">Entidade</div>
@@ -69,7 +68,6 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <!-- ─── TÍTULO I ──────────────────────────────────────────── -->
       <section class="est-titulo paper paper-mb-lg" id="titulo-1">
         <div class="est-titulo-header">
           <div>
@@ -129,7 +127,6 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
-      <!-- ─── TÍTULO II ─────────────────────────────────────────── -->
       <section class="est-titulo paper paper-mb-lg" id="titulo-2">
         <div class="est-titulo-header">
           <div>
@@ -180,7 +177,6 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
-      <!-- ─── TÍTULO III ────────────────────────────────────────── -->
       <section class="est-titulo paper paper-mb-lg" id="titulo-3">
         <div class="est-titulo-header">
           <div>
@@ -335,7 +331,6 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
-      <!-- ─── TÍTULO IV ─────────────────────────────────────────── -->
       <section class="est-titulo paper paper-mb-lg" id="titulo-4">
         <div class="est-titulo-header">
           <div>
@@ -398,7 +393,6 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
-      <!-- ─── TÍTULO V ──────────────────────────────────────────── -->
       <section class="est-titulo paper paper-mb-lg" id="titulo-5">
         <div class="est-titulo-header">
           <div>
@@ -452,7 +446,6 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
-      <!-- ─── TÍTULO VI ─────────────────────────────────────────── -->
       <section class="est-titulo paper paper-mb-lg" id="titulo-6">
         <div class="est-titulo-header">
           <div>
@@ -545,7 +538,6 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
-      <!-- ─── TÍTULO VII ────────────────────────────────────────── -->
       <section class="est-titulo paper paper-mb-lg" id="titulo-7">
         <div class="est-titulo-header">
           <div>
@@ -579,7 +571,6 @@ onBeforeUnmount(() => {
 
     </div>
 
-    <!-- Sumário flutuante -->
     <nav class="toc-sidebar" :class="{ 'toc-sidebar--fechado': !tocAberto }" aria-label="Sumário">
       <button class="toc-sidebar-title" @click="tocAberto = !tocAberto" :aria-expanded="tocAberto">
         Sumário
@@ -605,7 +596,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* ── Meta ────────────────────────────────────────────────── */
 .est-meta {
   display: flex;
   flex-wrap: wrap;
@@ -618,7 +608,6 @@ onBeforeUnmount(() => {
   margin-top: 4px;
 }
 
-/* ── Título ──────────────────────────────────────────────── */
 .est-titulo {
   scroll-margin-top: 5rem;
 }
@@ -663,14 +652,12 @@ onBeforeUnmount(() => {
   letter-spacing: -0.02em;
 }
 
-/* ── Seções de Capítulo ──────────────────────────────────── */
 .est-cap-section + .est-cap-section {
   border-top: 1.5px solid var(--creme-escuro);
   margin-top: 1.8rem;
   padding-top: 1.8rem;
 }
 
-/* ── Capítulo / Seção ────────────────────────────────────── */
 .est-cap {
   font-family: 'Archivo Black', sans-serif;
   font-weight: 700;
@@ -692,7 +679,6 @@ onBeforeUnmount(() => {
   border-left: 3px solid var(--roxo);
 }
 
-/* ── Artigos ─────────────────────────────────────────────── */
 .art {
   margin-bottom: 1.1rem;
 }
@@ -712,7 +698,6 @@ onBeforeUnmount(() => {
   border-left: 2px solid rgba(80, 64, 160, 0.2);
 }
 
-/* ── Listas ──────────────────────────────────────────────── */
 .incisos {
   margin: 0.6rem 0 0;
   padding-left: 2rem;
@@ -731,7 +716,6 @@ onBeforeUnmount(() => {
 }
 .incisos-ul li { margin-bottom: 0.3rem; }
 
-/* ── Tabela ──────────────────────────────────────────────── */
 .est-table-wrap { overflow-x: auto; margin-top: 0.8rem; }
 .est-table {
   width: 100%;
@@ -757,13 +741,11 @@ onBeforeUnmount(() => {
 .est-table tbody tr:last-child td { border-bottom: none; }
 .est-table tbody tr:hover td { background: rgba(80, 64, 160, 0.05); }
 
-/* ── Mobile ──────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .est-titulo-header { margin: -1.2rem -1.2rem 1.4rem; padding: 1rem 1.2rem; }
   .est-titulo-deco { font-size: 2.8rem; }
 }
 
-/* ── TOC Sidebar flutuante ───────────────────────────────── */
 .toc-sidebar {
   display: none;
 }

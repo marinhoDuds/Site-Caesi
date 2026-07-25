@@ -3,7 +3,7 @@ from src.service.informations_management.service import InformationService
 
 @pytest.fixture
 def service():
-    # Mock engine as a simple string or object for testing
+    
     return InformationService(engine="mock_engine")
 
 def test_create_and_get_information(service, monkeypatch):

@@ -104,7 +104,7 @@ def test_update_ticket_not_found():
 
     assert response.status_code == 404
 
-# Admin routes
+
 def test_admin_list_tickets():
     mock_service.list_tickets.return_value = [_make_ticket()]
 

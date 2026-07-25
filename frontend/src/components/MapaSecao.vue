@@ -42,11 +42,9 @@ const mapaMarkers = new Map<number, L.Marker>()
 
 const buscaMapa = ref('')
 
-// ── Público: modal de visualização (não-admin) ───────────
 const estruturaModal = ref<Estrutura | null>(null)
 const imagemAtivaIdx = ref(0)
 
-// ── Admin: painel lateral de edição (substitui modal) ────
 const selecionadoId = ref<number | null>(null) // id da estrutura em edição no painel lateral
 const pendingPoint  = ref<PendingPoint | null>(null) // ponto vazio clicado, aguardando "Nova estrutura"
 const estruturaEditForm = ref<EstruturaFormRascunho>({ nome: '', descricao: '', imagens: [] })
@@ -84,7 +82,6 @@ function abrirEstrutura(e: Estrutura) {
 
 function fecharModal() { estruturaModal.value = null }
 
-// ── Admin: painel lateral — editar/excluir estrutura ─────
 function cancelarSelecao() {
   selecionadoId.value = null
   pendingPoint.value = null
@@ -109,7 +106,6 @@ function excluirEstrutura() {
   cancelarSelecao()
 }
 
-// ── Admin: painel lateral — criar estrutura clicando num ponto vazio ──
 function salvarNovaEstrutura() {
   if (!pendingPoint.value) return
   if (!novaEstruturaForm.value.nome.trim()) { showToast('Informe o nome da estrutura.', 'error'); return }
@@ -122,7 +118,6 @@ function salvarNovaEstrutura() {
   })
   showToast('Estrutura adicionada ao mapa.', 'success')
   pendingPoint.value = null
-  // Segue direto pro modo de edição da estrutura recém-criada.
   if (nova?.id) abrirEstrutura(nova)
 }
 
@@ -165,16 +160,12 @@ onMounted(() => {
     })
   }
 
-  // Vindo de um link "Ver localização" (Professores/Laboratórios): abre a modal direto.
   const estruturaId = Number(route.query.estrutura)
   if (estruturaId) {
     const alvo = estruturas.value.find(e => e.id === estruturaId)
     if (alvo) abrirEstrutura(alvo)
   }
 
-  // O container tem altura definida via aspect-ratio (CSS), que só se resolve
-  // depois do primeiro layout — sem isso o Leaflet mede um tamanho errado e os
-  // tiles ficam desalinhados/vazando do próprio container.
   requestAnimationFrame(() => mapa?.invalidateSize())
   resizeObserver = new ResizeObserver(() => mapa?.invalidateSize())
   resizeObserver.observe(mapaEl.value)
@@ -191,7 +182,6 @@ onBeforeUnmount(() => {
   mapa?.remove()
 })
 
-// ── Modal público: fechar com Esc e travar o scroll enquanto estiver aberto ──
 useEscapeKey(() => { fecharModal(); cancelarSelecao() })
 
 const algumModalAberto = computed(() => !!estruturaModal.value)
@@ -236,7 +226,6 @@ onBeforeUnmount(() => { document.body.style.overflow = '' })
       </div>
 
       <div class="paper mapa-lista-paper">
-        <!-- Admin: form de nova estrutura (clicou num ponto vazio) -->
         <template v-if="isAdmin && pendingPoint">
           <p class="label-sm" style="margin-bottom:0.9rem;">Nova estrutura</p>
           <div class="field">
@@ -257,7 +246,6 @@ onBeforeUnmount(() => { document.body.style.overflow = '' })
           </div>
         </template>
 
-        <!-- Admin: form de edição da estrutura selecionada -->
         <template v-else-if="isAdmin && estruturaSelecionada">
           <p class="label-sm" style="margin-bottom:0.9rem;">Editar estrutura</p>
           <div class="field">
@@ -279,7 +267,6 @@ onBeforeUnmount(() => { document.body.style.overflow = '' })
           </div>
         </template>
 
-        <!-- Lista de estruturas -->
         <template v-else>
           <p class="label-sm" style="margin-bottom:0.6rem;">Estruturas ({{ estruturas.length }})</p>
           <div class="mapa-lista">
@@ -304,7 +291,6 @@ onBeforeUnmount(() => { document.body.style.overflow = '' })
     </div>
   </section>
 
-  <!-- Modal: detalhe da estrutura (público — admin edita no painel lateral) -->
   <Modal v-if="estruturaModal" title-id="modal-estrutura-title" @close="fecharModal">
     <div class="modal-title" id="modal-estrutura-title">{{ estruturaModal.nome }}</div>
     <div class="modal-body">
@@ -334,7 +320,6 @@ onBeforeUnmount(() => { document.body.style.overflow = '' })
 </template>
 
 <style scoped>
-/* painel lateral é estreito — thumbnails menores que o padrão de GaleriaImagens */
 .mapa-galeria-compacta :deep(.img-thumb) {
   width: 74px;
   height: 50px;

@@ -92,7 +92,7 @@ class JournalService:
         if post_type:
             query = query.where(post_table.post_type == post_type)
             
-        # Order by created_at descending by default (most recent first)
+        
         query = query.orderby(post_table.created_at, order=Order.desc)
         
         result = run_query(self.engine, query)
@@ -140,7 +140,7 @@ class JournalService:
             
         with self.engine.connect() as conn:
             conn.execute(text("DELETE FROM post WHERE id = :id"), {"id": post_id})
-            # Also delete from attachment_owner
+            
             conn.execute(text("DELETE FROM attachment_owner WHERE id = :id"), {"id": post_id})
             conn.commit()
             

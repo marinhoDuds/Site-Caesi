@@ -135,7 +135,6 @@ export async function removeEvento(id: number) {
   }
 }
 
-// These functions will do nothing for now since we removed local storage
 export function upsertEventoFormulario(formularioId: number, { nome, data, descricao }: DadosEventoFormulario) {
   console.warn("upsertEventoFormulario not supported with new backend integration yet.")
 }

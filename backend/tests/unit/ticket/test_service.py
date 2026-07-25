@@ -38,7 +38,7 @@ def test_create_ticket(mock_engine):
 
 
 def test_create_ticket_mysql(mock_engine):
-    # Change dialect to mysql
+    
     mock_engine.dialect.name = "mysql"
     service = TicketService(mock_engine)
     payload = TicketCreate(
@@ -63,7 +63,7 @@ def test_get_ticket_by_protocol(mock_engine):
         assert ticket is not None
         assert ticket.protocol == "PROT123"
 
-        # Not found
+        
         mock_run_query.return_value = []
         ticket_not_found = service.get_ticket_by_protocol("UNKNOWN")
         assert ticket_not_found is None
@@ -79,7 +79,7 @@ def test_list_tickets(mock_engine):
         assert len(tickets) == 1
         assert tickets[0].protocol == "PROT123"
 
-        # List with filter
+        
         tickets_filtered = service.list_tickets(ticket_type=TicketType.infrastructure)
         assert len(tickets_filtered) == 1
 
@@ -97,11 +97,11 @@ def test_update_ticket(mock_engine):
         assert ticket is not None
         assert ticket.content == "New content"
         
-        # update non-existent
+        
         mock_get.return_value = None
         assert service.update_ticket("UNKNOWN", payload) is None
         
-        # update with no changes (empty updates dict)
+        
         mock_get.return_value = TicketResponse(
             id=1, public_id="pub123", protocol="PROT123", semester="2025", 
             content="New content", ticket_type=TicketType.classmates,

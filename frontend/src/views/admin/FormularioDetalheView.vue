@@ -162,7 +162,6 @@ function avancarStatus(inscricaoId: number, statusAtual: StatusComprovante) {
   showToast(proximo === 'validado' ? 'Comprovante validado.' : 'Comprovante arquivado.', proximo === 'validado' ? 'success' : 'info')
 }
 
-// ── Editar ───────────────────────────────────────────────
 const editando    = ref(false)
 const editSalvo   = ref(false)
 const editErrors  = ref<Record<string, boolean>>({})
@@ -211,7 +210,6 @@ function salvarEdicao() {
   setTimeout(() => { editSalvo.value = false }, 2500)
 }
 
-// ── Cancelamento de inscrição (admin) ────────────────────
 interface ModalCancelamento {
   inscricao: Inscricao
   acao: 'aprovar' | 'recusar'
@@ -241,7 +239,6 @@ function confirmarModalCancelamento() {
   msgCancelamento.value = ''
 }
 
-// ── Encerrar / reabrir ───────────────────────────────────
 function encerrarFormulario() {
   updateFormulario(id, { status: 'encerrado' })
 }
@@ -250,7 +247,6 @@ function reabrirFormulario() {
   updateFormulario(id, { status: 'aberto' })
 }
 
-// ── Excluir ──────────────────────────────────────────────
 function excluirFormulario() {
   if (confirm('Tem certeza que deseja excluir este formulário? Todas as inscrições serão removidas permanentemente.')) {
     deleteFormulario(id)
@@ -269,7 +265,6 @@ function excluirFormulario() {
     <div class="page-content">
       <BackLink to="/admin/formularios" label="Voltar aos formulários" />
 
-      <!-- Cabeçalho do formulário -->
       <div class="paper paper-mb">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1rem;">
           <span class="tipo-tag" :class="`tipo-${formulario.tipo}`">{{ TIPO_LABEL[formulario.tipo] }}</span>
@@ -302,7 +297,6 @@ function excluirFormulario() {
         </div>
       </div>
 
-      <!-- Stats -->
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-number">
@@ -332,7 +326,6 @@ function excluirFormulario() {
         </div>
       </div>
 
-      <!-- Formulário de edição -->
       <div v-if="editando" class="paper paper-mb">
         <h3 class="paper-subtitle">Editar informações</h3>
         <form @submit.prevent="salvarEdicao" novalidate>
@@ -374,7 +367,6 @@ function excluirFormulario() {
         </form>
       </div>
 
-      <!-- Ações do formulário -->
       <div class="paper paper-mb" :class="{ 'paper--meio': editando }">
         <h3 class="paper-subtitle">Ações</h3>
 
@@ -385,7 +377,6 @@ function excluirFormulario() {
           </div>
         </div>
 
-        <!-- Emitir certificados (somente evento-com-certificado) -->
         <template v-if="formulario.tipo === 'evento-com-certificado'">
           <hr class="divider">
           <p class="label-sm" style="margin-bottom:0.6rem;">Certificados</p>
@@ -432,7 +423,6 @@ function excluirFormulario() {
         </div>
       </div>
 
-      <!-- Lista de inscrições -->
       <div class="paper paper--fim">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
           <p class="label-sm" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -511,7 +501,6 @@ function excluirFormulario() {
     </div>
   </div>
 
-  <!-- Modal: cancelamento de inscrição -->
   <Modal v-if="modalCancelamento" title-id="modal-admin-cancel-title" @close="modalCancelamento = null">
     <div class="modal-title" id="modal-admin-cancel-title">
       {{ modalCancelamento.acao === 'aprovar' ? 'Aprovar cancelamento' : 'Recusar solicitação' }}

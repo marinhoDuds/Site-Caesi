@@ -115,7 +115,6 @@ let proximoIdProjetil = 1
 
 const LIMIARES_CHEFE = [300, 750, 1000]
 
-// chefes 1 e 2 vem sozinhos (encontros solo); o chefe 3 é uma dupla (ver iniciarBatalhaChefe)
 const chefesAtivos = ref<Chefe[]>([]) // 1 item nos encontros solo, 2 no encontro final
 const chefesDerrotados = ref(0) // conta ENCONTROS completos (0-3), não entidades individuais derrotadas
 const proximoLimiarChefe = ref(LIMIARES_CHEFE[0])
@@ -147,7 +146,6 @@ const MENSAGENS_GAME_OVER = [
   'Tentou enrolar Eanes por ponto e olha no que deu',
 ]
 
-// sorteia sem repetir a mesma mensagem duas vezes seguidas (cada lista tem seu próprio "último sorteado")
 function criarSorteador(lista: string[]) {
   let ultimoIndice = -1
   return () => {
@@ -168,7 +166,6 @@ const score = ref(0)
 const recorde = ref(Number(localStorage.getItem('caesi_cobrinha_recorde') || 0))
 const estado = ref<EstadoJogo>('jogando')
 
-// recorde atualiza ao vivo (não só no fim de jogo) e avisa uma vez por partida quando é superado
 let avisouNovoRecordeNestaPartida = false
 watch(score, (novoScore) => {
   if (novoScore <= recorde.value) return
@@ -190,7 +187,6 @@ let velocidade = 130
 let comidasComidas = 0
 const invulneravelInimigos = ref(0)
 
-// feedback visual rápido (shake + flash) pra dar impacto sem pesar no loop de lógica
 const efeitoTela = ref<'acerto' | 'dano' | null>(null)
 let efeitoTelaTimeout: ReturnType<typeof setTimeout>
 function dispararEfeitoTela(tipo: 'acerto' | 'dano', duracao: number) {
@@ -222,9 +218,6 @@ function pertoDoCentro(x: number, y: number) {
   return Math.abs(x - CENTRO_X) <= 4 && Math.abs(y - CENTRO_Y) <= 3
 }
 
-// zona de segurança ao redor da cabeça, mais uma faixa estendida bem à frente
-// na direção em que a cobra está indo — senão spawna algo "na cara" de quem
-// tá indo reto sem dar tempo nenhum de reagir
 function pertoDaCobra(x: number, y: number) {
   const cabeca = cobra.value[0]
   if (Math.abs(x - cabeca.x) <= 5 && Math.abs(y - cabeca.y) <= 4) return true
@@ -261,8 +254,6 @@ function gerarObstaculos(qtd: number, evitarCentro = false, evitarCobra = false)
   return novos
 }
 
-// tipos de inimigo comum liberados conforme os chefes vão caindo:
-// fase 1 (nenhum chefe derrotado) = só patrulha; fase 2 = +rápido; fase 3 = +atirador
 function tiposInimigoDisponiveis(): TipoInimigo[] {
   const tipos: TipoInimigo[] = ['patrulha']
   if (chefesDerrotados.value >= 1) tipos.push('rapido')
@@ -337,7 +328,6 @@ function moverInimigo(inimigo: Inimigo) {
   for (let i = 0; i < vezes; i++) moverPasso(inimigo)
 }
 
-// ── Chefes (a cada X pontos, mapa limpo + miniboss) ────────
 function gerarCaminhoPerimetro(): Posicao[] {
   const minX = 1, maxX = COLS - 3
   const minY = 1, maxY = ROWS - 3
@@ -354,10 +344,8 @@ const ATAQUE_CHEFE_COOLDOWN = 9
 function criarChefe(tipo: TipoChefe): Chefe {
   const base = { tipo, vidas: VIDAS_POR_TIPO[tipo], atordoado: 0, ataqueCooldown: ATAQUE_CHEFE_COOLDOWN, cooldownBase: ATAQUE_CHEFE_COOLDOWN }
   if (tipo === 'perseguidor' || tipo === 'agil') {
-    // agil é a variante rápida (chefe final): mesma perseguição, 2 passos por tick
     return { ...base, x: COLS - 3, y: tipo === 'agil' ? 2 : ROWS - 3, passosPorTick: tipo === 'agil' ? 2 : 1 }
   }
-  // fantasma e pesado patrulham o perímetro; pesado começa do lado oposto e anda de 2 em 2 ticks (lento)
   const caminho = gerarCaminhoPerimetro()
   const indiceCaminho = tipo === 'pesado' ? Math.floor(caminho.length / 2) : 0
   const inicio = caminho[indiceCaminho]
@@ -370,14 +358,12 @@ function empurrarChefe(chefe: Chefe) {
   chefe.y = Math.min(Math.max(chefe.y + direcao.value.y * distancia, 0), ROWS - 2)
 }
 
-// buff de "poder transferido": quando um dos dois chefes do encontro final morre primeiro, o outro fica mais forte
 function aplicarBuffChefe(chefe: Chefe) {
   chefe.buffado = true
   chefe.cooldownBase = Math.max(4, chefe.cooldownBase - 3)
   if (chefe.passosPorTick) chefe.passosPorTick += 1
 }
 
-// só o corpo conta como obstáculo pro chefe (a cabeça precisa continuar alcançável, é o alvo)
 function corpoOcupaCelula(x: number, y: number) {
   return cobra.value.some((seg, idx) => idx > 0 && seg.x === x && seg.y === y)
 }
@@ -386,7 +372,6 @@ function chefeColidiriaComCorpo(x: number, y: number) {
   return corpoOcupaCelula(x, y) || corpoOcupaCelula(x + 1, y) || corpoOcupaCelula(x, y + 1) || corpoOcupaCelula(x + 1, y + 1)
 }
 
-// no encontro final os dois chefes não podem se sobrepor
 function chefeColidiriaComOutroChefe(chefeAtual: Chefe, x: number, y: number) {
   const candidatas = [{ x, y }, { x: x + 1, y }, { x, y: y + 1 }, { x: x + 1, y: y + 1 }]
   return chefesAtivos.value.some(outro => {
@@ -430,7 +415,6 @@ function moverChefePasso(chefe: Chefe) {
 
 function moverChefe(chefe: Chefe) {
   if (chefe.tipo === 'pesado') {
-    // pesado anda só a cada 2 ticks — a menos que tenha herdado o poder do outro chefe (buffado)
     chefe.contadorLento! += 1
     if (!chefe.buffado && chefe.contadorLento! % 2 !== 0) return
     moverChefePasso(chefe)
@@ -443,7 +427,6 @@ function moverChefe(chefe: Chefe) {
 function atirarChefe(chefe: Chefe) {
   atirar(chefe)
   if (chefe.tipo !== 'pesado') return
-  // pesado varre uma segunda direção perpendicular, pra cobrir mais área do que um tiro só
   const cabeca = cobra.value[0]
   const dx = cabeca.x - chefe.x
   const dy = cabeca.y - chefe.y
@@ -464,9 +447,6 @@ function celulasChefe(chefe: Chefe): Posicao[] {
 
 const ALCANCE_SEGURO_ATAQUE = 3
 
-// jogador tá na mesma linha/coluna que o chefe, na direção em que está andando, e perto —
-// ou seja, indo pro bote de verdade. Só nesse caso o chefe segura o tiro; se o jogador só
-// tá passando perto (linha/coluna diferente), o chefe continua atirando normalmente.
 function chefeNaMiraDeAtaque(chefe: Chefe) {
   const cabeca = cobra.value[0]
   const dir = direcao.value
@@ -482,7 +462,6 @@ function iniciarBatalhaChefe() {
   inimigos.value = []
   projeteis.value = []
   if (chefesDerrotados.value === 2) {
-    // chefe final: os dois de uma vez
     chefesAtivos.value = [criarChefe('agil'), criarChefe('pesado')]
     showToast('Chefe final! Dois de uma vez — acerte a cabeça em qualquer um.', 'info')
   } else {
@@ -492,7 +471,6 @@ function iniciarBatalhaChefe() {
   gerarObstaculos(6, false, true)
 }
 
-// ── Transição pra boss fight: cobra encolhe, tela fecha em círculo (iris wipe), troca o cenário, reabre ──
 const TAMANHO_COBRA_CHEFE = 3
 const TRANSICAO_DURACAO = 400
 const transicaoFase = ref<'fechando' | 'abrindo' | null>(null)
@@ -583,7 +561,6 @@ function reiniciar() {
 }
 
 function continuarInfinito() {
-  // os 3 chefes já foram derrotados (chefesDerrotados fica em 3) — só retoma o loop, sem mais chefes pela frente
   estado.value = 'jogando'
 }
 
@@ -629,7 +606,6 @@ function tick() {
       let acertouChefe = celulasChefe(chefe).some(c => c.x === novaCabeca.x && c.y === novaCabeca.y)
       if (!acertouChefe) {
         moverChefe(chefe)
-        // checa de novo: o chefe pode ter atravessado pra cima da cabeça nova ao se mover
         acertouChefe = celulasChefe(chefe).some(c => c.x === novaCabeca.x && c.y === novaCabeca.y)
       }
       if (!acertouChefe) continue
@@ -642,7 +618,6 @@ function tick() {
         chefesAtivos.value = chefesAtivos.value.filter(c => c !== chefe)
         score.value += 50
         if (chefesAtivos.value.length > 0) {
-          // era o encontro final (dupla): o sobrevivente herda o poder do que caiu
           showToast(`${NOMES_CHEFE[chefe.tipo]} caiu! ${NOMES_CHEFE[chefesAtivos.value[0].tipo]} ficou mais forte!`, 'success')
           aplicarBuffChefe(chefesAtivos.value[0])
           break
@@ -661,7 +636,6 @@ function tick() {
         gerarInimigo(false, true)
         gerarInimigo(false, true)
         invulneravelInimigos.value = 15
-        // volta só até a metade do tamanho de antes da luta, não o tamanho cheio — mantém algum risco depois do chefe
         const alvoRegrow = Math.max(TAMANHO_COBRA_CHEFE, Math.ceil(tamanhoAntesDoChefe / 2))
         crescimentoPendente += Math.max(0, alvoRegrow - cobra.value.length)
       } else {
@@ -691,7 +665,6 @@ function tick() {
 
   inimigos.value.forEach(moverInimigo)
 
-  // checa de novo: um sobrevivente pode ter atravessado pra cima da cabeça nova ao se mover
   totalInimigosAntes = inimigos.value.length
   inimigos.value = inimigos.value.filter(i => !(i.x === novaCabeca.x && i.y === novaCabeca.y))
   eliminouInimigo = eliminouInimigo || inimigos.value.length < totalInimigosAntes
@@ -710,7 +683,6 @@ function tick() {
   const comeu = novaCabeca.x === comida.x && novaCabeca.y === comida.y
   cobra.value = [novaCabeca, ...cobra.value]
   if (!comeu && crescimentoPendente > 0) {
-    // recuperando o tamanho perdido na luta contra o chefe: cresce 1 segmento por movimento em vez de encolher
     crescimentoPendente -= 1
   } else if (!comeu) {
     cobra.value.pop()
@@ -743,7 +715,6 @@ function tick() {
 
 function onKeydown(e: KeyboardEvent) {
   if (modalBoasVindas.value || modalConfirmarSaida.value) return
-  // "vencido" tem 3 destinos diferentes (continuar/reiniciar/sair) — sem atalho de teclado pra não resetar sem querer
   if (estado.value === 'fim' && (e.key === 'Enter' || e.key === 'r' || e.key === 'R')) { reiniciar(); return }
 
   const teclaNormalizada = e.key.length === 1 ? e.key.toLowerCase() : e.key
@@ -769,7 +740,6 @@ function onKeydown(e: KeyboardEvent) {
   const nova = VETORES[nomeDirecao]
   if (filaDirecoes.length >= 2) return
   const ultima = filaDirecoes.length ? filaDirecoes[filaDirecoes.length - 1] : direcao.value
-  // impede reverter direto pro próprio pescoço, e ignora repetir a mesma direção
   if (nova.x === -ultima.x && nova.y === -ultima.y) return
   if (nova.x === ultima.x && nova.y === ultima.y) return
   filaDirecoes.push(nova)

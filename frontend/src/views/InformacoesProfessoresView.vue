@@ -43,7 +43,6 @@ function formVazio(): ProfessorFormRascunho {
   return { nome: '', sala: '', estruturaId: '', descricao: '', foto: '', email: '', lattes: '', googleAcademico: '', linkedin: '' }
 }
 
-// ── Admin: novo professor ─────────────────────────────────
 const mostrarForm = ref(false)
 const formAdd = reactive<ProfessorFormRascunho>(formVazio())
 const erros   = reactive({ nome: '', email: '', lattes: '', googleAcademico: '', linkedin: '' })
@@ -77,7 +76,6 @@ function cancelarAdd() {
   mostrarForm.value = false
 }
 
-// ── Admin: editar/excluir professor ───────────────────────
 const editandoId  = ref<number | null>(null)
 const formEdit  = reactive<ProfessorFormRascunho>(formVazio())
 const errosEdit = reactive({ nome: '', email: '', lattes: '', googleAcademico: '', linkedin: '' })
@@ -143,7 +141,6 @@ function excluir(p: Professor) {
         </button>
       </div>
 
-      <!-- Admin: novo professor -->
       <div v-if="mostrarForm" class="paper" style="margin-bottom:1.2rem;">
         <div class="label-sm" style="margin-bottom:1rem;">Novo professor</div>
 
@@ -213,7 +210,6 @@ function excluir(p: Professor) {
 
       <div class="diretorio-grid">
         <div v-for="p in lista" :key="p.id" class="diretorio-card">
-          <!-- Edição inline (admin) -->
           <template v-if="editandoId === p.id">
             <div class="label-sm" style="margin-bottom:0.6rem;">Editando professor</div>
             <div class="field">
@@ -266,7 +262,6 @@ function excluir(p: Professor) {
             </div>
           </template>
 
-          <!-- Leitura -->
           <template v-else>
             <div class="diretorio-top-row">
               <img v-if="p.foto" :src="p.foto" class="diretorio-avatar" :alt="p.nome">
@@ -377,7 +372,6 @@ function excluir(p: Professor) {
 .diretorio-local-icon { display: flex; align-items: center; }
 .diretorio-local-icon :deep(svg) { width: 13px; height: 13px; }
 
-/* ── Admin: form, edição inline e ações ───────────────────── */
 .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 0.8rem; }
 
 .pub-card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.8rem; }

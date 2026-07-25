@@ -54,7 +54,6 @@ const lightboxIdx = ref<number | null>(null)
     </div>
 
     <template v-else>
-      <!-- ── Cabeçalho editorial ─────────────────────── -->
       <div class="pub-capa">
         <div class="pub-capa-inner">
           <BackLink to="/mural" class="back-link--light" />
@@ -76,7 +75,6 @@ const lightboxIdx = ref<number | null>(null)
       </div>
 
       <div class="page-content">
-        <!-- Hero image -->
         <div
           v-if="publicacao.imagens?.length > 0"
           class="pub-hero"
@@ -94,12 +92,10 @@ const lightboxIdx = ref<number | null>(null)
           </div>
         </div>
 
-        <!-- Artigo com markdown -->
         <article class="pub-artigo">
           <div class="pub-md" v-html="htmlContent"></div>
         </article>
 
-        <!-- Galeria (demais imagens) -->
         <div v-if="publicacao.imagens?.length > 1" class="pub-galeria-section">
           <div class="pub-galeria-topo">
             <span class="section-label" style="margin:0;">Galeria de fotos</span>
@@ -123,7 +119,6 @@ const lightboxIdx = ref<number | null>(null)
           </div>
         </div>
 
-        <!-- Anexos -->
         <div v-if="publicacao.anexos?.length" class="paper pub-anexos-wrap">
           <div class="label-sm" style="margin-bottom:0.8rem;">Anexos</div>
           <ul class="pub-anexos">
@@ -143,7 +138,6 @@ const lightboxIdx = ref<number | null>(null)
 </template>
 
 <style scoped>
-/* ── Cabeçalho editorial ──────────────────────────────── */
 .pub-capa {
   background: var(--roxo-escuro, #3B2F88);
   color: var(--branco, #fff);
@@ -218,7 +212,6 @@ const lightboxIdx = ref<number | null>(null)
   font-family: 'Archivo', sans-serif;
 }
 
-/* ── Hero image ─────────────────────────────────────── */
 .pub-hero {
   position: relative;
   width: 100%;
@@ -261,7 +254,6 @@ const lightboxIdx = ref<number | null>(null)
 }
 .pub-hero-icon :deep(svg) { width: 14px; height: 14px; }
 
-/* ── Artigo com markdown ────────────────────────────── */
 .pub-artigo {
   background: var(--branco, #fff);
   border: 1.5px solid var(--creme-escuro);
@@ -271,7 +263,6 @@ const lightboxIdx = ref<number | null>(null)
   margin-bottom: 1.6rem;
 }
 
-/* Markdown deep styles */
 .pub-md :deep(h1),
 .pub-md :deep(h2),
 .pub-md :deep(h3),
@@ -399,7 +390,6 @@ const lightboxIdx = ref<number | null>(null)
 }
 .pub-md :deep(tr:nth-child(even) td) { background: var(--creme); }
 
-/* ── Galeria ──────────────────────────────────────── */
 .pub-galeria-section {
   border: 1.5px solid var(--creme-escuro);
   border-radius: 2px;
@@ -462,7 +452,6 @@ const lightboxIdx = ref<number | null>(null)
   text-transform: uppercase;
 }
 
-/* ── Anexos ───────────────────────────────────────── */
 .pub-anexos-wrap { margin-bottom: 1.2rem; }
 .pub-anexos { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
 .pub-anexo-item {

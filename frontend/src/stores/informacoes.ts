@@ -83,7 +83,6 @@ export interface Tamburetei {
 
 function hoje(): string { return new Date().toISOString().split('T')[0] }
 
-// ── Editais ─────────────────────────────────────────────
 const _editais = ref<Edital[]>([])
 export const editais = computed(() => _editais.value)
 
@@ -144,7 +143,6 @@ export async function deleteEdital(id: number) {
   }
 }
 
-// ── Professores ─────────────────────────────────────────
 const _professores = ref<Professor[]>([])
 export const professores = computed(() => _professores.value)
 
@@ -205,7 +203,6 @@ export async function deleteProfessor(id: number) {
   }
 }
 
-// ── Laboratórios ────────────────────────────────────────
 const _laboratorios = ref<Laboratorio[]>([])
 export const laboratorios = computed(() => _laboratorios.value)
 
@@ -266,7 +263,6 @@ export async function deleteLaboratorio(id: number) {
   }
 }
 
-// ── Tamburetei (bloco único, sem lista) ──────────────────
 const TAMBURETEI_DEFAULT: Tamburetei = {
   titulo: 'Tamburetei',
   descricao: 'O Tamburetei é uma plataforma colaborativa mantida pela OpenDev UFCG pra ajudar quem tá cursando Ciência da Computação — a ideia é "fazer de tamburete aquela cadeira de CC". Lá você encontra resumos de disciplinas, provas antigas, dicas e materiais compartilhados por outros alunos.\n\nA plataforma está parada há um tempo, mas o repositório continua de pé — e quanto mais gente contribuir, mais viva ela fica. Se você tem provas antigas, resumos ou dicas de alguma disciplina, contribuir é só um pull request de distância.',

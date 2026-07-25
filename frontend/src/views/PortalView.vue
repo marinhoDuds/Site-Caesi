@@ -17,8 +17,6 @@ const tiposUnicos = computed(() => {
   return [...set].sort()
 })
 
-// Se o tipo filtrado deixar de existir (artefato apagado/editado), volta pra "todos"
-// em vez de deixar o filtro preso sem UI capaz de resetá-lo.
 watch(tiposUnicos, (tipos) => {
   if (filtro.value !== 'todos' && !tipos.includes(filtro.value)) filtro.value = 'todos'
 })
@@ -61,7 +59,6 @@ function formatData(data: string | null | undefined) {
         <h2>Portal do <span>CAESI</span></h2>
       </div>
 
-      <!-- Filtros -->
       <div class="mural-toolbar">
         <input v-model="busca" type="search" class="mural-search" placeholder="Buscar artefatos…">
       </div>
@@ -76,14 +73,12 @@ function formatData(data: string | null | undefined) {
         >{{ tipo }}</button>
       </div>
 
-      <!-- Lista vazia -->
       <EmptyState
         v-if="lista.length === 0"
         :title="artefatos.length === 0 ? 'Nenhum artefato publicado ainda.' : 'Nenhum artefato encontrado.'"
         :subtitle="artefatos.length > 0 ? 'Tente outro filtro ou termo de busca.' : undefined"
       />
 
-      <!-- Grid -->
       <div class="portal-grid">
         <RouterLink
           v-for="a in paginated"
@@ -168,7 +163,6 @@ function formatData(data: string | null | undefined) {
   color: var(--roxo-escuro);
 }
 
-/* Grid principal */
 .portal-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));

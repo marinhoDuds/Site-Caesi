@@ -57,7 +57,6 @@ function formatData(data: string | null | undefined) {
           </template>
         </div>
 
-        <!-- Histórico -->
         <div class="paper">
           <p class="label-sm" style="margin-bottom:1rem;">Histórico</p>
           <div class="portal-historico">

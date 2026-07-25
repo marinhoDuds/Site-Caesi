@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-// Sem localStorage aqui, mas o módulo ainda guarda estado próprio (_list e o
-// contador _id) que sobrevive entre testes se não recarregarmos o módulo —
-// resetModules() garante um _id e uma lista zerados a cada teste.
 async function storeLimpa() {
   vi.resetModules()
   return import('./toast.ts')
@@ -55,7 +52,6 @@ describe('stores/toast', () => {
     vi.advanceTimersByTime(2000)
     showToast('Segundo')
 
-    // Aos 3500ms desde o início, só o primeiro (criado em t=0) expirou.
     vi.advanceTimersByTime(1500)
     expect(toasts.value).toHaveLength(1)
     expect(toasts.value[0].mensagem).toBe('Segundo')

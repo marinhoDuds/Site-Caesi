@@ -16,10 +16,10 @@ class InformationService:
             information_type,
             content
         )
-        # Using returning id to get the inserted id since pypika with sqlite doesn't easily return id without dialect specific logic
-        # For simplicity, we just use the cursor's lastrowid from run_query
+        
+        
         result = run_query(self.engine, q.get_sql())
-        # To get the inserted id reliably, we just query the last inserted row
+        
         return self.get_latest_information()
         
     def get_latest_information(self):

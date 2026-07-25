@@ -22,21 +22,18 @@ describe('stores/mural', () => {
   it('addPublicacao, updatePublicacao e deletePublicacao chamam a API', async () => {
     const { addPublicacao, updatePublicacao, deletePublicacao } = await storeLimpa()
     
-    // add
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({id: 1, title: 'A'}) }) // add
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, title: 'A'}] }) // fetch
     
     await addPublicacao({ titulo: 'A', tipo: 'Edital', mensagem: 'Mensagem' })
     expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/journal/', expect.objectContaining({ method: 'POST' }))
 
-    // update
     mockFetch.mockResolvedValueOnce({ ok: true }) // update
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, title: 'Editado'}] }) // fetch
     
     await updatePublicacao(1, { titulo: 'Editado' })
     expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/journal/1', expect.objectContaining({ method: 'PATCH' }))
 
-    // delete
     mockFetch.mockResolvedValueOnce({ ok: true }) // remove
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] }) // fetch
     

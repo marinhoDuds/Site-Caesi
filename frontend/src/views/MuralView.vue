@@ -21,7 +21,6 @@ onMounted(async () => {
   await fetchPublicacoes()
 })
 
-// ── Admin: publicar nova ──────────────────────────────────
 const mostrarForm = ref(false)
 const formAdd = reactive({ titulo: '', tipo: '', mensagem: '', imagens: [] as string[] })
 const erros   = reactive({ titulo: '', mensagem: '' })
@@ -42,7 +41,6 @@ function cancelarAdd() {
   mostrarForm.value = false
 }
 
-// ── Admin: editar/excluir publicação (via modal) ──────────
 const editModal  = ref<Publicacao | null>(null)
 const formEdit  = reactive({ titulo: '', tipo: '', mensagem: '', imagens: [] as string[] })
 const errosEdit = reactive({ titulo: '', mensagem: '' })
@@ -133,7 +131,6 @@ function textoPlano(md: string) {
         </button>
       </div>
 
-      <!-- Admin: nova publicação -->
       <div v-if="mostrarForm" class="paper" style="margin-bottom:1.2rem;">
         <div class="label-sm" style="margin-bottom:1rem;">Nova publicação</div>
 
@@ -165,7 +162,6 @@ function textoPlano(md: string) {
         </div>
       </div>
 
-      <!-- Filtros -->
       <div class="mural-toolbar">
         <input v-model="busca" type="search" class="mural-search" placeholder="Buscar publicações…">
         <select v-model="ordenar" class="mural-select">
@@ -186,14 +182,12 @@ function textoPlano(md: string) {
         >{{ tipo }}</button>
       </div>
 
-      <!-- Lista vazia -->
       <EmptyState
         v-if="lista.length === 0"
         :title="publicacoes.length === 0 ? 'Nenhuma publicação ainda.' : 'Nenhuma publicação encontrada.'"
         :subtitle="publicacoes.length > 0 ? 'Tente outro filtro ou termo de busca.' : undefined"
       />
 
-      <!-- Grid -->
       <div class="mural-grid">
         <RouterLink
           v-for="p in paginated"
@@ -202,7 +196,6 @@ function textoPlano(md: string) {
           class="mural-card"
           :class="{ 'mural-card--com-img': p.imagens?.length > 0 }"
         >
-          <!-- Capa -->
           <div v-if="p.imagens?.length > 0" class="mural-card-capa">
             <img :src="p.imagens[0]" :alt="p.titulo" class="mural-card-capa-img">
             <div v-if="p.imagens.length > 1" class="mural-capa-mais">+{{ p.imagens.length - 1 }}</div>
@@ -236,7 +229,6 @@ function textoPlano(md: string) {
 
     <SiteFooter />
 
-    <!-- Admin: editar publicação -->
     <Modal v-if="editModal" title-id="modal-edit-mural-title" @close="fecharEdit">
       <div class="modal-title" id="modal-edit-mural-title">Editar publicação</div>
       <div class="modal-body">
@@ -311,7 +303,6 @@ function textoPlano(md: string) {
   margin-bottom: 1.4rem;
 }
 
-/* Grid principal */
 .mural-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
@@ -319,7 +310,6 @@ function textoPlano(md: string) {
   margin-bottom: 1.4rem;
 }
 
-/* Card base */
 .mural-card {
   background: var(--creme);
   border-radius: 2px;
@@ -337,12 +327,10 @@ function textoPlano(md: string) {
   box-shadow: 5px 5px 0 var(--roxo-escuro);
 }
 
-/* Card sem imagem mantém a borda lateral roxa */
 .mural-card:not(.mural-card--com-img) {
   border-left: 4px solid var(--roxo);
 }
 
-/* Capa da imagem */
 .mural-card-capa {
   position: relative;
   width: 100%;
@@ -376,7 +364,6 @@ function textoPlano(md: string) {
   border-radius: 2px;
 }
 
-/* Body do card */
 .mural-card-body {
   padding: 1rem 1.2rem;
   display: flex;
@@ -456,7 +443,6 @@ function textoPlano(md: string) {
   color: var(--roxo-escuro);
 }
 
-/* ── Admin: form e ações ──────────────────────────────────── */
 .textarea { min-height: 160px; resize: vertical; max-height: 500px; }
 .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 0.8rem; }
 

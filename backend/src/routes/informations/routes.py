@@ -6,10 +6,10 @@ from src.service.database import create_engine
 from src.service.informations_management.service import InformationService
 from src.service.authentication.auth import get_current_admin
 
-# Public router
+
 router = APIRouter(prefix="/informations", tags=["Informations"])
 
-# Admin router
+
 admin_router = APIRouter(prefix="/admin/informations", tags=["Admin Informations"])
 
 def get_information_service() -> InformationService:

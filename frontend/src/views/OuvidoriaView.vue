@@ -23,7 +23,6 @@ const API_URL = 'http://127.0.0.1:8000/tickets';
 
 const route = useRoute()
 
-// ── Envio de ticket ──────────────────────────────────────────
 const form = ref({ tipo: '', periodo: '', mensagem: '', nome: '', email: '' })
 const errors = ref<Record<string, boolean>>({})
 const charCount = ref(0)
@@ -74,7 +73,6 @@ function resetForm() {
   emailEnviado.value = false
 }
 
-// ── Consultar protocolo (busca simples, embutida na página) ──
 const protocoloBusca = ref('')
 const resultado = ref<Mensagem | null>(null)
 const naoEncontrado = ref(false)
@@ -120,7 +118,6 @@ async function consultar() {
     if (!res.ok) throw new Error('Erro na consulta');
     const data = await res.json();
     
-    // Converter de TicketResponse para Mensagem (frontend)
     resultado.value = {
       id: data.id,
       protocolo: data.protocol,
@@ -142,7 +139,6 @@ async function enviarComplemento() {
   if (!texto || !resultado.value) return
   
   try {
-    // Como backend não possui "complementos", vamos fazer append no "content"
     const novoConteudo = resultado.value.corpo + '\n\n[Complemento]: ' + texto;
     const res = await fetch(`${API_URL}/${resultado.value.protocolo}`, {
       method: 'PATCH',
@@ -286,7 +282,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Como funciona -->
     <section class="home-section">
       <div class="section-label">Ouvidoria</div>
       <h2 class="section-title">Como <span>funciona</span></h2>
@@ -326,7 +321,6 @@ onMounted(() => {
       </div>
     </section>
 
-    <!-- Formulário de envio -->
     <section class="home-section" id="enviar" style="scroll-margin-top:80px;">
       <div class="section-label">Envio direto</div>
       <h2 class="section-title">Enviar <span>mensagem</span></h2>

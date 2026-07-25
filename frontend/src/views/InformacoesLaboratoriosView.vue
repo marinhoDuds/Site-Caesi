@@ -44,7 +44,6 @@ function formVazio(): LaboratorioFormRascunho {
   return { nome: '', sigla: '', descricao: '', imagem: '', imagens: [], email: '', linkExterno: '', estruturaId: '' }
 }
 
-// ── Admin: novo laboratório ────────────────────────────────
 const mostrarForm = ref(false)
 const formAdd = reactive<LaboratorioFormRascunho>(formVazio())
 const erros   = reactive({ nome: '', email: '', linkExterno: '' })
@@ -75,7 +74,6 @@ function cancelarAdd() {
   mostrarForm.value = false
 }
 
-// ── Admin: editar/excluir laboratório (via modal) ─────────
 const editModal = ref<Laboratorio | null>(null)
 const formEdit  = reactive<LaboratorioFormRascunho>(formVazio())
 const errosEdit = reactive({ nome: '', email: '', linkExterno: '' })
@@ -134,7 +132,6 @@ useEscapeKey(() => fecharEdit())
         </button>
       </div>
 
-      <!-- Admin: novo laboratório -->
       <div v-if="mostrarForm" class="paper" style="margin-bottom:1.2rem;">
         <div class="label-sm" style="margin-bottom:1rem;">Novo laboratório</div>
 
@@ -217,7 +214,6 @@ useEscapeKey(() => fecharEdit())
 
     <SiteFooter />
 
-    <!-- Admin: editar laboratório -->
     <Modal v-if="editModal" title-id="modal-edit-lab-title" @close="fecharEdit">
       <div class="modal-title" id="modal-edit-lab-title">Editar laboratório</div>
       <div class="modal-body">
@@ -329,7 +325,6 @@ useEscapeKey(() => fecharEdit())
 .diretorio-local-icon { display: flex; align-items: center; }
 .diretorio-local-icon :deep(svg) { width: 13px; height: 13px; }
 
-/* ── Admin: form, modal de edição e ações ─────────────────── */
 .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 0.8rem; }
 
 .pub-card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.6rem; position: relative; z-index: 1; }

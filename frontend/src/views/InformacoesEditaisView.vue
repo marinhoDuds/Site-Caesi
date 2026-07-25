@@ -41,7 +41,6 @@ function validarTitulo(titulo: string) {
   return titulo.trim().length < 3 ? 'Título obrigatório (mín. 3 caracteres).' : ''
 }
 
-// ── Admin: novo edital ────────────────────────────────────
 const mostrarForm = ref(false)
 const fileAddRef  = ref<HTMLInputElement | null>(null)
 const formAdd = reactive({ titulo: '', descricao: '', data: '', anexoNome: '' })
@@ -72,7 +71,6 @@ function cancelarAdd() {
   mostrarForm.value = false
 }
 
-// ── Admin: editar/excluir edital ──────────────────────────
 const editandoId  = ref<number | null>(null)
 const fileEditRef = ref<HTMLInputElement | null>(null)
 const formEdit  = reactive({ titulo: '', descricao: '', data: '', anexoNome: '' })
@@ -128,7 +126,6 @@ function excluir(e: Edital) {
         </button>
       </div>
 
-      <!-- Admin: novo edital -->
       <div v-if="mostrarForm" class="paper" style="margin-bottom:1.2rem;">
         <div class="label-sm" style="margin-bottom:1rem;">Novo edital</div>
 
@@ -170,7 +167,6 @@ function excluir(e: Edital) {
 
       <div class="evento-lista">
         <div v-for="e in lista" :key="e.id">
-          <!-- Edição inline (admin) -->
           <div v-if="editandoId === e.id" class="evento-card evento-card--edit">
             <div style="flex:1;">
               <div class="label-sm" style="margin-bottom:0.8rem;">Editando edital</div>
@@ -199,7 +195,6 @@ function excluir(e: Edital) {
             </div>
           </div>
 
-          <!-- Leitura / expansão -->
           <div
             v-else
             class="evento-card"
@@ -284,7 +279,6 @@ function excluir(e: Edital) {
 .editais-anexo-icon { display: flex; align-items: center; }
 .editais-anexo-icon :deep(svg) { width: 14px; height: 14px; }
 
-/* ── Admin: form, edição inline e ações ───────────────────── */
 .evento-card--edit { cursor: default; }
 .evento-card--edit:hover { transform: none; box-shadow: 3px 3px 0 var(--roxo-escuro); }
 

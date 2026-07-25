@@ -44,7 +44,6 @@ const contagem = computed(() => ({
   concluida:      concluidas.value,
 }))
 
-// ── Tasks disponíveis para seleção ───────────────────────
 const tasksDisponiveis = computed(() => {
   if (!membro.value) return []
   const membroId = membro.value.id
@@ -61,7 +60,6 @@ function pegarTask(taskId: string) {
   showToast('Task adicionada ao seu workspace!', 'success')
 }
 
-// ── Anotações ─────────────────────────────────────────────
 const notasEdit = ref<Record<string, string>>({}) // taskId → texto em edição
 
 function getAnotacao(taskId: string) {
@@ -91,7 +89,6 @@ function estaEditandoNota(taskId: string) {
   return taskId in notasEdit.value
 }
 
-// ── Helpers visuais ───────────────────────────────────────
 const labelPrioridade: Record<string, string> = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
 const labelCategoria: Record<string, string>  = { gestao: 'Gestão', formularios: 'Formulários', ouvidoria: 'Ouvidoria' }
 const labelStatus: Record<string, string>     = { pendente: 'Pendente', 'em-andamento': 'Em andamento', concluida: 'Concluída' }
@@ -117,12 +114,10 @@ function diasRestantes(prazo: string) {
 </script>
 
 <template>
-  <!-- ── Carregando ────────────────────────────────────── -->
   <div v-if="loading" class="ws-loading-page">
     <div class="ws-loading-spin"></div>
   </div>
 
-  <!-- ── Link inválido ──────────────────────────────────── -->
   <div v-else-if="!membro" class="ws-invalido-page">
     <div class="ws-inv-content">
       <div class="ws-inv-logo">
@@ -135,10 +130,8 @@ function diasRestantes(prazo: string) {
     </div>
   </div>
 
-  <!-- ── Workspace válido ───────────────────────────────── -->
   <div v-else class="ws-page">
 
-    <!-- Header -->
     <header class="ws-header">
       <RouterLink to="/" class="ws-brand">
         <img src="/logo_caesi.png" alt="CAESI" class="ws-brand-logo" />
@@ -156,12 +149,10 @@ function diasRestantes(prazo: string) {
       </div>
     </header>
 
-    <!-- Progress bar -->
     <div class="ws-progress-track">
       <div class="ws-progress-fill" :style="{ width: progressoAnim + '%' }"></div>
     </div>
 
-    <!-- Hero / summary -->
     <div class="ws-hero">
       <div class="ws-hero-inner">
         <div class="ws-hero-text">
@@ -195,17 +186,14 @@ function diasRestantes(prazo: string) {
       </div>
     </div>
 
-    <!-- Tasks -->
     <main class="ws-main">
 
-      <!-- Empty -->
       <div v-if="minhasTasks.length === 0" class="ws-empty">
         <div class="ws-empty-icon" v-html="clipboardIcon"></div>
         <p class="ws-empty-title">Sem tasks alocadas</p>
         <p class="ws-empty-desc">O administrador irá alocar tasks para você em breve.</p>
       </div>
 
-      <!-- Grid -->
       <div v-else class="ws-grid">
         <div
           v-for="(t, i) in minhasTasks"
@@ -214,20 +202,17 @@ function diasRestantes(prazo: string) {
           :class="['prio-' + t.prioridade, t.status === 'concluida' ? 'ws-card--done' : '']"
           :style="{ animationDelay: i * 0.07 + 's' }"
         >
-          <!-- Top badges -->
           <div class="ws-card-top">
             <span class="ws-badge-prio" :class="t.prioridade">{{ labelPrioridade[t.prioridade] }}</span>
             <span class="ws-badge-cat"  :class="t.categoria">{{ labelCategoria[t.categoria] }}</span>
             <span class="ws-badge-status" :class="t.status" style="margin-left:auto;">{{ labelStatus[t.status] }}</span>
           </div>
 
-          <!-- Body -->
           <div class="ws-card-body">
             <h3 class="ws-card-titulo">{{ t.titulo }}</h3>
             <p v-if="t.descricao" class="ws-card-desc">{{ t.descricao }}</p>
           </div>
 
-          <!-- Prazo -->
           <div class="ws-card-prazo" :class="prazoAlerta(t.prazo) ?? ''">
             <span class="ws-prazo-icon" v-html="prazoAlerta(t.prazo) === 'vencida' ? warningIcon : prazoAlerta(t.prazo) === 'proxima' ? zapIcon : calendarIcon"></span>
             <span>
@@ -239,7 +224,6 @@ function diasRestantes(prazo: string) {
             </span>
           </div>
 
-          <!-- Status select -->
           <div class="ws-card-actions">
             <select
               class="ws-status-select"
@@ -252,7 +236,6 @@ function diasRestantes(prazo: string) {
             </select>
           </div>
 
-          <!-- Anotação -->
           <div class="ws-nota">
             <div class="ws-nota-header">
               <span class="ws-nota-label"><span class="ws-nota-label-icon" v-html="pencilIcon"></span>Sua nota</span>
@@ -263,7 +246,6 @@ function diasRestantes(prazo: string) {
               >{{ getAnotacao(t.id) ? 'Editar' : 'Adicionar' }}</button>
             </div>
 
-            <!-- Preview -->
             <template v-if="!estaEditandoNota(t.id)">
               <p v-if="getAnotacao(t.id)" class="ws-nota-preview" @click="editarNota(t.id)">
                 {{ getAnotacao(t.id) }}
@@ -271,7 +253,6 @@ function diasRestantes(prazo: string) {
               <p v-else class="ws-nota-vazia">Nenhuma nota adicionada.</p>
             </template>
 
-            <!-- Editor -->
             <template v-else>
               <textarea
                 v-model="notasEdit[t.id]"
@@ -288,7 +269,6 @@ function diasRestantes(prazo: string) {
           </div>
         </div>
       </div>
-      <!-- Tasks disponíveis para seleção -->
       <div v-if="tasksDisponiveis.length" class="ws-disponiveis">
         <div class="ws-disp-header">
           <h2 class="ws-disp-title">Tasks disponíveis</h2>
@@ -321,7 +301,6 @@ function diasRestantes(prazo: string) {
 </template>
 
 <style scoped>
-/* ── Loading ─────────────────────────────────────────────── */
 .ws-loading-page {
   min-height: 100vh;
   display: flex;
@@ -340,7 +319,6 @@ function diasRestantes(prazo: string) {
   animation: wsSpin 0.7s linear infinite;
 }
 
-/* ── Inválido ────────────────────────────────────────────── */
 .ws-invalido-page {
   min-height: 100vh;
   display: flex;
@@ -368,10 +346,8 @@ function diasRestantes(prazo: string) {
 .ws-inv-title { font-family: 'Archivo Black', sans-serif; font-size: 1.3rem; color: var(--roxo-escuro); margin: 0; }
 .ws-inv-desc  { font-size: 0.9rem; color: var(--cinza); margin: 0; line-height: 1.5; }
 
-/* ── Page ────────────────────────────────────────────────── */
 .ws-page { min-height: 100vh; display: flex; flex-direction: column; }
 
-/* ── Header ──────────────────────────────────────────────── */
 .ws-header {
   background: #3B2F88;
   padding: 0 2rem;
@@ -456,7 +432,6 @@ function diasRestantes(prazo: string) {
   color: #F2E6C4;
 }
 
-/* ── Progress bar ────────────────────────────────────────── */
 .ws-progress-track {
   height: 4px;
   background: rgba(0,0,0,0.25);
@@ -469,7 +444,6 @@ function diasRestantes(prazo: string) {
   min-width: 0;
 }
 
-/* ── Hero ────────────────────────────────────────────────── */
 .ws-hero {
   background: rgba(0,0,0,0.18);
   border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -523,7 +497,6 @@ function diasRestantes(prazo: string) {
 .ws-stat--andamento .ws-stat-n { color: var(--amarelo); }
 .ws-stat--concluida .ws-stat-n { color: #4EAA77; }
 
-/* ── Main ────────────────────────────────────────────────── */
 .ws-main {
   flex: 1;
   padding: 2rem;
@@ -532,7 +505,6 @@ function diasRestantes(prazo: string) {
   margin: 0 auto;
 }
 
-/* ── Empty ───────────────────────────────────────────────── */
 .ws-empty {
   text-align: center;
   padding: 5rem 2rem;
@@ -542,14 +514,12 @@ function diasRestantes(prazo: string) {
 .ws-empty-title { font-family: 'Archivo Black', sans-serif; font-size: 1.1rem; color: var(--creme); margin-bottom: 0.5rem; }
 .ws-empty-desc  { font-size: 0.88rem; color: rgba(242,230,196,0.5); }
 
-/* ── Grid ────────────────────────────────────────────────── */
 .ws-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.2rem;
 }
 
-/* ── Card ────────────────────────────────────────────────── */
 @keyframes wsCardIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -573,12 +543,10 @@ function diasRestantes(prazo: string) {
 }
 .ws-card.ws-card--done { opacity: 0.72; }
 
-/* Border color by priority */
 .ws-card.prio-alta  { border-left-color: var(--vermelho); }
 .ws-card.prio-media { border-left-color: var(--amarelo); }
 .ws-card.prio-baixa { border-left-color: var(--verde); }
 
-/* ── Badges ──────────────────────────────────────────────── */
 .ws-card-top { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
 
 .ws-badge-prio, .ws-badge-cat, .ws-badge-status {
@@ -600,7 +568,6 @@ function diasRestantes(prazo: string) {
 .ws-badge-status.em-andamento  { background: rgba(80,64,160,0.15);   color: var(--roxo-escuro); }
 .ws-badge-status.concluida     { background: rgba(78,170,119,0.15);  color: #1a6640; }
 
-/* ── Card body ───────────────────────────────────────────── */
 .ws-card-body { flex: 1; }
 .ws-card-titulo {
   font-family: 'Archivo Black', sans-serif;
@@ -619,7 +586,6 @@ function diasRestantes(prazo: string) {
   overflow: hidden;
 }
 
-/* ── Prazo ───────────────────────────────────────────────── */
 .ws-card-prazo {
   display: flex;
   align-items: center;
@@ -637,7 +603,6 @@ function diasRestantes(prazo: string) {
 .ws-prazo-icon { display: inline-flex; align-items: center; flex-shrink: 0; }
 .ws-prazo-icon svg { width: 13px; height: 13px; }
 
-/* ── Actions ─────────────────────────────────────────────── */
 .ws-card-actions {
   border-top: 1px solid var(--creme-escuro);
   padding-top: 0.75rem;
@@ -661,7 +626,6 @@ function diasRestantes(prazo: string) {
 }
 .ws-status-select:focus { border-color: var(--roxo); box-shadow: 0 0 0 3px rgba(128,112,192,0.2); }
 
-/* ── Nota ────────────────────────────────────────────────── */
 .ws-nota {
   border-top: 1px dashed var(--creme-escuro);
   padding-top: 0.75rem;
@@ -766,7 +730,6 @@ function diasRestantes(prazo: string) {
 }
 .ws-btn-cancel:hover { border-color: var(--cinza); }
 
-/* ── Tasks disponíveis ───────────────────────────────────── */
 .ws-disponiveis {
   margin-top: 2.5rem;
   padding-top: 2rem;
@@ -816,7 +779,6 @@ function diasRestantes(prazo: string) {
 }
 .ws-btn-pegar:hover { opacity: 0.85; }
 
-/* ── Footer ──────────────────────────────────────────────── */
 .ws-footer {
   padding: 1.5rem 2rem;
   border-top: 1px solid rgba(255,255,255,0.08);
@@ -830,7 +792,6 @@ function diasRestantes(prazo: string) {
 }
 .ws-footer-link:hover { color: rgba(242,230,196,0.8); }
 
-/* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {
   .ws-header { padding: 0 1rem; }
   .ws-chip-status { display: none; }

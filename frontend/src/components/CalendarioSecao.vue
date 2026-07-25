@@ -79,8 +79,6 @@ const resultadosBuscaCalendario = computed(() => {
   return eventos.value.filter(e => e.nome.toLowerCase().includes(t))
 })
 
-// Preenche os quadradinhos vazios com eventos passados recentes quando
-// não há próximos suficientes, pra seção nunca ficar com sobra de espaço.
 const passadosCal = computed(() =>
   eventos.value
     .filter(e => e.data < hojeISOCal)
@@ -94,8 +92,6 @@ const teasersRealCal = computed<Teaser[]>(() => {
   return [...prox, ...passadosPreenchimento]
 })
 
-// Completa até 6 quadradinhos com placeholders vazios (sem esticar/centralizar
-// o pouco conteúdo real) quando há menos de 6 eventos reais no total.
 const teasersGridCal = computed<Teaser[]>(() => {
   const reais = teasersRealCal.value
   if (reais.length === 0) return []
@@ -158,7 +154,6 @@ function baixarIcs(evento: Evento) {
   URL.revokeObjectURL(url)
 }
 
-// ── Admin: editar evento existente ───────────────────────
 const eventoModoEdicao = ref(false)
 const eventoEditForm   = ref({ nome: '', descricao: '' })
 
@@ -189,7 +184,6 @@ function excluirEvento() {
   fecharEventoModal()
 }
 
-// ── Admin: criar evento numa data ────────────────────────
 const novoEventoForm = ref({ nome: '', descricao: '' })
 
 function abrirNovoEvento(iso: string) {
@@ -211,7 +205,6 @@ function salvarNovoEvento() {
   novoEventoModal.value = null
 }
 
-// ── Modais: fechar com Esc e travar o scroll enquanto algum estiver aberto ──
 useEscapeKey(() => { fecharEventoModal(); fecharDiaModal(); fecharNovoEventoModal() })
 
 const algumModalAberto = computed(() => !!eventoModal.value || !!diaModal.value || !!novoEventoModal.value)
@@ -227,7 +220,6 @@ onBeforeUnmount(() => { document.body.style.overflow = '' })
     <h2 class="section-title">Calendário do <span>CAESI</span></h2>
 
     <div class="cal-home-layout">
-      <!-- Próximos eventos: quadradinhos à esquerda -->
       <div class="cal-home-teasers-col">
         <p class="cal-home-teasers-titulo">Eventos próximos</p>
         <div class="cal-home-teasers" :class="{ 'cal-home-teasers--vazio': teasersRealCal.length === 0 }">
@@ -259,7 +251,6 @@ onBeforeUnmount(() => { document.body.style.overflow = '' })
         </div>
       </div>
 
-      <!-- Grade de mês + busca à direita -->
       <div class="paper cal-home-paper">
         <input
           v-model="buscaCalendario" type="search" class="mapa-home-search"
@@ -304,7 +295,6 @@ onBeforeUnmount(() => { document.body.style.overflow = '' })
     </div>
   </section>
 
-  <!-- Modal: detalhe de um evento -->
   <Modal v-if="eventoModal" title-id="modal-evento-title" @close="fecharEventoModal">
     <template v-if="!eventoModoEdicao">
       <div class="modal-title" id="modal-evento-title">{{ eventoModal.nome }}</div>
@@ -354,7 +344,6 @@ onBeforeUnmount(() => { document.body.style.overflow = '' })
     </template>
   </Modal>
 
-  <!-- Modal: lista de eventos de um dia -->
   <Modal v-if="diaModal" title-id="modal-dia-title" @close="fecharDiaModal">
     <div class="modal-title" id="modal-dia-title">{{ formatDataExtCal(diaModal.iso) }}</div>
     <div class="modal-body">
@@ -370,7 +359,6 @@ onBeforeUnmount(() => { document.body.style.overflow = '' })
     </div>
   </Modal>
 
-  <!-- Modal: novo evento (admin) -->
   <Modal v-if="novoEventoModal" title-id="modal-novo-evento-title" @close="fecharNovoEventoModal">
     <div class="modal-title" id="modal-novo-evento-title">Novo evento — {{ formatDataExtCal(novoEventoModal.iso) }}</div>
     <div class="modal-body">

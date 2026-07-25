@@ -24,7 +24,7 @@ app.include_router(journal_admin_router)
 app.include_router(informations_router)
 app.include_router(admin_informations_router)
 
-# TODO: Include other routers as they are built (portal, etc.)
+
 
 @app.get("/health")
 def health_check():

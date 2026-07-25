@@ -77,7 +77,6 @@ describe('stores/portal', () => {
     const { artefatos, addArtefato, updateArtefato } = await storeLimpa()
     const novo = addArtefato({ tipo: 'Ata', descricao: 'Desc' })
 
-    // "id" não é um campo rastreado no histórico (nem deveria ser alterável de verdade).
     updateArtefato(novo.id, { id: novo.id })
 
     expect(artefatos.value.find((a: Artefato) => a.id === novo.id)!.historico).toHaveLength(1)

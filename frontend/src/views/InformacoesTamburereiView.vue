@@ -71,7 +71,6 @@ function salvar() {
         >Acessar o Tamburetei →</a>
       </div>
 
-      <!-- Admin: edição do bloco único -->
       <div v-else class="paper">
         <p style="font-size:0.85rem;color:var(--cinza);margin-bottom:1.2rem;line-height:1.6;">
           Esse é um bloco de texto único (não uma lista) — edite o conteúdo que aparece nesta página. Suporta Markdown.

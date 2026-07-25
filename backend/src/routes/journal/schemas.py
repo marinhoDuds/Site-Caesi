@@ -8,7 +8,7 @@ class PostType(str, Enum):
     evento = "evento"
     vaga = "vaga"
     oportunidade = "oportunidade"
-    # Adicione outros tipos do frontend se existirem
+    
 
 class PostCreate(BaseModel):
     title: str = Field(..., min_length=3, max_length=255)

@@ -18,7 +18,6 @@ import warningIcon  from '../../assets/icons/warning.svg?raw'
 import zapIcon      from '../../assets/icons/zap.svg?raw'
 import calendarIcon from '../../assets/icons/calendar.svg?raw'
 
-// ── Membros ───────────────────────────────────────────────
 const adicionandoMembro = ref(false)
 const novoMembroNome    = ref('')
 const confirmarRmMembro = ref<Membro | null>(null)
@@ -61,7 +60,6 @@ async function copiarLink(token: string) {
   }
 }
 
-// ── Filtros ───────────────────────────────────────────────
 const busca            = ref('')
 const filtroPrioridade = ref('todas')
 const filtroCategoria  = ref('todas')
@@ -102,7 +100,6 @@ const contagem = computed(() => ({
   concluida:      tasks.value.filter(t => t.status === 'concluida').length,
 }))
 
-// ── Mover status ──────────────────────────────────────────
 const NEXT_STATUS: Record<StatusTask, StatusTask> = { pendente: 'em-andamento', 'em-andamento': 'concluida', concluida: 'em-andamento' }
 const NEXT_LABEL: Record<StatusTask, string>       = { pendente: '→ Iniciar', 'em-andamento': '→ Concluir', concluida: '↩ Reabrir' }
 
@@ -110,7 +107,6 @@ function moverStatus(task: Task) {
   atualizarStatus(task.id, NEXT_STATUS[task.status])
 }
 
-// ── Modal: criar / editar ─────────────────────────────────
 const modalForm  = ref(false)
 const editandoId = ref<string | null>(null)
 
@@ -173,7 +169,6 @@ function salvarTask() {
   modalForm.value = false
 }
 
-// ── Modal: confirmar exclusão ─────────────────────────────
 const modalExcluir = ref<Task | null>(null)
 
 function confirmarExcluir(task: Task) { modalExcluir.value = task }
@@ -185,7 +180,6 @@ function excluirConfirmado() {
   modalExcluir.value = null
 }
 
-// ── Helpers visuais ───────────────────────────────────────
 const labelPrioridade: Record<string, string> = { alta: 'Alta', media: 'Média', baixa: 'Baixa' }
 const labelCategoria: Record<string, string>  = { gestao: 'Gestão', formularios: 'Formulários', ouvidoria: 'Ouvidoria' }
 
@@ -214,7 +208,6 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
-// ── ESC fecha modais ──────────────────────────────────────
 useEscapeKey(() => {
   if (confirmarRmMembro.value) { confirmarRmMembro.value = null; return }
   if (modalExcluir.value)      { modalExcluir.value = null; return }
@@ -236,7 +229,6 @@ useEscapeKey(() => {
         <button class="btn btn-amarelo" @click="abrirCriar">+ Nova task</button>
       </div>
 
-      <!-- ── Membros ──────────────────────────────────────── -->
       <div class="membros-section paper paper-mb">
         <div class="membros-header">
           <span class="label-sm">Membros do workspace ({{ membros.length }})</span>
@@ -277,7 +269,6 @@ useEscapeKey(() => {
         <p v-else-if="!adicionandoMembro" class="membro-empty">Nenhum membro adicionado ainda.</p>
       </div>
 
-      <!-- ── Toolbar ──────────────────────────────────────── -->
       <div class="kanban-toolbar paper paper--meio paper-mb">
         <div class="field" style="flex:1;min-width:160px;margin:0;">
           <input v-model="busca" placeholder="Buscar tasks…" />
@@ -306,10 +297,8 @@ useEscapeKey(() => {
         </div>
       </div>
 
-      <!-- ── Kanban board ───────────────────────────────────── -->
       <div class="kanban-board">
 
-        <!-- Coluna: Pendente -->
         <div class="kanban-col">
           <div class="kanban-col-header kanban-col-header--pendente">
             <span class="kanban-col-label">Pendente</span>
@@ -348,7 +337,6 @@ useEscapeKey(() => {
           </TransitionGroup>
         </div>
 
-        <!-- Coluna: Em andamento -->
         <div class="kanban-col">
           <div class="kanban-col-header kanban-col-header--andamento">
             <span class="kanban-col-label">Em andamento</span>
@@ -388,7 +376,6 @@ useEscapeKey(() => {
           </TransitionGroup>
         </div>
 
-        <!-- Coluna: Concluída -->
         <div class="kanban-col">
           <div class="kanban-col-header kanban-col-header--concluida">
             <span class="kanban-col-label">Concluída</span>
@@ -428,14 +415,12 @@ useEscapeKey(() => {
 
       </div>
 
-      <!-- Empty total -->
       <div v-if="tasks.length === 0" class="kanban-empty-total">
         <p>Nenhuma task criada ainda.</p>
         <button class="btn btn-amarelo btn-sm" @click="abrirCriar">Criar primeira task</button>
       </div>
     </div>
 
-    <!-- ── Modal: Criar / Editar ──────────────────────────────── -->
     <Modal v-if="modalForm" large @close="modalForm = false">
         <h2 class="modal-title">{{ editandoId ? 'Editar task' : 'Nova task' }}</h2>
 
@@ -505,7 +490,6 @@ useEscapeKey(() => {
           </label>
         </div>
 
-        <!-- Anotações dos membros (somente ao editar) -->
         <div v-if="editandoId && anotacoesDoTask.length" class="field">
           <label class="label-sm" style="display:block;margin-bottom:0.6rem;">Notas dos membros</label>
           <div class="anotacoes-lista">
@@ -530,7 +514,6 @@ useEscapeKey(() => {
         </div>
     </Modal>
 
-    <!-- ── Modal: Confirmar exclusão ─────────────────────────── -->
     <Modal v-if="modalExcluir" @close="modalExcluir = null">
       <h2 class="modal-title">Excluir task</h2>
       <p class="modal-body">
@@ -542,7 +525,6 @@ useEscapeKey(() => {
       </div>
     </Modal>
 
-    <!-- ── Modal: Remover membro ──────────────────────────────── -->
     <Modal v-if="confirmarRmMembro" @close="confirmarRmMembro = null">
       <h2 class="modal-title">Remover membro</h2>
       <p class="modal-body">
@@ -558,7 +540,6 @@ useEscapeKey(() => {
 </template>
 
 <style scoped>
-/* ── Membros ─────────────────────────────────────────────── */
 .membros-section { display: flex; flex-direction: column; gap: 1rem; }
 .membros-header  { display: flex; align-items: center; justify-content: space-between; }
 
@@ -615,10 +596,8 @@ useEscapeKey(() => {
   flex-shrink: 0;
 }
 
-/* ── Toolbar ─────────────────────────────────────────────── */
 .kanban-toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
 
-/* ── Kanban wrapper ──────────────────────────────────────── */
 .kanban-wrapper {
   padding: 2rem 1.5rem 3rem;
   max-width: 1400px;
@@ -633,7 +612,6 @@ useEscapeKey(() => {
   align-items: start;
 }
 
-/* ── Coluna ──────────────────────────────────────────────── */
 .kanban-col {
   background: rgba(0,0,0,0.18);
   border-radius: 4px;
@@ -695,7 +673,6 @@ useEscapeKey(() => {
   font-style: italic;
 }
 
-/* ── Kanban card ─────────────────────────────────────────── */
 .kanban-card {
   background: var(--creme);
   border-radius: 2px;
@@ -717,7 +694,6 @@ useEscapeKey(() => {
 .kanban-card.prio-media { border-left-color: var(--amarelo); }
 .kanban-card.prio-baixa { border-left-color: var(--verde); }
 
-/* ── Card content ────────────────────────────────────────── */
 .kc-top { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 
 .kc-badge-sel {
@@ -784,7 +760,6 @@ useEscapeKey(() => {
   display: flex; align-items: center; justify-content: center;
 }
 
-/* ── Ações do card ───────────────────────────────────────── */
 .kc-actions {
   display: flex;
   align-items: center;
@@ -847,7 +822,6 @@ useEscapeKey(() => {
 }
 .kc-notas-badge:hover { background: rgba(80,64,160,0.2); }
 
-/* ── Empty total ─────────────────────────────────────────── */
 .kanban-empty-total {
   text-align: center;
   padding: 3rem;
@@ -858,7 +832,6 @@ useEscapeKey(() => {
   gap: 1rem;
 }
 
-/* ── Modal ───────────────────────────────────────────────── */
 .modal-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .modal-row .field { margin-bottom: 0; }
 .obrig { color: var(--vermelho); }
@@ -887,7 +860,6 @@ useEscapeKey(() => {
 .alocado-chip-nome { font-size: 0.85rem; font-weight: 600; color: var(--preto); transition: color 0.15s; }
 .alocado-chip--ativo .alocado-chip-nome { color: var(--creme); }
 
-/* ── Anotações no modal ──────────────────────────────────── */
 .anotacoes-lista { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem; }
 .anotacao-item {
   background: rgba(80,64,160,0.06);
@@ -903,7 +875,6 @@ useEscapeKey(() => {
 .anotacao-data { font-size: 0.7rem; color: var(--cinza); }
 .anotacao-texto { font-size: 0.82rem; color: var(--preto); line-height: 1.5; white-space: pre-wrap; }
 
-/* ── Toggle ──────────────────────────────────────────────── */
 .toggle-label {
   display: flex;
   align-items: flex-start;
@@ -938,20 +909,17 @@ useEscapeKey(() => {
 }
 .toggle-track--on .toggle-thumb { transform: translateX(16px); }
 
-/* ── Botões ──────────────────────────────────────────────── */
 .btn-vermelho        { background: var(--vermelho); color: #fff; border: 2px solid var(--vermelho); }
 .btn-vermelho:hover  { opacity: 0.88; }
 .btn-vermelho-outline       { background: none; color: var(--vermelho); border: 2px solid var(--vermelho); }
 .btn-vermelho-outline:hover { background: rgba(217,85,85,0.08); }
 
-/* ── TransitionGroup ─────────────────────────────────────── */
 .kc-list-move,
 .kc-list-enter-active { transition: opacity 0.22s ease, transform 0.22s ease; }
 .kc-list-leave-active  { transition: opacity 0.18s ease; }
 .kc-list-enter-from    { opacity: 0; transform: translateY(8px); }
 .kc-list-leave-to      { opacity: 0; }
 
-/* ── Char counter ────────────────────────────────────────── */
 .field-counter {
   display: block;
   text-align: right;
@@ -961,7 +929,6 @@ useEscapeKey(() => {
 }
 .field-counter--warn { color: var(--vermelho); }
 
-/* ── Mobile ──────────────────────────────────────────────── */
 @media (max-width: 860px) {
   .kanban-board { grid-template-columns: 1fr; }
   .kanban-wrapper { padding: 1rem 1rem 3rem; }

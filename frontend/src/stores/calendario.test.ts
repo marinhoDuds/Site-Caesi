@@ -59,21 +59,18 @@ describe('stores/calendario', () => {
   it('addEvento, updateEvento e removeEvento chamam a API', async () => {
     const { addEvento, updateEvento, removeEvento, fetchEventos } = await storeLimpa()
     
-    // add
     mockFetch.mockResolvedValueOnce({ ok: true }) // add
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, title: 'A', scheduled_to: '2026-07-01', description: ''}] }) // fetch
     
     await addEvento({ nome: 'A', data: '2026-07-01' })
     expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/events/', expect.objectContaining({ method: 'POST' }))
 
-    // update
     mockFetch.mockResolvedValueOnce({ ok: true }) // update
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, title: 'A editado', scheduled_to: '2026-07-01', description: ''}] }) // fetch
     
     await updateEvento(1, { nome: 'A editado' })
     expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/events/1', expect.objectContaining({ method: 'PUT' }))
 
-    // remove
     mockFetch.mockResolvedValueOnce({ ok: true }) // remove
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] }) // fetch
     

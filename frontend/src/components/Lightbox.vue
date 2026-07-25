@@ -22,9 +22,6 @@ function next() {
   emit('update:index', (props.index + 1) % props.imagens.length)
 }
 
-// Listener no document (não em @keydown de algum elemento da página) de propósito:
-// o conteúdo é teleportado pra <body>, então uma vez que o foco entra nos botões
-// da lightbox, um @keydown ligado a um elemento fora do <body> nunca mais dispara.
 function onKeydown(e: KeyboardEvent) {
   if (props.index === null) return
   if (e.key === 'Escape')     fechar()

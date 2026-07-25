@@ -27,7 +27,6 @@ export interface NovaEstrutura {
 const _estruturas = ref<Estrutura[]>([])
 export const estruturas = computed(() => _estruturas.value)
 
-// Coordenadas do bloco de Sistemas e Computação (UASC) na UFCG — centro padrão do mapa.
 export const CENTRO_PADRAO = { lat: -7.2127895, lng: -35.907437 }
 
 export async function fetchEstruturas() {

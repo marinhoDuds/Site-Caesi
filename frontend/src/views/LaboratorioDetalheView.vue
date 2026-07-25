@@ -47,7 +47,6 @@ const lightboxIdx = ref<number | null>(null)
     </div>
 
     <template v-else>
-      <!-- ── Cabeçalho editorial ─────────────────────── -->
       <div class="pub-capa">
         <div class="pub-capa-inner">
           <BackLink to="/informacoes/laboratorios" class="back-link--light" />
@@ -59,7 +58,6 @@ const lightboxIdx = ref<number | null>(null)
       </div>
 
       <div class="page-content">
-        <!-- Hero image -->
         <div
           v-if="todasImagens.length > 0"
           class="pub-hero"
@@ -77,7 +75,6 @@ const lightboxIdx = ref<number | null>(null)
           </div>
         </div>
 
-        <!-- Descrição + contato -->
         <div class="paper pub-artigo">
           <p v-if="laboratorio.descricao" class="lab-descricao">{{ laboratorio.descricao }}</p>
           <p v-else class="lab-descricao lab-descricao--vazia">Sem descrição cadastrada ainda.</p>
@@ -95,7 +92,6 @@ const lightboxIdx = ref<number | null>(null)
           </div>
         </div>
 
-        <!-- Galeria -->
         <div v-if="todasImagens.length > 1" class="pub-galeria-section">
           <div class="pub-galeria-topo">
             <span class="section-label" style="margin:0;">Galeria de fotos</span>
@@ -128,7 +124,6 @@ const lightboxIdx = ref<number | null>(null)
 </template>
 
 <style scoped>
-/* ── Cabeçalho editorial ──────────────────────────────── */
 .pub-capa {
   background: var(--roxo-escuro, #3B2F88);
   color: var(--branco, #fff);
@@ -175,7 +170,6 @@ const lightboxIdx = ref<number | null>(null)
   letter-spacing: -0.01em;
 }
 
-/* ── Hero image ─────────────────────────────────────── */
 .pub-hero {
   position: relative;
   width: 100%;
@@ -214,7 +208,6 @@ const lightboxIdx = ref<number | null>(null)
 .pub-hero-icon { display: flex; align-items: center; flex-shrink: 0; }
 .pub-hero-icon :deep(svg) { width: 14px; height: 14px; }
 
-/* ── Descrição + contato ────────────────────────────── */
 .pub-artigo {
   margin-bottom: 1.6rem;
 }
@@ -249,7 +242,6 @@ const lightboxIdx = ref<number | null>(null)
 .lab-contato-icon { display: flex; align-items: center; }
 .lab-contato-icon :deep(svg) { width: 14px; height: 14px; }
 
-/* ── Galeria ──────────────────────────────────────── */
 .pub-galeria-section {
   border: 1.5px solid var(--creme-escuro);
   border-radius: 2px;

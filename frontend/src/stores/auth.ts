@@ -23,9 +23,6 @@ function senhaAtual(): string {
   return localStorage.getItem(KEY_SENHA) || MOCK_PASSWORD
 }
 
-// Mock do front: em produção quem decide "primeiro login" é o back (senha
-// aleatória gerada no cadastro do admin), aqui simulamos com a senha padrão
-// de fábrica ainda não ter sido trocada.
 export function loginAdmin(email: string, senha: string): boolean {
   if (email.trim().toLowerCase() !== MOCK_EMAIL || senha !== senhaAtual()) return false
   _admin.value = true
@@ -44,7 +41,6 @@ export function trocarSenha(novaSenha: string) {
   _mustChange.value = false
 }
 
-// Login via Google dispensa senha própria, então não há o que trocar.
 export function loginComGoogle() {
   _admin.value = true
   localStorage.setItem('caesi_admin', '1')

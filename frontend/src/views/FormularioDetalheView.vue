@@ -59,10 +59,8 @@ const motivoBloqueio = computed(() => {
   return null
 })
 
-// ── Identificadores fixos ─────────────────────────────────
 const identif = ref({ nome: '', email: '', matricula: '' })
 
-// ── Campos dinâmicos ──────────────────────────────────────
 const respostas = ref<Record<string, unknown>>(
   Object.fromEntries((formulario.value?.campos ?? []).map(c => [c.id, c.tipo === 'checkbox' ? false : '']))
 )
@@ -176,7 +174,6 @@ function submitForm() {
     <div class="page-content">
       <BackLink to="/formularios" />
 
-      <!-- Cabeçalho -->
       <div class="paper paper-mb">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1rem;">
           <span class="tipo-tag" :class="`tipo-${formulario.tipo}`">{{ TIPO_LABEL[formulario.tipo] }}</span>
@@ -207,7 +204,6 @@ function submitForm() {
         </div>
       </div>
 
-      <!-- Sucesso -->
       <div v-if="enviado" class="paper">
         <div class="anon-success" style="text-align:center;padding:1.5rem 1rem;">
           <div style="width:56px;height:56px;border-radius:50%;background:var(--verde);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:white;margin:0 auto 1rem;box-shadow:3px 3px 0 var(--roxo-escuro);">✓</div>
@@ -220,18 +216,15 @@ function submitForm() {
         </div>
       </div>
 
-      <!-- Indisponível -->
       <div v-else-if="!disponivel" class="paper">
         <div class="alert-erro" style="margin-bottom:0;">{{ motivoBloqueio }}</div>
       </div>
 
-      <!-- Formulário de resposta -->
       <div v-else class="paper">
         <p class="label-sm" style="margin-bottom:1.5rem;">Preencha os dados abaixo</p>
 
         <form @submit.prevent="submitForm" novalidate>
 
-          <!-- Identificadores fixos -->
           <div class="field">
             <label>Nome completo *</label>
             <input v-model="identif.nome" type="text" placeholder="Seu nome completo">
@@ -249,7 +242,6 @@ function submitForm() {
 
           <hr v-if="formulario.campos.length > 0" class="divider">
 
-          <!-- Campo de quantidade (venda) -->
           <div v-if="formulario.tipo === 'venda'" class="field">
             <label>Quantidade *</label>
             <input v-model.number="quantidade" type="number" min="1" step="1" placeholder="1" style="max-width:120px;">
@@ -259,7 +251,6 @@ function submitForm() {
             </div>
           </div>
 
-          <!-- Campos dinâmicos -->
           <template v-for="campo in formulario.campos" :key="campo.id">
             <div class="field">
               <template v-if="campo.tipo === 'checkbox'">
@@ -286,7 +277,6 @@ function submitForm() {
             </div>
           </template>
 
-          <!-- Comprovante (formulários pagos) -->
           <div v-if="formulario.pago" class="field">
             <label>Comprovante de pagamento *</label>
             <input ref="fileInputRef" type="file" accept="image/*,.pdf" style="display:none;" @change="onFileChange">

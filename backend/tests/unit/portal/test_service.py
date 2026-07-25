@@ -79,7 +79,7 @@ def test_create_operation_with_attachment(portal_service, mock_engine):
         mock_upload.return_value = "http://s3/portal/2/nota.pdf"
 
         with patch("src.service.portal_management.service.run_query") as mock_run:
-            mock_run.return_value = None  # INSERT attachment
+            mock_run.return_value = None  
 
             result = portal_service.create_operation(
                 payload,
@@ -106,7 +106,7 @@ def test_update_operation_append_only_inherits_attachment(portal_service, mock_e
     mock_conn.execute.return_value.scalar.return_value = 3
     mock_engine.connect.return_value = mock_conn
 
-    # _fetch_attachment_url chamará run_query
+    
     with patch("src.service.portal_management.service.run_query") as mock_run:
         mock_run.return_value = [("http://s3/portal/1/nota.pdf",)]
 
