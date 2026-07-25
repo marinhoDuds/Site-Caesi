@@ -1,6 +1,6 @@
 services:
   garage:
-    build: ./infra/garage
+    build: ./backend/infra/garage
     container_name: garage
     restart: unless-stopped
     ports:
@@ -9,9 +9,9 @@ services:
       - "3902:3902"
       - "3903:3903"
     volumes:
-      - ./infra/garage/garage.toml.template:/etc/garage.toml.template
-      - ./infra/garage/meta:/meta
-      - ./infra/garage/data:/data
+      - ./backend/infra/garage/garage.toml.template:/etc/garage.toml.template
+      - ./backend/infra/garage/meta:/meta
+      - ./backend/infra/garage/data:/data
     environment:
       - RPC_SECRET
       - ADMIN_TOKEN

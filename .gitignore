@@ -27,3 +27,5 @@ dist/
 # Garage S3
 infra/garage/meta/
 infra/garage/data/
+backend/infra/garage/meta/
+backend/infra/garage/data/
