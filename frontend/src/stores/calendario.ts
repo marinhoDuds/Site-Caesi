@@ -21,10 +21,7 @@ export interface DadosEventoFormulario {
   descricao: string
 }
 
-const KEY = 'caesi_calendario'
-
-const _eventos = ref<Evento[]>(JSON.parse(localStorage.getItem(KEY) || '[]'))
-
+const _eventos = ref<Evento[]>([])
 export const eventos = computed(() => _eventos.value)
 
 function hojeLocalISO(): string {
@@ -40,45 +37,109 @@ export const proximosEventos = computed(() => {
     .sort((a, b) => a.data.localeCompare(b.data))
 })
 
-function persist(list: Evento[]) {
-  localStorage.setItem(KEY, JSON.stringify(list))
-  _eventos.value = [...list]
+const API_URL = 'http://localhost:8000'
+
+function getToken() {
+  return localStorage.getItem('token') || ''
+}
+
+export async function fetchEventos() {
+  try {
+    const res = await fetch(`${API_URL}/events/`)
+    if (res.ok) {
+      const data = await res.json()
+      _eventos.value = data.map((e: any) => ({
+        id: e.id,
+        nome: e.title,
+        data: e.scheduled_to,
+        descricao: e.description || '',
+        formularioId: null // Not supported by backend yet
+      }))
+    }
+  } catch (error) {
+    console.error('Erro ao buscar eventos:', error)
+  }
 }
 
 export function getEvento(id: number): Evento | null {
   return _eventos.value.find(e => e.id === id) ?? null
 }
 
-export function addEvento({ nome, data, descricao = '', formularioId = null }: NovoEvento): Evento {
-  const novo: Evento = { id: Date.now(), nome, data, descricao, formularioId }
-  persist([..._eventos.value, novo])
-  return novo
+export async function addEvento({ nome, data, descricao = '', formularioId = null }: NovoEvento) {
+  try {
+    const res = await fetch(`${API_URL}/admin/events/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      body: JSON.stringify({
+        title: nome,
+        scheduled_to: data,
+        description: descricao
+      })
+    })
+    if (res.ok) {
+      await fetchEventos()
+    } else {
+      console.error('Erro ao adicionar evento')
+    }
+  } catch (error) {
+    console.error('Erro ao adicionar evento:', error)
+  }
 }
 
-export function updateEvento(id: number, updates: Partial<Evento>) {
-  persist(_eventos.value.map(e => e.id === id ? { ...e, ...updates } : e))
+export async function updateEvento(id: number, updates: Partial<Evento>) {
+  try {
+    const event = getEvento(id)
+    if (!event) return
+    const updated = { ...event, ...updates }
+    
+    const res = await fetch(`${API_URL}/admin/events/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      body: JSON.stringify({
+        title: updated.nome,
+        scheduled_to: updated.data,
+        description: updated.descricao
+      })
+    })
+    if (res.ok) {
+      await fetchEventos()
+    } else {
+      console.error('Erro ao atualizar evento')
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar evento:', error)
+  }
 }
 
-export function removeEvento(id: number) {
-  persist(_eventos.value.filter(e => e.id !== id))
+export async function removeEvento(id: number) {
+  try {
+    const res = await fetch(`${API_URL}/admin/events/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${getToken()}`
+      }
+    })
+    if (res.ok) {
+      await fetchEventos()
+    } else {
+      console.error('Erro ao remover evento')
+    }
+  } catch (error) {
+    console.error('Erro ao remover evento:', error)
+  }
 }
 
-// Sync a partir do módulo de Formulários: um formulário com dataEvento
-// mantém um evento vinculado (formularioId) sempre atualizado.
+// These functions will do nothing for now since we removed local storage
 export function upsertEventoFormulario(formularioId: number, { nome, data, descricao }: DadosEventoFormulario) {
-  const existente = _eventos.value.find(e => e.formularioId === formularioId)
-  if (!data) {
-    if (existente) removeEvento(existente.id)
-    return
-  }
-  if (existente) {
-    updateEvento(existente.id, { nome, data, descricao })
-  } else {
-    addEvento({ nome, data, descricao, formularioId })
-  }
+  console.warn("upsertEventoFormulario not supported with new backend integration yet.")
 }
 
 export function removeEventoByFormulario(formularioId: number) {
-  const existente = _eventos.value.find(e => e.formularioId === formularioId)
-  if (existente) removeEvento(existente.id)
+  console.warn("removeEventoByFormulario not supported with new backend integration yet.")
 }

@@ -32,8 +32,13 @@ def override_get_service():
 def override_get_admin():
     return {"sub": "admin"}
 
-app.dependency_overrides[get_information_service] = override_get_service
-app.dependency_overrides[get_current_admin] = override_get_admin
+@pytest.fixture(autouse=True)
+def setup_overrides():
+    app.dependency_overrides[get_information_service] = override_get_service
+    app.dependency_overrides[get_current_admin] = override_get_admin
+    yield
+    app.dependency_overrides.pop(get_information_service, None)
+    app.dependency_overrides.pop(get_current_admin, None)
 
 def test_get_informations_by_type():
     response = client.get("/informations/type/professors")

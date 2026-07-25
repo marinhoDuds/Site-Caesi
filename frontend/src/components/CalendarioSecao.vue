@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, watch, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onBeforeUnmount, onMounted } from 'vue'
 import Modal from './Modal.vue'
 import { isAdmin } from '../stores/auth.ts'
-import { eventos, proximosEventos, addEvento, updateEvento, removeEvento, type Evento } from '../stores/calendario.ts'
+import { eventos, proximosEventos, addEvento, updateEvento, removeEvento, fetchEventos, type Evento } from '../stores/calendario.ts'
 import { useEscapeKey } from '../composables/useEscapeKey.ts'
 import { showToast } from '../stores/toast.ts'
 import calendarIcon from '../assets/icons/calendar.svg?raw'
+
+onMounted(() => {
+  fetchEventos()
+})
 
 interface Celula {
   iso: string

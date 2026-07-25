@@ -1,130 +1,83 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import type { Evento } from './calendario.ts'
 
+const mockFetch = vi.fn()
+global.fetch = mockFetch
+
 async function storeLimpa() {
-  localStorage.clear()
   vi.resetModules()
-  return import('./calendario.ts')
+  const mod = await import('./calendario.ts')
+  return mod
 }
 
 describe('stores/calendario', () => {
   beforeEach(() => {
-    localStorage.clear()
+    mockFetch.mockReset()
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => []
+    })
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-06-15T12:00:00'))
   })
   afterEach(() => { vi.useRealTimers() })
 
-  it('começa vazia quando não há nada no localStorage', async () => {
-    const { eventos } = await storeLimpa()
-    expect(eventos.value).toEqual([])
-  })
-
-  it('addEvento aplica defaults de descricao e formularioId', async () => {
-    const { eventos, addEvento } = await storeLimpa()
-    const novo = addEvento({ nome: 'Prova', data: '2026-07-01' })
-
-    expect(novo.descricao).toBe('')
-    expect(novo.formularioId).toBeNull()
-    expect(eventos.value).toHaveLength(1)
-  })
-
-  it('getEvento encontra pelo id, ou retorna null se não existir', async () => {
-    const { addEvento, getEvento } = await storeLimpa()
-    const novo = addEvento({ nome: 'Prova', data: '2026-07-01' })
-    expect(getEvento(novo.id)?.nome).toBe('Prova')
-    expect(getEvento(999999)).toBeNull()
-  })
-
   it('proximosEventos inclui hoje e o futuro, exclui o passado, ordenado por data', async () => {
-    const { proximosEventos, addEvento } = await storeLimpa()
-
-    addEvento({ nome: 'Passado', data: '2026-06-01' })
-    vi.advanceTimersByTime(1)
-    addEvento({ nome: 'Hoje', data: '2026-06-15' })
-    vi.advanceTimersByTime(1)
-    addEvento({ nome: 'Futuro distante', data: '2026-08-01' })
-    vi.advanceTimersByTime(1)
-    addEvento({ nome: 'Futuro próximo', data: '2026-07-01' })
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [
+        { id: 1, title: 'Passado', scheduled_to: '2026-06-01', description: '' },
+        { id: 2, title: 'Hoje', scheduled_to: '2026-06-15', description: '' },
+        { id: 3, title: 'Futuro distante', scheduled_to: '2026-08-01', description: '' },
+        { id: 4, title: 'Futuro próximo', scheduled_to: '2026-07-01', description: '' }
+      ]
+    })
+    
+    const { fetchEventos, proximosEventos } = await storeLimpa()
+    await fetchEventos()
 
     expect(proximosEventos.value.map((e: Evento) => e.nome)).toEqual([
       'Hoje', 'Futuro próximo', 'Futuro distante',
     ])
   })
 
-  it('updateEvento e removeEvento afetam só o evento indicado', async () => {
-    const { eventos, addEvento, updateEvento, removeEvento } = await storeLimpa()
-    const a = addEvento({ nome: 'A', data: '2026-07-01' })
-    vi.advanceTimersByTime(1)
-    const b = addEvento({ nome: 'B', data: '2026-07-02' })
+  it('getEvento encontra pelo id', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [
+        { id: 1, title: 'Prova', scheduled_to: '2026-07-01', description: '' }
+      ]
+    })
+    
+    const { fetchEventos, getEvento } = await storeLimpa()
+    await fetchEventos()
 
-    updateEvento(a.id, { nome: 'A editado' })
-    expect(eventos.value.find((e: Evento) => e.id === a.id)!.nome).toBe('A editado')
-    expect(eventos.value.find((e: Evento) => e.id === b.id)!.nome).toBe('B')
-
-    removeEvento(a.id)
-    expect(eventos.value).toHaveLength(1)
-    expect(eventos.value[0].id).toBe(b.id)
+    expect(getEvento(1)?.nome).toBe('Prova')
+    expect(getEvento(999999)).toBeNull()
   })
 
-  describe('upsertEventoFormulario', () => {
-    it('cria um evento novo vinculado ao formulário quando não existe um ainda', async () => {
-      const { eventos, upsertEventoFormulario } = await storeLimpa()
+  it('addEvento, updateEvento e removeEvento chamam a API', async () => {
+    const { addEvento, updateEvento, removeEvento, fetchEventos } = await storeLimpa()
+    
+    // add
+    mockFetch.mockResolvedValueOnce({ ok: true }) // add
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, title: 'A', scheduled_to: '2026-07-01', description: ''}] }) // fetch
+    
+    await addEvento({ nome: 'A', data: '2026-07-01' })
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/events/', expect.objectContaining({ method: 'POST' }))
 
-      upsertEventoFormulario(42, { nome: 'Evento do Form', data: '2026-07-10', descricao: 'Desc' })
+    // update
+    mockFetch.mockResolvedValueOnce({ ok: true }) // update
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, title: 'A editado', scheduled_to: '2026-07-01', description: ''}] }) // fetch
+    
+    await updateEvento(1, { nome: 'A editado' })
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/events/1', expect.objectContaining({ method: 'PUT' }))
 
-      expect(eventos.value).toHaveLength(1)
-      expect(eventos.value[0].formularioId).toBe(42)
-    })
-
-    it('atualiza o evento existente do formulário em vez de duplicar', async () => {
-      const { eventos, upsertEventoFormulario } = await storeLimpa()
-
-      upsertEventoFormulario(42, { nome: 'Nome 1', data: '2026-07-10', descricao: 'Desc 1' })
-      upsertEventoFormulario(42, { nome: 'Nome 2', data: '2026-07-11', descricao: 'Desc 2' })
-
-      expect(eventos.value).toHaveLength(1)
-      expect(eventos.value[0].nome).toBe('Nome 2')
-      expect(eventos.value[0].data).toBe('2026-07-11')
-    })
-
-    it('remove o evento vinculado quando a data é limpa (formulário deixou de ter data de evento)', async () => {
-      const { eventos, upsertEventoFormulario } = await storeLimpa()
-
-      upsertEventoFormulario(42, { nome: 'Nome', data: '2026-07-10', descricao: '' })
-      expect(eventos.value).toHaveLength(1)
-
-      upsertEventoFormulario(42, { nome: 'Nome', data: null, descricao: '' })
-      expect(eventos.value).toHaveLength(0)
-    })
-
-    it('não afeta eventos de outros formulários', async () => {
-      const { eventos, upsertEventoFormulario } = await storeLimpa()
-
-      upsertEventoFormulario(1, { nome: 'Form 1', data: '2026-07-10', descricao: '' })
-      upsertEventoFormulario(2, { nome: 'Form 2', data: '2026-07-11', descricao: '' })
-
-      expect(eventos.value).toHaveLength(2)
-    })
-  })
-
-  it('removeEventoByFormulario remove só o evento vinculado àquele formulário', async () => {
-    const { eventos, addEvento, removeEventoByFormulario } = await storeLimpa()
-    addEvento({ nome: 'Vinculado', data: '2026-07-10', formularioId: 42 })
-    vi.advanceTimersByTime(1)
-    addEvento({ nome: 'Solto', data: '2026-07-11' })
-
-    removeEventoByFormulario(42)
-
-    expect(eventos.value).toHaveLength(1)
-    expect(eventos.value[0].nome).toBe('Solto')
-  })
-
-  it('removeEventoByFormulario não faz nada se não houver evento vinculado', async () => {
-    const { eventos, addEvento, removeEventoByFormulario } = await storeLimpa()
-    addEvento({ nome: 'Solto', data: '2026-07-11' })
-
-    expect(() => removeEventoByFormulario(999)).not.toThrow()
-    expect(eventos.value).toHaveLength(1)
+    // remove
+    mockFetch.mockResolvedValueOnce({ ok: true }) // remove
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] }) // fetch
+    
+    await removeEvento(1)
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/events/1', expect.objectContaining({ method: 'DELETE' }))
   })
 })

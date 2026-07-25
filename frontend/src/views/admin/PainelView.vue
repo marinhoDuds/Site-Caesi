@@ -11,7 +11,7 @@ import { membros } from '../../stores/equipe.ts'
 import { formularios, inscricoes } from '../../stores/formularios.ts'
 import { tasks } from '../../stores/tasks.ts'
 import { publicacoes, fetchPublicacoes } from '../../stores/mural.ts'
-import { eventos, proximosEventos } from '../../stores/calendario.ts'
+import { eventos, proximosEventos, fetchEventos } from '../../stores/calendario.ts'
 import { estruturas } from '../../stores/mapa.ts'
 import { editais, professores, laboratorios, fetchEditais, fetchProfessores, fetchLaboratorios } from '../../stores/informacoes.ts'
 import { artefatos } from '../../stores/portal.ts'
@@ -31,6 +31,7 @@ onMounted(async () => {
   if (professores.value.length === 0) await fetchProfessores()
   if (laboratorios.value.length === 0) await fetchLaboratorios()
   if (publicacoes.value.length === 0) await fetchPublicacoes()
+  if (eventos.value.length === 0) await fetchEventos()
 })
 
 const totalMensagens = computed(() => mensagens.value.length)

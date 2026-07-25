@@ -1,116 +1,101 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import type { Edital, Professor, Laboratorio } from './informacoes.ts'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+const mockFetch = vi.fn()
+global.fetch = mockFetch
 
 async function storeLimpa() {
-  localStorage.clear()
   vi.resetModules()
-  return import('./informacoes.ts')
+  const mod = await import('./informacoes.ts')
+  return mod
 }
 
 describe('stores/informacoes', () => {
   beforeEach(() => {
-    localStorage.clear()
-    vi.useFakeTimers()
-  })
-  afterEach(() => { vi.useRealTimers() })
-
-  describe('editais', () => {
-    it('começa vazia e addEdital aplica defaults', async () => {
-      const { editais, addEdital } = await storeLimpa()
-      const novo = addEdital({ titulo: 'Edital 1' })
-
-      expect(editais.value).toHaveLength(1)
-      expect(novo.descricao).toBe('')
-      expect(novo.data).toBeNull()
-      expect(novo.anexo).toBeNull()
-      expect(novo.criadoEm).toBeTypeOf('string')
-    })
-
-    it('updateEdital e deleteEdital afetam só o edital indicado', async () => {
-      const { editais, addEdital, updateEdital, deleteEdital } = await storeLimpa()
-      const a = addEdital({ titulo: 'A' })
-      vi.advanceTimersByTime(1)
-      const b = addEdital({ titulo: 'B' })
-
-      updateEdital(a.id, { titulo: 'A editado' })
-      expect(editais.value.find((e: Edital) => e.id === a.id)!.titulo).toBe('A editado')
-      expect(editais.value.find((e: Edital) => e.id === b.id)!.titulo).toBe('B')
-
-      deleteEdital(a.id)
-      expect(editais.value).toHaveLength(1)
-      expect(editais.value[0].id).toBe(b.id)
+    mockFetch.mockReset()
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => []
     })
   })
 
-  describe('professores', () => {
-    it('começa vazia e addProfessor aplica defaults', async () => {
-      const { professores, addProfessor } = await storeLimpa()
-      const novo = addProfessor({ nome: 'Ana' })
+  it('addEdital, updateEdital e deleteEdital chamam a API', async () => {
+    const { addEdital, updateEdital, deleteEdital } = await storeLimpa()
+    
+    // add
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 1, content: '{"titulo":"Edital 1"}' }) })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, content: '{"titulo":"Edital 1"}'}] })
+    await addEdital({ titulo: 'Edital 1' })
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/', expect.objectContaining({ method: 'POST' }))
 
-      expect(professores.value).toHaveLength(1)
-      expect(novo.sala).toBe('')
-      expect(novo.estruturaId).toBeNull()
-      expect(novo.email).toBe('')
-    })
+    // update
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 1, content: '{"titulo":"Editado"}' }) })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, content: '{"titulo":"Editado"}'}] })
+    await updateEdital(1, { titulo: 'Editado' })
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/1', expect.objectContaining({ method: 'PUT' }))
 
-    it('updateProfessor e deleteProfessor afetam só o professor indicado', async () => {
-      const { professores, addProfessor, updateProfessor, deleteProfessor } = await storeLimpa()
-      const a = addProfessor({ nome: 'A' })
-      vi.advanceTimersByTime(1)
-      const b = addProfessor({ nome: 'B' })
-
-      updateProfessor(a.id, { sala: 'Sala 101' })
-      expect(professores.value.find((p: Professor) => p.id === a.id)!.sala).toBe('Sala 101')
-      expect(professores.value.find((p: Professor) => p.id === b.id)!.sala).toBe('')
-
-      deleteProfessor(a.id)
-      expect(professores.value).toHaveLength(1)
-      expect(professores.value[0].id).toBe(b.id)
-    })
+    // delete
+    mockFetch.mockResolvedValueOnce({ ok: true })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] })
+    await deleteEdital(1)
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/1', expect.objectContaining({ method: 'DELETE' }))
   })
 
-  describe('laboratorios', () => {
-    it('começa vazia e addLaboratorio aplica defaults', async () => {
-      const { laboratorios, addLaboratorio } = await storeLimpa()
-      const novo = addLaboratorio({ nome: 'LSD' })
+  it('addProfessor, updateProfessor e deleteProfessor chamam a API', async () => {
+    const { addProfessor, updateProfessor, deleteProfessor } = await storeLimpa()
+    
+    // add
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 1, content: '{"nome":"A"}' }) })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, content: '{"nome":"A"}'}] })
+    await addProfessor({ nome: 'A' })
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/', expect.objectContaining({ method: 'POST' }))
 
-      expect(laboratorios.value).toHaveLength(1)
-      expect(novo.sigla).toBe('')
-      expect(novo.imagem).toBeNull()
-      expect(novo.imagens).toEqual([])
-    })
+    // update
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 1, content: '{"nome":"A","sala":"Sala 101"}' }) })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, content: '{"nome":"A","sala":"Sala 101"}'}] })
+    await updateProfessor(1, { sala: 'Sala 101' })
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/1', expect.objectContaining({ method: 'PUT' }))
 
-    it('updateLaboratorio e deleteLaboratorio afetam só o laboratório indicado', async () => {
-      const { laboratorios, addLaboratorio, updateLaboratorio, deleteLaboratorio } = await storeLimpa()
-      const a = addLaboratorio({ nome: 'A' })
-      vi.advanceTimersByTime(1)
-      const b = addLaboratorio({ nome: 'B' })
-
-      updateLaboratorio(a.id, { sigla: 'AAA' })
-      expect(laboratorios.value.find((l: Laboratorio) => l.id === a.id)!.sigla).toBe('AAA')
-      expect(laboratorios.value.find((l: Laboratorio) => l.id === b.id)!.sigla).toBe('')
-
-      deleteLaboratorio(a.id)
-      expect(laboratorios.value).toHaveLength(1)
-      expect(laboratorios.value[0].id).toBe(b.id)
-    })
+    // delete
+    mockFetch.mockResolvedValueOnce({ ok: true })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] })
+    await deleteProfessor(1)
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/1', expect.objectContaining({ method: 'DELETE' }))
   })
 
-  describe('tamburetei', () => {
-    it('começa com os valores padrão quando não há nada no localStorage', async () => {
-      const { tamburetei } = await storeLimpa()
-      expect(tamburetei.value.titulo).toBe('Tamburetei')
-      expect(tamburetei.value.linkExterno).toBe('https://tamburetei.opendevufcg.org/')
-    })
+  it('addLaboratorio, updateLaboratorio e deleteLaboratorio chamam a API', async () => {
+    const { addLaboratorio, updateLaboratorio, deleteLaboratorio } = await storeLimpa()
+    
+    // add
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 1, content: '{"nome":"LSD"}' }) })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, content: '{"nome":"LSD"}'}] })
+    await addLaboratorio({ nome: 'LSD' })
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/', expect.objectContaining({ method: 'POST' }))
 
-    it('saveTamburetei substitui o bloco e persiste entre reimports', async () => {
-      const { saveTamburetei } = await storeLimpa()
-      saveTamburetei({ titulo: 'Novo título', descricao: 'Nova descrição', linkExterno: 'https://x.com' })
+    // update
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 1, content: '{"nome":"LSD","sigla":"AAA"}' }) })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, content: '{"nome":"LSD","sigla":"AAA"}'}] })
+    await updateLaboratorio(1, { sigla: 'AAA' })
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/1', expect.objectContaining({ method: 'PUT' }))
 
-      vi.resetModules()
-      const { tamburetei } = await import('./informacoes.ts')
+    // delete
+    mockFetch.mockResolvedValueOnce({ ok: true })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] })
+    await deleteLaboratorio(1)
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/1', expect.objectContaining({ method: 'DELETE' }))
+  })
 
-      expect(tamburetei.value).toEqual({ titulo: 'Novo título', descricao: 'Nova descrição', linkExterno: 'https://x.com' })
-    })
+  it('saveTamburetei chama a API para atualizar as informações do Tamburetei', async () => {
+    const { saveTamburetei } = await storeLimpa()
+    
+    // mock first fetch inside saveTamburetei
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] })
+    // mock put request
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({id: 1, content: '{"titulo":"Novo"}'}) })
+    // mock final fetch
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, content: '{"titulo":"Novo"}'}] })
+    
+    await saveTamburetei({ titulo: 'Novo' } as any)
+    
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/', expect.objectContaining({ method: 'POST' }))
   })
 })
