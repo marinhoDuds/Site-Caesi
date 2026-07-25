@@ -10,7 +10,7 @@ import iconUrl from 'leaflet/dist/images/marker-icon.png'
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
 import { isAdmin } from '../stores/auth.ts'
-import { estruturas, CENTRO_PADRAO, addEstrutura, updateEstrutura, removeEstrutura, type Estrutura } from '../stores/mapa.ts'
+import { estruturas, CENTRO_PADRAO, addEstrutura, updateEstrutura, removeEstrutura, fetchEstruturas, type Estrutura } from '../stores/mapa.ts'
 import { useEscapeKey } from '../composables/useEscapeKey.ts'
 import { showToast } from '../stores/toast.ts'
 import crosshairIcon from '../assets/icons/crosshair.svg?raw'
@@ -29,6 +29,10 @@ interface PendingPoint {
   lat: number
   lng: number
 }
+
+onMounted(async () => {
+  if (estruturas.value.length === 0) await fetchEstruturas()
+})
 
 const route = useRoute()
 const mapaEl = ref<HTMLElement | null>(null)
