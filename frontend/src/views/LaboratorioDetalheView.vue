@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import cameraIcon   from '../assets/icons/camera.svg?raw'
 import mapPinIcon   from '../assets/icons/map-pin.svg?raw'
@@ -9,10 +9,14 @@ import SiteFooter from '../components/SiteFooter.vue'
 import BackLink from '../components/BackLink.vue'
 import EmptyState from '../components/EmptyState.vue'
 import Lightbox from '../components/Lightbox.vue'
-import { laboratorios } from '../stores/informacoes.ts'
+import { laboratorios, fetchLaboratorios } from '../stores/informacoes.ts'
 import { estruturas } from '../stores/mapa.ts'
 
 const route = useRoute()
+
+onMounted(async () => {
+  if (laboratorios.value.length === 0) await fetchLaboratorios()
+})
 
 const laboratorio = computed(() =>
   laboratorios.value.find(l => l.id === Number(route.params.id))

@@ -1,5 +1,12 @@
 import { ref, computed } from 'vue'
 
+const API_BASE = 'http://localhost:8000'
+
+function getHeaders() {
+  const token = localStorage.getItem('caesi_admin_token')
+  return token ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } : { 'Content-Type': 'application/json' }
+}
+
 export interface Anexo {
   nome: string
 }
@@ -74,74 +81,189 @@ export interface Tamburetei {
   linkExterno: string
 }
 
-const KEY_EDITAIS      = 'caesi_editais'
-const KEY_PROFESSORES  = 'caesi_professores'
-const KEY_LABORATORIOS = 'caesi_laboratorios'
-const KEY_TAMBURETEI   = 'caesi_tamburetei'
-
 function hoje(): string { return new Date().toISOString().split('T')[0] }
 
 // ── Editais ─────────────────────────────────────────────
-const _editais = ref<Edital[]>(JSON.parse(localStorage.getItem(KEY_EDITAIS) || '[]'))
+const _editais = ref<Edital[]>([])
 export const editais = computed(() => _editais.value)
 
-function persistEditais(list: Edital[]) {
-  localStorage.setItem(KEY_EDITAIS, JSON.stringify(list))
-  _editais.value = [...list]
+export async function fetchEditais() {
+  try {
+    const res = await fetch(`${API_BASE}/informations/type/announcements`)
+    if (!res.ok) throw new Error('Failed to fetch editais')
+    const data = await res.json()
+    _editais.value = data.map((d: any) => {
+      const parsed = JSON.parse(d.content)
+      return { id: d.id, ...parsed }
+    })
+  } catch (error) {
+    console.error(error)
+  }
 }
 
-export function addEdital({ titulo, descricao = '', data = null, anexo = null }: NovoEdital): Edital {
-  const novo: Edital = { id: Date.now(), titulo, descricao, data, anexo, criadoEm: hoje() }
-  persistEditais([..._editais.value, novo])
-  return novo
+export async function addEdital(novo: NovoEdital) {
+  const content = JSON.stringify({ ...novo, criadoEm: hoje() })
+  const res = await fetch(`${API_BASE}/admin/informations/`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'announcements', content })
+  })
+  if (res.ok) {
+    const data = await res.json()
+    const parsed = JSON.parse(data.content)
+    _editais.value.push({ id: data.id, ...parsed })
+  }
 }
-export function updateEdital(id: number, updates: Partial<Edital>) {
-  persistEditais(_editais.value.map(e => e.id === id ? { ...e, ...updates } : e))
+
+export async function updateEdital(id: number, updates: Partial<Edital>) {
+  const existing = _editais.value.find(e => e.id === id)
+  if (!existing) return
+  const novoConteudo = { ...existing, ...updates }
+  delete (novoConteudo as any).id // do not save id in json content
+  
+  const res = await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'announcements', content: JSON.stringify(novoConteudo) })
+  })
+  if (res.ok) {
+    const index = _editais.value.findIndex(e => e.id === id)
+    if (index !== -1) {
+      _editais.value[index] = { id, ...novoConteudo } as Edital
+    }
+  }
 }
-export function deleteEdital(id: number) {
-  persistEditais(_editais.value.filter(e => e.id !== id))
+
+export async function deleteEdital(id: number) {
+  const res = await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  })
+  if (res.ok) {
+    _editais.value = _editais.value.filter(e => e.id !== id)
+  }
 }
 
 // ── Professores ─────────────────────────────────────────
-const _professores = ref<Professor[]>(JSON.parse(localStorage.getItem(KEY_PROFESSORES) || '[]'))
+const _professores = ref<Professor[]>([])
 export const professores = computed(() => _professores.value)
 
-function persistProfessores(list: Professor[]) {
-  localStorage.setItem(KEY_PROFESSORES, JSON.stringify(list))
-  _professores.value = [...list]
+export async function fetchProfessores() {
+  try {
+    const res = await fetch(`${API_BASE}/informations/type/professors`)
+    if (!res.ok) throw new Error('Failed to fetch professores')
+    const data = await res.json()
+    _professores.value = data.map((d: any) => {
+      const parsed = JSON.parse(d.content)
+      return { id: d.id, ...parsed }
+    })
+  } catch (error) {
+    console.error(error)
+  }
 }
 
-export function addProfessor({ nome, sala = '', estruturaId = null, descricao = '', foto = '', email = '', lattes = '', googleAcademico = '', linkedin = '' }: NovoProfessor): Professor {
-  const novo: Professor = { id: Date.now(), nome, sala, estruturaId, descricao, foto, email, lattes, googleAcademico, linkedin }
-  persistProfessores([..._professores.value, novo])
-  return novo
+export async function addProfessor(novo: NovoProfessor) {
+  const content = JSON.stringify(novo)
+  const res = await fetch(`${API_BASE}/admin/informations/`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'professors', content })
+  })
+  if (res.ok) {
+    const data = await res.json()
+    const parsed = JSON.parse(data.content)
+    _professores.value.push({ id: data.id, ...parsed })
+  }
 }
-export function updateProfessor(id: number, updates: Partial<Professor>) {
-  persistProfessores(_professores.value.map(p => p.id === id ? { ...p, ...updates } : p))
+
+export async function updateProfessor(id: number, updates: Partial<Professor>) {
+  const existing = _professores.value.find(p => p.id === id)
+  if (!existing) return
+  const novoConteudo = { ...existing, ...updates }
+  delete (novoConteudo as any).id
+  
+  const res = await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'professors', content: JSON.stringify(novoConteudo) })
+  })
+  if (res.ok) {
+    const index = _professores.value.findIndex(p => p.id === id)
+    if (index !== -1) {
+      _professores.value[index] = { id, ...novoConteudo } as Professor
+    }
+  }
 }
-export function deleteProfessor(id: number) {
-  persistProfessores(_professores.value.filter(p => p.id !== id))
+
+export async function deleteProfessor(id: number) {
+  const res = await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  })
+  if (res.ok) {
+    _professores.value = _professores.value.filter(p => p.id !== id)
+  }
 }
 
 // ── Laboratórios ────────────────────────────────────────
-const _laboratorios = ref<Laboratorio[]>(JSON.parse(localStorage.getItem(KEY_LABORATORIOS) || '[]'))
+const _laboratorios = ref<Laboratorio[]>([])
 export const laboratorios = computed(() => _laboratorios.value)
 
-function persistLaboratorios(list: Laboratorio[]) {
-  localStorage.setItem(KEY_LABORATORIOS, JSON.stringify(list))
-  _laboratorios.value = [...list]
+export async function fetchLaboratorios() {
+  try {
+    const res = await fetch(`${API_BASE}/informations/type/laboratories`)
+    if (!res.ok) throw new Error('Failed to fetch laboratorios')
+    const data = await res.json()
+    _laboratorios.value = data.map((d: any) => {
+      const parsed = JSON.parse(d.content)
+      return { id: d.id, ...parsed }
+    })
+  } catch (error) {
+    console.error(error)
+  }
 }
 
-export function addLaboratorio({ nome, sigla = '', descricao = '', imagem = null, imagens = [], email = '', linkExterno = '', estruturaId = null }: NovoLaboratorio): Laboratorio {
-  const novo: Laboratorio = { id: Date.now(), nome, sigla, descricao, imagem, imagens, email, linkExterno, estruturaId }
-  persistLaboratorios([..._laboratorios.value, novo])
-  return novo
+export async function addLaboratorio(novo: NovoLaboratorio) {
+  const content = JSON.stringify(novo)
+  const res = await fetch(`${API_BASE}/admin/informations/`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'laboratories', content })
+  })
+  if (res.ok) {
+    const data = await res.json()
+    const parsed = JSON.parse(data.content)
+    _laboratorios.value.push({ id: data.id, ...parsed })
+  }
 }
-export function updateLaboratorio(id: number, updates: Partial<Laboratorio>) {
-  persistLaboratorios(_laboratorios.value.map(l => l.id === id ? { ...l, ...updates } : l))
+
+export async function updateLaboratorio(id: number, updates: Partial<Laboratorio>) {
+  const existing = _laboratorios.value.find(l => l.id === id)
+  if (!existing) return
+  const novoConteudo = { ...existing, ...updates }
+  delete (novoConteudo as any).id
+  
+  const res = await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'laboratories', content: JSON.stringify(novoConteudo) })
+  })
+  if (res.ok) {
+    const index = _laboratorios.value.findIndex(l => l.id === id)
+    if (index !== -1) {
+      _laboratorios.value[index] = { id, ...novoConteudo } as Laboratorio
+    }
+  }
 }
-export function deleteLaboratorio(id: number) {
-  persistLaboratorios(_laboratorios.value.filter(l => l.id !== id))
+
+export async function deleteLaboratorio(id: number) {
+  const res = await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  })
+  if (res.ok) {
+    _laboratorios.value = _laboratorios.value.filter(l => l.id !== id)
+  }
 }
 
 // ── Tamburetei (bloco único, sem lista) ──────────────────
@@ -151,10 +273,46 @@ const TAMBURETEI_DEFAULT: Tamburetei = {
   linkExterno: 'https://tamburetei.opendevufcg.org/',
 }
 
-const _tamburetei = ref<Tamburetei>({ ...TAMBURETEI_DEFAULT, ...JSON.parse(localStorage.getItem(KEY_TAMBURETEI) || '{}') })
+const _tamburetei_id = ref<number | null>(null)
+const _tamburetei = ref<Tamburetei>({ ...TAMBURETEI_DEFAULT })
 export const tamburetei = computed(() => _tamburetei.value)
 
-export function saveTamburetei(dados: Tamburetei) {
-  localStorage.setItem(KEY_TAMBURETEI, JSON.stringify(dados))
-  _tamburetei.value = { ...dados }
+export async function fetchTamburetei() {
+  try {
+    const res = await fetch(`${API_BASE}/informations/type/tamburetei`)
+    if (!res.ok) throw new Error('Failed to fetch tamburetei')
+    const data = await res.json()
+    if (data.length > 0) {
+      _tamburetei_id.value = data[0].id
+      _tamburetei.value = { ...TAMBURETEI_DEFAULT, ...JSON.parse(data[0].content) }
+    } else {
+      _tamburetei.value = { ...TAMBURETEI_DEFAULT }
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export async function saveTamburetei(dados: Tamburetei) {
+  if (_tamburetei_id.value) {
+    const res = await fetch(`${API_BASE}/admin/informations/${_tamburetei_id.value}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'tamburetei', content: JSON.stringify(dados) })
+    })
+    if (res.ok) {
+      _tamburetei.value = { ...dados }
+    }
+  } else {
+    const res = await fetch(`${API_BASE}/admin/informations/`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'tamburetei', content: JSON.stringify(dados) })
+    })
+    if (res.ok) {
+      const data = await res.json()
+      _tamburetei_id.value = data.id
+      _tamburetei.value = { ...dados }
+    }
+  }
 }

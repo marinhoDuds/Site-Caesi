@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Navbar from '../components/Navbar.vue'
 import SiteFooter from '../components/SiteFooter.vue'
@@ -7,7 +7,7 @@ import BackLink from '../components/BackLink.vue'
 import EmptyState from '../components/EmptyState.vue'
 import FotoUpload from '../components/FotoUpload.vue'
 import mapPinIcon from '../assets/icons/map-pin.svg?raw'
-import { professores, addProfessor, updateProfessor, deleteProfessor, type Professor } from '../stores/informacoes.ts'
+import { professores, addProfessor, updateProfessor, deleteProfessor, fetchProfessores, type Professor } from '../stores/informacoes.ts'
 import { estruturas } from '../stores/mapa.ts'
 import { isAdmin } from '../stores/auth.ts'
 import { showToast } from '../stores/toast.ts'
@@ -15,6 +15,10 @@ import { validarNome, validarEmailOpcional, validarUrlOpcional } from '../utils/
 
 const route = useRoute()
 const busca = ref(String(route.query.busca ?? ''))
+
+onMounted(async () => {
+  if (professores.value.length === 0) await fetchProfessores()
+})
 
 const lista = computed(() => {
   const t = busca.value.toLowerCase().trim()

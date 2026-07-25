@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Navbar from '../components/Navbar.vue'
 import SiteFooter from '../components/SiteFooter.vue'
 import BackLink from '../components/BackLink.vue'
 import EmptyState from '../components/EmptyState.vue'
 import paperclipIcon from '../assets/icons/paperclip.svg?raw'
-import { editais, addEdital, updateEdital, deleteEdital, type Edital } from '../stores/informacoes.ts'
+import { editais, addEdital, updateEdital, deleteEdital, fetchEditais, type Edital } from '../stores/informacoes.ts'
 import { isAdmin } from '../stores/auth.ts'
 import { showToast } from '../stores/toast.ts'
 import { isTodayOrFuture } from '../utils/validation.ts'
@@ -14,6 +14,10 @@ import { isTodayOrFuture } from '../utils/validation.ts'
 const route = useRoute()
 const busca = ref(String(route.query.busca ?? ''))
 const expandidoId = ref<number | null>(null)
+
+onMounted(async () => {
+  if (editais.value.length === 0) await fetchEditais()
+})
 
 const lista = computed(() => {
   const t = busca.value.toLowerCase().trim()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import Navbar from '../../components/Navbar.vue'
 import { Bar, Doughnut } from 'vue-chartjs'
 import {
@@ -13,7 +13,7 @@ import { tasks } from '../../stores/tasks.ts'
 import { publicacoes, fetchPublicacoes } from '../../stores/mural.ts'
 import { eventos, proximosEventos } from '../../stores/calendario.ts'
 import { estruturas } from '../../stores/mapa.ts'
-import { editais, professores, laboratorios } from '../../stores/informacoes.ts'
+import { editais, professores, laboratorios, fetchEditais, fetchProfessores, fetchLaboratorios } from '../../stores/informacoes.ts'
 import { artefatos } from '../../stores/portal.ts'
 import inboxIcon from '../../assets/icons/inbox.svg?raw'
 import clipboardIcon from '../../assets/icons/clipboard.svg?raw'
@@ -25,6 +25,13 @@ import bookOpenIcon from '../../assets/icons/book-open.svg?raw'
 import usersIcon from '../../assets/icons/users.svg?raw'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement)
+
+onMounted(async () => {
+  if (editais.value.length === 0) await fetchEditais()
+  if (professores.value.length === 0) await fetchProfessores()
+  if (laboratorios.value.length === 0) await fetchLaboratorios()
+  if (publicacoes.value.length === 0) await fetchPublicacoes()
+})
 
 const totalMensagens = computed(() => mensagens.value.length)
 const pendentes      = computed(() => mensagens.value.filter(m => m.status === 'pendente').length)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Navbar from '../components/Navbar.vue'
 import SiteFooter from '../components/SiteFooter.vue'
 import BackLink from '../components/BackLink.vue'
@@ -10,10 +10,16 @@ import userIcon      from '../assets/icons/user.svg?raw'
 import flaskIcon     from '../assets/icons/flask.svg?raw'
 import bookOpenIcon  from '../assets/icons/book-open.svg?raw'
 import archiveIcon   from '../assets/icons/archive.svg?raw'
-import { editais, professores, laboratorios } from '../stores/informacoes.ts'
+import { editais, professores, laboratorios, fetchEditais, fetchProfessores, fetchLaboratorios } from '../stores/informacoes.ts'
 import { artefatos } from '../stores/portal.ts'
 
 function plural(n: number, singular: string, pluralForm: string) { return `${n} ${n === 1 ? singular : pluralForm}` }
+
+onMounted(async () => {
+  if (editais.value.length === 0) await fetchEditais()
+  if (professores.value.length === 0) await fetchProfessores()
+  if (laboratorios.value.length === 0) await fetchLaboratorios()
+})
 
 const secoes = computed(() => [
   { to: '/informacoes/editais',      titulo: 'Editais',       icon: clipboardIcon, cor: 'roxo',        info: plural(editais.value.length, 'edital', 'editais') },

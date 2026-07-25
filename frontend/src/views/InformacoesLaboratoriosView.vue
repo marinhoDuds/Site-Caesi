@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Navbar from '../components/Navbar.vue'
 import SiteFooter from '../components/SiteFooter.vue'
@@ -8,7 +8,7 @@ import EmptyState from '../components/EmptyState.vue'
 import Modal from '../components/Modal.vue'
 import FotoUpload from '../components/FotoUpload.vue'
 import GaleriaImagens from '../components/GaleriaImagens.vue'
-import { laboratorios, addLaboratorio, updateLaboratorio, deleteLaboratorio, type Laboratorio } from '../stores/informacoes.ts'
+import { laboratorios, addLaboratorio, updateLaboratorio, deleteLaboratorio, fetchLaboratorios, type Laboratorio } from '../stores/informacoes.ts'
 import { estruturas } from '../stores/mapa.ts'
 import { isAdmin } from '../stores/auth.ts'
 import { showToast } from '../stores/toast.ts'
@@ -17,6 +17,10 @@ import { validarNome, validarEmailOpcional, validarUrlOpcional } from '../utils/
 
 const route = useRoute()
 const busca = ref(String(route.query.busca ?? ''))
+
+onMounted(async () => {
+  if (laboratorios.value.length === 0) await fetchLaboratorios()
+})
 
 const lista = computed(() => {
   const t = busca.value.toLowerCase().trim()
