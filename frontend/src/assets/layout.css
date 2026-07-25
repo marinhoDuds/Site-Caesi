@@ -1,0 +1,320 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page-content--wide {
+  max-width: 1200px;
+}
+
+.paper {
+  background: var(--creme);
+  border-radius: 2px;
+  padding: 2rem;
+  position: relative;
+  margin-top: 14px;
+  box-shadow: 5px 5px 0 var(--roxo-escuro), 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.paper::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: var(--creme);
+  clip-path: polygon(
+    0% 100%,
+    0% 12%, 4% 88%, 8% 8%, 12% 92%, 16% 4%,
+    20% 84%, 24% 10%, 28% 90%, 32% 6%, 36% 86%,
+    40% 14%, 44% 90%, 48% 4%, 52% 88%, 56% 14%,
+    60% 92%, 64% 6%, 68% 86%, 72% 8%, 76% 90%,
+    80% 4%, 84% 88%, 88% 10%, 92% 90%, 96% 6%,
+    100% 82%, 100% 100%
+  );
+}
+
+/* ── Empilhamento de papers: rebarba só no topo do 1º e na base do último ──
+   .paper--meio: card do meio da pilha, sem rebarba nenhuma.
+   .paper--fim: último card da pilha, ganha rebarba na base também. */
+.paper--meio::before,
+.paper--fim::before {
+  content: none;
+}
+
+/* .paper--fim troca box-shadow por drop-shadow: precisa seguir o recorte
+   irregular do ::after (rebarba de baixo), o que box-shadow não acompanha. */
+.paper--fim {
+  box-shadow: none;
+  filter: drop-shadow(5px 5px 0 var(--roxo-escuro)) drop-shadow(0 8px 24px rgba(0,0,0,0.25));
+}
+
+.paper--fim::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: var(--creme);
+  transform: rotate(180deg);
+  clip-path: polygon(
+    0% 100%,
+    0% 12%, 4% 88%, 8% 8%, 12% 92%, 16% 4%,
+    20% 84%, 24% 10%, 28% 90%, 32% 6%, 36% 86%,
+    40% 14%, 44% 90%, 48% 4%, 52% 88%, 56% 14%,
+    60% 92%, 64% 6%, 68% 86%, 72% 8%, 76% 90%,
+    80% 4%, 84% 88%, 88% 10%, 92% 90%, 96% 6%,
+    100% 82%, 100% 100%
+  );
+}
+
+.deco-star {
+  position: fixed;
+  font-size: 1.4rem;
+  color: var(--amarelo);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.75;
+}
+
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.page-heading h2 {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 800;
+  font-size: 1.8rem;
+  color: var(--creme);
+}
+.page-heading h2 span { color: var(--amarelo); }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--creme);
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.back-link:hover { opacity: 1; }
+
+.divider {
+  border: none;
+  border-top: 2px dashed var(--creme-escuro);
+  margin: 1.4rem 0;
+}
+
+.msg-body {
+  background: var(--branco);
+  border: 2px solid var(--creme-escuro);
+  border-radius: 2px;
+  padding: 1.2rem;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--preto);
+  white-space: pre-wrap;
+}
+
+.complementos-lista { display: flex; flex-direction: column; gap: 10px; }
+.complemento-item {
+  background: var(--creme);
+  border-left: 3px solid var(--roxo);
+  border-radius: 2px;
+  padding: 10px 12px;
+}
+.complemento-data { font-size: 0.72rem; color: var(--cinza); margin-bottom: 4px; }
+.complemento-texto { font-size: 0.88rem; color: var(--preto); line-height: 1.55; white-space: pre-wrap; }
+
+.internal-note {
+  background: rgba(80,64,160,0.07);
+  border: 2px dashed rgba(80,64,160,0.3);
+  border-radius: 2px;
+  padding: 1rem;
+}
+.internal-note-label {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--roxo-escuro);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.internal-note textarea {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.7);
+  border: 1.5px solid var(--creme-escuro);
+  border-radius: 2px;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.88rem;
+  color: var(--preto);
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+}
+.internal-note textarea:focus { border-color: var(--roxo); }
+
+/* ── Modificadores de .paper ────────────────────────────── */
+.paper-mb    { margin-bottom: 1.2rem; }
+.paper-mb-lg { margin-bottom: 1.5rem; }
+.paper-flush { padding: 0; overflow: hidden; }
+.paper-sm    { padding: 1.2rem; }
+
+/* ── Tipografia interna ─────────────────────────────────── */
+.label-sm {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 0.76rem;
+  color: var(--roxo-escuro);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.paper-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--roxo-escuro);
+  margin-bottom: 1rem;
+}
+
+.paper-subtitle {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--roxo-escuro);
+  margin-bottom: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.msg-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--roxo-escuro);
+  margin-bottom: 0.8rem;
+  line-height: 1.25;
+}
+
+/* ── Metadados de mensagem ──────────────────────────────── */
+.msg-meta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.msg-meta-item { font-size: 0.84rem; color: var(--cinza); }
+.msg-meta-label { font-weight: 600; color: var(--preto); }
+
+/* ── Layout de formulários ──────────────────────────────── */
+.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.field-hint { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.78rem; color: var(--cinza); }
+.form-actions { display: flex; justify-content: flex-end; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.save-row { margin-top: 10px; text-align: right; }
+
+/* ── Alertas ────────────────────────────────────────────── */
+.alert-erro {
+  background: rgba(217,85,85,0.1);
+  border: 2px solid var(--vermelho);
+  border-radius: 2px;
+  padding: 9px 13px;
+  font-size: 0.85rem;
+  color: var(--vermelho);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.alert-info {
+  background: rgba(80,64,160,0.07);
+  border: 2px dashed rgba(80,64,160,0.3);
+  border-radius: 2px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: var(--preto);
+  margin-bottom: 1.4rem;
+  line-height: 1.55;
+}
+
+.alert-atendida {
+  background: rgba(78,170,119,0.12);
+  border: 2px solid var(--verde);
+  border-radius: 2px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+.alert-atendida-title { font-family: 'Archivo Black', sans-serif; font-weight: 700; color: var(--verde); font-size: 0.95rem; }
+.alert-atendida-sub   { font-size: 0.81rem; color: var(--cinza); margin-top: 2px; }
+
+.alert-resposta {
+  margin-top: 1.5rem;
+  background: rgba(80,64,160,0.07);
+  border: 2px solid var(--roxo);
+  border-radius: 2px;
+  padding: 1rem 1.2rem;
+}
+
+/* ── Protocolo ──────────────────────────────────────────── */
+.protocolo-box {
+  background: var(--branco);
+  border: 2px solid var(--creme-escuro);
+  border-radius: 2px;
+  padding: 10px 16px;
+  display: inline-block;
+  margin-bottom: 1.5rem;
+}
+.protocolo-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--roxo-escuro);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: 'Archivo Black', sans-serif;
+  margin-bottom: 3px;
+}
+.protocolo-value {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--preto);
+}
+
+@media (max-width: 600px) {
+  .page-content { padding: 1rem; }
+  .paper { padding: 1.2rem; }
+  .page-heading { align-items: flex-start; gap: 8px 10px; }
+  .page-heading h2 { font-size: 1.3rem; flex: 1; min-width: 0; }
+  .page-heading .btn { padding: 6px 10px; font-size: 0.72rem; flex-shrink: 0; }
+  .field-grid { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,362 @@
+/* ── Tipo do formulário ─────────────────────────────────── */
+.tipo-tag {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 3px 9px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  white-space: nowrap;
+}
+.tipo-evento-com-certificado { background: rgba(78,170,119,0.15);  color: #1A6040; border: 1px solid rgba(78,170,119,0.3); }
+.tipo-evento-sem-certificado { background: rgba(80,64,160,0.15);   color: var(--roxo-escuro); border: 1px solid rgba(80,64,160,0.3); }
+.tipo-venda                  { background: rgba(210,120,40,0.15);  color: #904010; border: 1px solid rgba(210,120,40,0.3); }
+.tipo-arrecadacao            { background: rgba(240,192,64,0.2);   color: #7A5A00; border: 1px solid rgba(240,192,64,0.4); }
+
+/* ── Status do formulário ───────────────────────────────── */
+.form-status-badge {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 3px 9px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  white-space: nowrap;
+}
+.form-status-aberto    { background: rgba(78,170,119,0.15); color: #1A6640; }
+.form-status-encerrado { background: rgba(100,100,120,0.12); color: #404060; }
+.form-status-rascunho  { background: rgba(240,192,64,0.18); color: #7A5A00; }
+
+/* ── Status do comprovante ──────────────────────────────── */
+.comp-badge {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  padding: 3px 8px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-block;
+  white-space: nowrap;
+}
+.comp-pendente  { background: var(--amarelo); color: var(--preto); }
+.comp-validado  { background: rgba(78,170,119,0.18); color: #1A6640; border: 1px solid rgba(78,170,119,0.35); }
+.comp-arquivado { background: rgba(100,100,120,0.12); color: #505060; }
+
+/* ── Card de formulário (listagem) ──────────────────────── */
+.form-card {
+  background: var(--creme);
+  border-radius: 2px;
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--roxo);
+  box-shadow: 3px 3px 0 var(--roxo-escuro);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.form-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--roxo-escuro);
+}
+.form-card.aberto    { border-left-color: var(--verde); }
+.form-card.encerrado { border-left-color: var(--cinza); opacity: 0.82; }
+
+.form-card-info { flex: 1; min-width: 0; }
+.form-card-tags { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+.form-card-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: var(--preto);
+}
+.form-card-desc {
+  font-size: 0.87rem;
+  color: var(--preto);
+  opacity: 0.65;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 8px;
+}
+.form-card-meta { font-size: 0.8rem; color: var(--cinza); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.form-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+/* ── Linhas de inscrição (view de detalhe) ──────────────── */
+.inscricao-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--creme-escuro);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.inscricao-row:last-child { border-bottom: none; }
+
+.inscricao-info { flex: 1; min-width: 0; }
+.inscricao-nome {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--preto);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inscricao-meta { font-size: 0.79rem; color: var(--cinza); margin-top: 2px; }
+
+.inscricao-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* ── Receita no detalhe ─────────────────────────────────── */
+.stat-number--receita {
+  color: var(--verde);
+  font-size: 1.7rem;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+/* ── Campos dinâmicos no formulário de criação ──────────── */
+.campos-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.campo-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.campo-row-select,
+.campo-row-input {
+  padding: 8px 12px;
+  background: var(--branco);
+  border: 2px solid var(--creme-escuro);
+  border-radius: 2px;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.88rem;
+  color: var(--preto);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.campo-row-select:focus,
+.campo-row-input:focus { border-color: var(--roxo); }
+
+.campo-row-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235040A0' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+  flex-shrink: 0;
+  width: 140px;
+  cursor: pointer;
+}
+
+.campo-row-input { flex: 1; min-width: 120px; }
+
+.campo-row-check {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: var(--preto);
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+}
+.campo-row-check input[type="checkbox"] {
+  accent-color: var(--roxo-escuro);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.campo-opcoes-input {
+  width: 100%;
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.7);
+  border: 1.5px dashed var(--creme-escuro);
+  border-radius: 2px;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.84rem;
+  color: var(--preto);
+  outline: none;
+  margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+.campo-opcoes-input:focus { border-color: var(--roxo); border-style: solid; }
+
+/* ── Upload de comprovante (aluno) ──────────────────────── */
+.comprovante-area {
+  border: 2px dashed var(--creme-escuro);
+  border-radius: 2px;
+  padding: 1.4rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: rgba(255,255,255,0.5);
+  margin-top: 0.5rem;
+  user-select: none;
+}
+.comprovante-area:hover    { border-color: var(--roxo); background: rgba(128,112,192,0.05); }
+.comprovante-area.has-file { border-color: var(--verde); background: rgba(78,170,119,0.08); }
+.comprovante-area p        { font-size: 0.87rem; color: var(--cinza); margin: 0; }
+.comprovante-filename {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--verde);
+  margin-bottom: 4px;
+}
+
+/* ── Total estimado (venda) ─────────────────────────────── */
+.total-estimado {
+  background: rgba(80,64,160,0.07);
+  border: 2px dashed rgba(80,64,160,0.3);
+  border-radius: 2px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+.total-estimado-label { font-size: 0.84rem; color: var(--cinza); }
+.total-estimado-valor {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--roxo-escuro);
+}
+
+/* ── Prazo urgente ──────────────────────────────────────── */
+.prazo-urgente-badge {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  padding: 3px 8px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-block;
+  white-space: nowrap;
+  background: rgba(220,80,20,0.14);
+  color: #B83A08;
+  border: 1px solid rgba(220,80,20,0.35);
+  animation: prazo-pulse 2s ease-in-out infinite;
+}
+@keyframes prazo-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.65; }
+}
+
+/* ── Solicitação de cancelamento ────────────────────────── */
+.cancelamento-badge {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  padding: 3px 8px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-block;
+  white-space: nowrap;
+  background: rgba(210,80,40,0.12);
+  color: #8B2510;
+  border: 1px solid rgba(210,80,40,0.3);
+}
+
+/* ── Modal ──────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20,12,40,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+.modal-box {
+  background: var(--creme);
+  border-radius: 2px;
+  padding: 2rem;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 6px 6px 0 var(--roxo-escuro);
+  border: 2px solid var(--preto);
+}
+.modal-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--preto);
+  margin-bottom: 0.5rem;
+}
+.modal-body {
+  font-size: 0.88rem;
+  color: var(--cinza);
+  line-height: 1.55;
+  margin-bottom: 1.2rem;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.membro-modal-box { max-width: 560px; }
+.modal-contato {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(80,64,160,0.07);
+  border-radius: 2px;
+  border-left: 3px solid var(--roxo);
+}
+.modal-contato-label { font-size: 0.75rem; color: var(--cinza); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+.modal-contato-nome  { font-size: 0.9rem; font-weight: 700; color: var(--preto); }
+.modal-contato-email { font-size: 0.82rem; color: var(--cinza); }
+
+.empty-state {
+  background: var(--creme);
+  border: 2px solid var(--creme-escuro);
+  border-radius: 2px;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 5px 5px 0 var(--roxo-escuro);
+  margin-bottom: 1.4rem;
+}
+.empty-state p    { font-size: 1rem; font-weight: 600; color: var(--preto); margin-bottom: 0.4rem; }
+.empty-state span { font-size: 0.85rem; color: var(--cinza); }
+
+@media (max-width: 600px) {
+  .form-card { flex-direction: column; gap: 6px; }
+  .form-card-right { display: none; }
+  .form-card-desc { display: none; }
+  .inscricao-row { flex-direction: column; align-items: flex-start; }
+  .inscricao-actions { flex-direction: row; flex-wrap: wrap; }
+  .campo-row { flex-direction: column; align-items: stretch; }
+  .campo-row-select { width: 100%; }
+  .campo-row-input { min-width: unset; }
+}

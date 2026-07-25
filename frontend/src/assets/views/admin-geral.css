@@ -1,0 +1,231 @@
+.painel-chart-wrap { height: 200px; }
+
+/* ── Painel: seções que agrupam cada semi-bento-grid ───────── */
+.painel-secao { margin-bottom: 2rem; }
+.painel-secao:last-child { margin-bottom: 0; }
+
+.painel-secao-titulo {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(242,230,196,0.7);
+  border-bottom: 1.5px solid rgba(242,230,196,0.25);
+  padding-bottom: 0.6rem;
+  margin-bottom: 1.2rem;
+}
+
+/* ── Painel: semi-bento grid ───────────────────────────────
+   Cada seção declara o próprio número de colunas (2, 3 ou 4) de
+   acordo com quantos tiles ela realmente tem — todos os tiles de
+   uma seção dividem a largura igualmente. Isso evita o problema de
+   um card sobrando sozinho numa linha quase vazia (span fixo +
+   dense-flow deixava isso acontecer sempre que a soma dos spans não
+   fosse múltiplo do nº de colunas). A altura continua intrínseca ao
+   conteúdo, então tiles com gráfico convivem com tiles de stat único
+   sem precisar calcular row-span. */
+.painel-bento {
+  display: grid;
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.bento-tile {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.painel-bento--2 { grid-template-columns: repeat(2, 1fr); }
+.painel-bento--3 { grid-template-columns: repeat(3, 1fr); }
+.painel-bento--4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Cada breakpoint só reduz pra uma contagem que divide a anterior
+   sem resto — nunca pra uma que deixaria 1 tile sobrando sozinho.
+   --3 não tem meio-termo (3 não divide por 2), então pula direto
+   pra 1 coluna; --4 passa por 2 colunas antes (4 ÷ 2 = 2, exato).
+   --4 quebra mais cedo (1150px) porque o tile "Informações" (4
+   mini-stats) já fica apertado bem antes do ponto em que --3 (menos
+   conteúdo por tile) começa a incomodar. */
+@media (max-width: 1150px) {
+  .painel-bento--4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .painel-bento--3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .painel-bento--2, .painel-bento--4 { grid-template-columns: 1fr; }
+}
+
+.bento-tile--roxo        { border-left: 4px solid var(--roxo); }
+.bento-tile--roxo-escuro { border-left: 4px solid var(--roxo-escuro); }
+.bento-tile--verde       { border-left: 4px solid var(--verde); }
+.bento-tile--amarelo     { border-left: 4px solid var(--amarelo); }
+.bento-tile--vermelho    { border-left: 4px solid var(--vermelho); }
+.bento-tile--kraft       { border-left: 4px solid var(--kraft); }
+
+.bento-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.bento-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--branco);
+}
+.bento-icon svg { width: 18px; height: 18px; }
+
+.bento-icon--roxo        { background: var(--roxo); }
+.bento-icon--roxo-escuro { background: var(--roxo-escuro); }
+.bento-icon--verde       { background: var(--verde); }
+.bento-icon--amarelo     { background: var(--amarelo); color: var(--roxo-escuro); }
+.bento-icon--vermelho    { background: var(--vermelho); }
+.bento-icon--kraft       { background: var(--kraft); color: var(--roxo-escuro); }
+
+.bento-header-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+.bento-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--roxo-escuro);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bento-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.bento-body .geral-row-stats { gap: 1.4rem; flex-wrap: wrap; row-gap: 0.8rem; }
+
+.bento-stat-solo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0.2rem 0 1rem;
+  flex: 1;
+}
+.bento-stat-solo .geral-mini-num { font-size: 2.1rem; }
+
+.bento-link {
+  margin-top: auto;
+  padding-top: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--roxo-escuro);
+  text-decoration: none;
+  opacity: 0.75;
+  transition: opacity 0.15s;
+}
+.bento-link:hover { opacity: 1; }
+
+.painel-tendencia {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cinza);
+  margin: 0.2rem 0 0.75rem;
+}
+
+.geral-row-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 2px;
+  width: fit-content;
+}
+.geral-row-badge.ok    { background: rgba(78,170,119,0.15); color: #1a6640; }
+.geral-row-badge.alerta { background: rgba(217,85,85,0.12); color: var(--vermelho); }
+.geral-row-badge.neutro { background: rgba(80,64,160,0.1); color: var(--roxo-escuro); }
+
+.geral-row-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.geral-mini-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.geral-mini-num {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 800;
+  font-size: 1.7rem;
+  color: var(--preto);
+  line-height: 1;
+}
+
+.geral-mini-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--cinza);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.geral-equipe-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.geral-equipe-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  background: var(--branco);
+  border: 1.5px solid var(--creme-escuro);
+  border-radius: 2px;
+}
+
+.geral-chip-dir {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--roxo-escuro);
+  font-family: 'Archivo Black', sans-serif;
+}
+
+.geral-chip-nome {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--preto);
+}
+.geral-chip-nome.vazio { color: var(--cinza); font-style: italic; font-weight: 400; }
+
+@media (max-width: 860px) {
+  .geral-equipe-grid {
+    flex: unset;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .geral-row-stats { gap: 1.2rem; flex-wrap: wrap; row-gap: 0.8rem; }
+
+  .geral-mini-num { font-size: 1.4rem; }
+
+  .geral-equipe-grid {
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+}

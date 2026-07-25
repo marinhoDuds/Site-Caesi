@@ -1,0 +1,90 @@
+.site-footer {
+  background: var(--roxo-escuro);
+  border-top: 3px solid rgba(245,197,66,0.25);
+  padding: 2.5rem 2rem 1.5rem;
+  margin-top: auto;
+}
+.footer-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.footer-brand {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 800;
+  color: var(--creme);
+  font-size: 1.05rem;
+}
+.footer-brand span { color: var(--amarelo); }
+.footer-brand-sub {
+  font-size: 0.78rem;
+  color: rgba(242,230,196,0.5);
+  margin-top: 4px;
+  line-height: 1.55;
+}
+.footer-group-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-family: 'Archivo Black', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(242,230,196,0.35);
+  margin-bottom: 0.6rem;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+.footer-link {
+  color: rgba(242,230,196,0.6);
+  font-size: 0.85rem;
+  text-decoration: none;
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+.footer-link:hover { color: var(--amarelo); }
+
+.footer-link--icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.footer-link--static { cursor: default; }
+.footer-link--static:hover { color: rgba(242,230,196,0.6); }
+
+.footer-link-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.footer-link-icon :deep(svg) { width: 14px; height: 14px; }
+.footer-copy {
+  font-size: 0.74rem;
+  color: rgba(242,230,196,0.3);
+  margin-top: 1.5rem;
+  text-align: center;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+@media (max-width: 640px) {
+  .footer-inner { flex-direction: column; gap: 1.2rem; }
+  /* espaço reservado pra não ficar embaixo do botão flutuante "voltar ao topo" */
+  .site-footer { padding-right: 5rem; }
+  .footer-links--nav {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem 1rem;
+  }
+}

@@ -1,0 +1,19 @@
+@import './base.css';
+@import './layout.css';
+@import './buttons.css';
+@import './forms.css';
+
+@import './components/navbar.css';
+@import './components/badges.css';
+@import './components/msg-card.css';
+@import './components/stats.css';
+@import './components/footer.css';
+@import './components/toast.css';
+@import './components/pagination.css';
+@import './components/upload.css';
+
+@import './views/home.css';
+@import './views/admin-geral.css';
+@import './views/painel.css';
+@import './views/not-found.css';
+@import './views/formularios.css';
