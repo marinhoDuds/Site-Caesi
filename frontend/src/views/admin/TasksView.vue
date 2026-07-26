@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Navbar from '../../components/Navbar.vue'
 import BackLink from '../../components/BackLink.vue'
 import Modal from '../../components/Modal.vue'
@@ -7,7 +7,7 @@ import { showToast } from '../../stores/toast.ts'
 import { useEscapeKey } from '../../composables/useEscapeKey.ts'
 import {
   tasks, criarTask, editarTask, excluirTask, atualizarStatus,
-  membros, addMembro, removeMembro,
+  membros, addMembro, removeMembro, fetchTasks, fetchMembros,
   type Task, type Membro, type StatusTask, type PrioridadeTask, type CategoriaTask,
 } from '../../stores/tasks.ts'
 import pencilIcon   from '../../assets/icons/pencil.svg?raw'
@@ -21,6 +21,11 @@ import calendarIcon from '../../assets/icons/calendar.svg?raw'
 const adicionandoMembro = ref(false)
 const novoMembroNome    = ref('')
 const confirmarRmMembro = ref<Membro | null>(null)
+ 
+onMounted(() => {
+  fetchTasks()
+  fetchMembros()
+})
 
 function nomeMembro(id: string) {
   return membros.value.find(m => m.id === id)?.nome ?? '?'
