@@ -147,7 +147,7 @@ class InformationService:
             self._insert_attachment(info_id, url)
         return url
 
-    def get_information(self, info_id: int) -> Optional[InformationResponse]:
+    def get_information(self, id: int) -> Optional[InformationResponse]:
         """Fetch a specific information by its ID.
 
         Parameters
