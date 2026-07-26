@@ -1,7 +1,14 @@
+import io
+
 import pytest
 from unittest.mock import MagicMock, patch
 
 from src.service.informations_management.service import InformationService
+from src.routes.informations.schemas import (
+    InformationCreate,
+    InformationUpdate,
+    InformationTypeEnum,
+)
 
 
 @pytest.fixture
