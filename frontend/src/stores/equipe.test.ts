@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { Membro, SecaoCustom } from './equipe.ts'
 
+const mockFetch = vi.fn()
+global.fetch = mockFetch
+
 async function storeLimpa() {
-  localStorage.clear()
   vi.resetModules()
   return import('./equipe.ts')
 }
@@ -10,9 +12,12 @@ async function storeLimpa() {
 describe('stores/equipe', () => {
   beforeEach(() => {
     localStorage.clear()
-    vi.useFakeTimers()
+    mockFetch.mockReset()
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => []
+    })
   })
-  afterEach(() => { vi.useRealTimers() })
 
   describe('missão, contato e descrição — valores padrão', () => {
     it('começa com o texto e a imagem padrão da missão quando não há nada salvo', async () => {
@@ -23,8 +28,10 @@ describe('stores/equipe', () => {
 
     it('saveMissao e saveMissaoImagem persistem e refletem no computed', async () => {
       const { missaoTexto, missaoImagem, saveMissao, saveMissaoImagem } = await storeLimpa()
-      saveMissao('Nova missão')
-      saveMissaoImagem('data:image/jpeg;base64,xyz')
+      mockFetch.mockResolvedValue({ ok: true, json: async () => ({ id: 1 }) })
+
+      await saveMissao('Nova missão')
+      await saveMissaoImagem('data:image/jpeg;base64,xyz')
 
       expect(missaoTexto.value).toBe('Nova missão')
       expect(missaoImagem.value).toBe('data:image/jpeg;base64,xyz')
@@ -32,8 +39,10 @@ describe('stores/equipe', () => {
 
     it('saveMissaoImagem(null) limpa a imagem', async () => {
       const { missaoImagem, saveMissaoImagem } = await storeLimpa()
-      saveMissaoImagem('data:image/jpeg;base64,xyz')
-      saveMissaoImagem(null)
+      mockFetch.mockResolvedValue({ ok: true, json: async () => ({ id: 1 }) })
+
+      await saveMissaoImagem('data:image/jpeg;base64,xyz')
+      await saveMissaoImagem(null)
       expect(missaoImagem.value).toBe('')
     })
 
@@ -45,7 +54,9 @@ describe('stores/equipe', () => {
 
     it('saveContato faz merge parcial, sem apagar os outros campos', async () => {
       const { contatoInfo, saveContato } = await storeLimpa()
-      saveContato({ instagram: 'novo_instagram' })
+      mockFetch.mockResolvedValue({ ok: true, json: async () => ({ id: 1 }) })
+
+      await saveContato({ instagram: 'novo_instagram' })
 
       expect(contatoInfo.value.instagram).toBe('novo_instagram')
       expect(contatoInfo.value.email).toBe('caesi@ccc.ufcg.edu.br')
@@ -53,7 +64,9 @@ describe('stores/equipe', () => {
 
     it('saveDescricao persiste a descrição da gestão atual', async () => {
       const { descricaoGestao, saveDescricao } = await storeLimpa()
-      saveDescricao('Somos a chapa X')
+      mockFetch.mockResolvedValue({ ok: true, json: async () => ({ id: 1 }) })
+
+      await saveDescricao('Somos a chapa X')
       expect(descricaoGestao.value).toBe('Somos a chapa X')
     })
   })
@@ -66,13 +79,17 @@ describe('stores/equipe', () => {
 
     it('periodoFormatado mostra só o início quando não há fim', async () => {
       const { saveInfo, periodoFormatado } = await storeLimpa()
-      saveInfo({ nomeChapa: 'Chapa X', mesInicio: 'Jan', anoInicio: '2026', mesFim: '', anoFim: '' })
+      mockFetch.mockResolvedValue({ ok: true, json: async () => ({ id: 1 }) })
+
+      await saveInfo({ nomeChapa: 'Chapa X', mesInicio: 'Jan', anoInicio: '2026', mesFim: '', anoFim: '' })
       expect(periodoFormatado.value).toBe('Jan 2026')
     })
 
     it('periodoFormatado mostra início e fim quando ambos existem', async () => {
       const { saveInfo, periodoFormatado } = await storeLimpa()
-      saveInfo({ nomeChapa: 'Chapa X', mesInicio: 'Jan', anoInicio: '2026', mesFim: 'Dez', anoFim: '2026' })
+      mockFetch.mockResolvedValue({ ok: true, json: async () => ({ id: 1 }) })
+
+      await saveInfo({ nomeChapa: 'Chapa X', mesInicio: 'Jan', anoInicio: '2026', mesFim: 'Dez', anoFim: '2026' })
       expect(periodoFormatado.value).toBe('Jan 2026 – Dez 2026')
     })
   })
@@ -80,15 +97,18 @@ describe('stores/equipe', () => {
   describe('membros', () => {
     it('addMembro gera id e updateMembro/removeMembro afetam só o membro certo', async () => {
       const { membros, addMembro, updateMembro, removeMembro } = await storeLimpa()
-      const a = addMembro({ nome: 'Ana', email: 'ana@x.com' })
-      vi.advanceTimersByTime(1)
-      const b = addMembro({ nome: 'Bruno', email: 'bruno@x.com' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 101 }) })
+      const a = await addMembro({ nome: 'Ana', email: 'ana@x.com' })
 
-      updateMembro(a.id, { diretoria: 'Presidência' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 102 }) })
+      const b = await addMembro({ nome: 'Bruno', email: 'bruno@x.com' })
+
+      mockFetch.mockResolvedValue({ ok: true })
+      await updateMembro(a.id, { diretoria: 'Presidência' })
       expect(membros.value.find((m: Membro) => m.id === a.id)!.diretoria).toBe('Presidência')
       expect(membros.value.find((m: Membro) => m.id === b.id)!.diretoria).toBeUndefined()
 
-      removeMembro(a.id)
+      await removeMembro(a.id)
       expect(membros.value).toHaveLength(1)
       expect(membros.value[0].id).toBe(b.id)
     })
@@ -97,15 +117,20 @@ describe('stores/equipe', () => {
   describe('histórico de gestões', () => {
     it('setHistoricoVisivel controla a visibilidade pública, default true', async () => {
       const { historicoVisivel, setHistoricoVisivel } = await storeLimpa()
+      mockFetch.mockResolvedValue({ ok: true, json: async () => ({ id: 1 }) })
+
       expect(historicoVisivel.value).toBe(true)
-      setHistoricoVisivel(false)
+      await setHistoricoVisivel(false)
       expect(historicoVisivel.value).toBe(false)
     })
 
     it('adicionarGestaoManual insere no início da lista (mais recente primeiro)', async () => {
       const { historicoGestoes, adicionarGestaoManual } = await storeLimpa()
-      adicionarGestaoManual({ nomeChapa: 'Chapa Antiga', periodo: '2024', descricao: 'Desc' })
-      adicionarGestaoManual({ nomeChapa: 'Chapa Mais Recente', periodo: '2025', descricao: 'Desc' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 1 }) })
+      await adicionarGestaoManual({ nomeChapa: 'Chapa Antiga', periodo: '2024', descricao: 'Desc' })
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 2 }) })
+      await adicionarGestaoManual({ nomeChapa: 'Chapa Mais Recente', periodo: '2025', descricao: 'Desc' })
 
       expect(historicoGestoes.value.map(g => g.nomeChapa)).toEqual(['Chapa Mais Recente', 'Chapa Antiga'])
       expect(historicoGestoes.value[0].membros).toEqual([])
@@ -113,11 +138,13 @@ describe('stores/equipe', () => {
 
     it('arquivarGestaoAtual tira um snapshot da gestão e dos membros atuais', async () => {
       const { historicoGestoes, saveInfo, saveDescricao, addMembro, arquivarGestaoAtual } = await storeLimpa()
-      saveInfo({ nomeChapa: 'Chapa Atual', mesInicio: 'Jan', anoInicio: '2026', mesFim: '', anoFim: '' })
-      saveDescricao('Descrição da gestão')
-      addMembro({ nome: 'Ana', email: 'ana@x.com', diretoria: 'Presidência', periodo: '2026.1' })
+      mockFetch.mockResolvedValue({ ok: true, json: async () => ({ id: 1 }) })
 
-      arquivarGestaoAtual()
+      await saveInfo({ nomeChapa: 'Chapa Atual', mesInicio: 'Jan', anoInicio: '2026', mesFim: '', anoFim: '' })
+      await saveDescricao('Descrição da gestão')
+      await addMembro({ nome: 'Ana', email: 'ana@x.com', diretoria: 'Presidência', periodo: '2026.1' })
+
+      await arquivarGestaoAtual()
 
       expect(historicoGestoes.value).toHaveLength(1)
       const snapshot = historicoGestoes.value[0]
@@ -128,13 +155,16 @@ describe('stores/equipe', () => {
 
     it('removerGestaoHistorico remove só a gestão indicada', async () => {
       const { historicoGestoes, adicionarGestaoManual, removerGestaoHistorico } = await storeLimpa()
-      adicionarGestaoManual({ nomeChapa: 'A', periodo: '2024', descricao: '' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 201 }) })
+      await adicionarGestaoManual({ nomeChapa: 'A', periodo: '2024', descricao: '' })
       const idParaManter = historicoGestoes.value[0].id
-      vi.advanceTimersByTime(1)
-      adicionarGestaoManual({ nomeChapa: 'B', periodo: '2025', descricao: '' })
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 202 }) })
+      await adicionarGestaoManual({ nomeChapa: 'B', periodo: '2025', descricao: '' })
       const idParaRemover = historicoGestoes.value[0].id
 
-      removerGestaoHistorico(idParaRemover)
+      mockFetch.mockResolvedValue({ ok: true })
+      await removerGestaoHistorico(idParaRemover)
 
       expect(historicoGestoes.value).toHaveLength(1)
       expect(historicoGestoes.value[0].id).toBe(idParaManter)
@@ -144,42 +174,47 @@ describe('stores/equipe', () => {
   describe('seções customizadas', () => {
     it('addSecao aplica imagem padrão vazia e updateSecao/removeSecao afetam só a seção certa', async () => {
       const { secoesCustom, addSecao, updateSecao, removeSecao } = await storeLimpa()
-      const a = addSecao({ titulo: 'A', conteudo: 'Conteúdo A' })
-      vi.advanceTimersByTime(1)
-      const b = addSecao({ titulo: 'B', conteudo: 'Conteúdo B' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 301 }) })
+      const a = await addSecao({ titulo: 'A', conteudo: 'Conteúdo A' })
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 302 }) })
+      const b = await addSecao({ titulo: 'B', conteudo: 'Conteúdo B' })
 
       expect(a.imagem).toBe('')
 
-      updateSecao(a.id, { titulo: 'A editado' })
+      mockFetch.mockResolvedValue({ ok: true })
+      await updateSecao(a.id, { titulo: 'A editado' })
       expect(secoesCustom.value.find((s: SecaoCustom) => s.id === a.id)!.titulo).toBe('A editado')
       expect(secoesCustom.value.find((s: SecaoCustom) => s.id === b.id)!.titulo).toBe('B')
 
-      removeSecao(a.id)
+      await removeSecao(a.id)
       expect(secoesCustom.value).toHaveLength(1)
       expect(secoesCustom.value[0].id).toBe(b.id)
     })
 
     it('moverSecao troca a posição com a seção vizinha', async () => {
       const { secoesCustom, addSecao, moverSecao } = await storeLimpa()
-      const a = addSecao({ titulo: 'A', conteudo: '' })
-      vi.advanceTimersByTime(1)
-      const b = addSecao({ titulo: 'B', conteudo: '' })
-      vi.advanceTimersByTime(1)
-      const c = addSecao({ titulo: 'C', conteudo: '' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 301 }) })
+      const a = await addSecao({ titulo: 'A', conteudo: '' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 302 }) })
+      const b = await addSecao({ titulo: 'B', conteudo: '' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 303 }) })
+      const c = await addSecao({ titulo: 'C', conteudo: '' })
 
-      moverSecao(b.id, -1) // sobe B: A, B, C -> B, A, C
+      await moverSecao(b.id, -1) // sobe B: A, B, C -> B, A, C
 
       expect(secoesCustom.value.map((s: SecaoCustom) => s.id)).toEqual([b.id, a.id, c.id])
     })
 
     it('moverSecao não faz nada no primeiro item movendo pra cima, nem no último movendo pra baixo', async () => {
       const { secoesCustom, addSecao, moverSecao } = await storeLimpa()
-      const a = addSecao({ titulo: 'A', conteudo: '' })
-      vi.advanceTimersByTime(1)
-      const b = addSecao({ titulo: 'B', conteudo: '' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 301 }) })
+      const a = await addSecao({ titulo: 'A', conteudo: '' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 302 }) })
+      const b = await addSecao({ titulo: 'B', conteudo: '' })
 
-      moverSecao(a.id, -1)
-      moverSecao(b.id, 1)
+      await moverSecao(a.id, -1)
+      await moverSecao(b.id, 1)
 
       expect(secoesCustom.value.map((s: SecaoCustom) => s.id)).toEqual([a.id, b.id])
     })

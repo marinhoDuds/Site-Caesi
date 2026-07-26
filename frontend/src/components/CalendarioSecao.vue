@@ -2,7 +2,7 @@
 import { ref, computed, watch, onBeforeUnmount, onMounted } from 'vue'
 import Modal from './Modal.vue'
 import { isAdmin } from '../stores/auth.ts'
-import { eventos, proximosEventos, addEvento, updateEvento, removeEvento, fetchEventos, type Evento } from '../stores/calendario.ts'
+import { eventos, proximosEventos, addEvento, updateEvento, removeEvento, fetchEventos, exportarEventoIcs, type Evento } from '../stores/calendario.ts'
 import { useEscapeKey } from '../composables/useEscapeKey.ts'
 import { showToast } from '../stores/toast.ts'
 import calendarIcon from '../assets/icons/calendar.svg?raw'
@@ -126,32 +126,7 @@ function formatDataExtCal(iso: string) {
 }
 
 function baixarIcs(evento: Evento) {
-  const [ano, mes, dia] = evento.data.split('-')
-  const dtstart = `${ano}${mes}${dia}`
-  const uid = `evento-${evento.id}@caesi.ufcg`
-  const esc = (s: unknown) => String(s ?? '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
-
-  const ics = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//CAESI UFCG//Calendario//PT-BR',
-    'BEGIN:VEVENT',
-    `UID:${uid}`,
-    `DTSTAMP:${dtstart}T000000Z`,
-    `DTSTART;VALUE=DATE:${dtstart}`,
-    `SUMMARY:${esc(evento.nome)}`,
-    `DESCRIPTION:${esc(evento.descricao)}`,
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ].join('\r\n')
-
-  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8;' })
-  const url  = URL.createObjectURL(blob)
-  const a    = document.createElement('a')
-  a.href     = url
-  a.download = `${evento.nome.toLowerCase().replace(/\s+/g, '-')}.ics`
-  a.click()
-  URL.revokeObjectURL(url)
+  exportarEventoIcs(evento)
 }
 
 const eventoModoEdicao = ref(false)

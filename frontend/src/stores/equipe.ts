@@ -1,5 +1,12 @@
 import { ref, computed } from 'vue'
 
+const API_BASE = 'http://localhost:8000'
+
+function getHeaders() {
+  const token = localStorage.getItem('caesi_admin_token')
+  return token ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } : { 'Content-Type': 'application/json' }
+}
+
 export interface Membro {
   id: number
   nome: string
@@ -64,16 +71,6 @@ export interface NovaSecaoCustom {
   imagem?: string
 }
 
-const KEY_MEMBROS  = 'caesi_membros'
-const KEY_DESC     = 'caesi_gestao_descricao'
-const KEY_INFO     = 'caesi_gestao_info'
-const KEY_HIST     = 'caesi_gestoes_anteriores'
-const KEY_HIST_VIS = 'caesi_gestoes_visiveis'
-const KEY_MISSAO     = 'caesi_sobre_missao'
-const KEY_MISSAO_IMG = 'caesi_sobre_missao_img'
-const KEY_CONTATO    = 'caesi_sobre_contato'
-const KEY_SECOES     = 'caesi_sobre_secoes'
-
 const MISSAO_DEFAULT = `O CAESI, Centro Acadêmico de Ciência da Computação, é a entidade estudantil
 que representa os alunos do curso de Ciência da Computação da UFCG. Nossa missão é defender
 os direitos e interesses dos estudantes, promover a integração acadêmica e facilitar a comunicação
@@ -88,16 +85,21 @@ const CONTATO_DEFAULT: ContatoInfo = {
   instagram: 'caesiufcg',
 }
 
-const _membros   = ref<Membro[]>(JSON.parse(localStorage.getItem(KEY_MEMBROS) || '[]'))
-const _descricao = ref(localStorage.getItem(KEY_DESC) || '')
 const INFO_DEFAULT: GestaoInfo = { nomeChapa: '', mesInicio: '', anoInicio: '', mesFim: '', anoFim: '' }
-const _info      = ref<GestaoInfo>({ ...INFO_DEFAULT, ...JSON.parse(localStorage.getItem(KEY_INFO) || '{}') })
-const _historico = ref<GestaoHistorico[]>(JSON.parse(localStorage.getItem(KEY_HIST) || '[]'))
-const _histVis   = ref(localStorage.getItem(KEY_HIST_VIS) !== 'false')
-const _missao    = ref(localStorage.getItem(KEY_MISSAO) || MISSAO_DEFAULT)
-const _missaoImg = ref(localStorage.getItem(KEY_MISSAO_IMG) || '')
-const _contato   = ref<ContatoInfo>({ ...CONTATO_DEFAULT, ...JSON.parse(localStorage.getItem(KEY_CONTATO) || '{}') })
-const _secoes    = ref<SecaoCustom[]>(JSON.parse(localStorage.getItem(KEY_SECOES) || '[]'))
+
+const _membros = ref<Membro[]>([])
+const _descricao = ref<string>('')
+const _info = ref<GestaoInfo>({ ...INFO_DEFAULT })
+const _historico = ref<GestaoHistorico[]>([])
+const _histVis = ref<boolean>(true)
+const _missao = ref<string>(MISSAO_DEFAULT)
+const _missaoImg = ref<string>('')
+const _contato = ref<ContatoInfo>({ ...CONTATO_DEFAULT })
+const _secoes = ref<SecaoCustom[]>([])
+
+const _gestao_info_id = ref<number | null>(null)
+const _missao_id = ref<number | null>(null)
+const _contato_id = ref<number | null>(null)
 
 const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
 
@@ -118,106 +120,289 @@ export const periodoFormatado  = computed(() => {
 })
 export { MESES }
 
-function persistMembros(list: Membro[]) {
-  localStorage.setItem(KEY_MEMBROS, JSON.stringify(list))
-  _membros.value = [...list]
+export async function fetchEquipe() {
+  try {
+    const resMembros = await fetch(`${API_BASE}/informations/type/membros`)
+    if (resMembros.ok) {
+      const data = await resMembros.json()
+      _membros.value = data.map((d: any) => ({ id: d.id, ...JSON.parse(d.content) }))
+    }
+
+    const resGestao = await fetch(`${API_BASE}/informations/type/gestao_info`)
+    if (resGestao.ok) {
+      const data = await resGestao.json()
+      if (data.length > 0) {
+        _gestao_info_id.value = data[0].id
+        const parsed = JSON.parse(data[0].content)
+        _descricao.value = parsed.descricao ?? ''
+        _info.value = { ...INFO_DEFAULT, ...(parsed.info || {}) }
+        _histVis.value = parsed.histVis ?? true
+      }
+    }
+
+    const resHist = await fetch(`${API_BASE}/informations/type/gestoes_anteriores`)
+    if (resHist.ok) {
+      const data = await resHist.json()
+      _historico.value = data.map((d: any) => ({ id: d.id, ...JSON.parse(d.content) }))
+    }
+
+    const resMissao = await fetch(`${API_BASE}/informations/type/sobre_missao`)
+    if (resMissao.ok) {
+      const data = await resMissao.json()
+      if (data.length > 0) {
+        _missao_id.value = data[0].id
+        const parsed = JSON.parse(data[0].content)
+        _missao.value = parsed.texto ?? MISSAO_DEFAULT
+        _missaoImg.value = parsed.imagem ?? ''
+      }
+    }
+
+    const resContato = await fetch(`${API_BASE}/informations/type/sobre_contato`)
+    if (resContato.ok) {
+      const data = await resContato.json()
+      if (data.length > 0) {
+        _contato_id.value = data[0].id
+        _contato.value = { ...CONTATO_DEFAULT, ...JSON.parse(data[0].content) }
+      }
+    }
+
+    const resSecoes = await fetch(`${API_BASE}/informations/type/sobre_secoes`)
+    if (resSecoes.ok) {
+      const data = await resSecoes.json()
+      _secoes.value = data.map((d: any) => ({ id: d.id, ...JSON.parse(d.content) }))
+    }
+  } catch (error) {
+    console.error(error)
+  }
 }
 
-export function addMembro(membro: NovoMembro): Membro {
-  const novo: Membro = { ...membro, id: Date.now() }
-  persistMembros([..._membros.value, novo])
+async function persistGestaoInfo() {
+  const payload = {
+    descricao: _descricao.value,
+    info: _info.value,
+    histVis: _histVis.value
+  }
+  const content = JSON.stringify(payload)
+  if (_gestao_info_id.value) {
+    await fetch(`${API_BASE}/admin/informations/${_gestao_info_id.value}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'gestao_info', content })
+    })
+  } else {
+    const res = await fetch(`${API_BASE}/admin/informations/`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'gestao_info', content })
+    })
+    if (res && res.ok) {
+      const data = await res.json()
+      _gestao_info_id.value = data.id
+    }
+  }
+}
+
+async function persistMissao() {
+  const content = JSON.stringify({ texto: _missao.value, imagem: _missaoImg.value })
+  if (_missao_id.value) {
+    await fetch(`${API_BASE}/admin/informations/${_missao_id.value}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'sobre_missao', content })
+    })
+  } else {
+    const res = await fetch(`${API_BASE}/admin/informations/`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'sobre_missao', content })
+    })
+    if (res && res.ok) {
+      const data = await res.json()
+      _missao_id.value = data.id
+    }
+  }
+}
+
+async function persistContato() {
+  const content = JSON.stringify(_contato.value)
+  if (_contato_id.value) {
+    await fetch(`${API_BASE}/admin/informations/${_contato_id.value}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'sobre_contato', content })
+    })
+  } else {
+    const res = await fetch(`${API_BASE}/admin/informations/`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'sobre_contato', content })
+    })
+    if (res && res.ok) {
+      const data = await res.json()
+      _contato_id.value = data.id
+    }
+  }
+}
+
+export async function addMembro(membro: NovoMembro): Promise<Membro> {
+  const res = await fetch(`${API_BASE}/admin/informations/`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'membros', content: JSON.stringify(membro) })
+  })
+  let newId = Date.now()
+  if (res && res.ok) {
+    const data = await res.json()
+    newId = data.id
+  }
+  const novo: Membro = { ...membro, id: newId }
+  _membros.value = [..._membros.value, novo]
   return novo
 }
 
-export function removeMembro(id: number) {
-  persistMembros(_membros.value.filter(a => a.id !== id))
+export async function removeMembro(id: number) {
+  await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  })
+  _membros.value = _membros.value.filter(a => a.id !== id)
 }
 
-export function updateMembro(id: number, data: Partial<Membro>) {
-  persistMembros(_membros.value.map(a => a.id === id ? { ...a, ...data } : a))
+export async function updateMembro(id: number, data: Partial<Membro>) {
+  const existing = _membros.value.find(a => a.id === id)
+  if (!existing) return
+  const updated = { ...existing, ...data }
+  const payload = { ...updated }
+  delete (payload as any).id
+
+  await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'membros', content: JSON.stringify(payload) })
+  })
+  _membros.value = _membros.value.map(a => a.id === id ? updated : a)
 }
 
-export function saveMissao(texto: string) {
-  localStorage.setItem(KEY_MISSAO, texto)
+export async function saveMissao(texto: string) {
   _missao.value = texto
+  await persistMissao()
 }
 
-export function saveMissaoImagem(dataUrl: string | null) {
-  localStorage.setItem(KEY_MISSAO_IMG, dataUrl || '')
+export async function saveMissaoImagem(dataUrl: string | null) {
   _missaoImg.value = dataUrl || ''
+  await persistMissao()
 }
 
-export function saveContato(dados: Partial<ContatoInfo>) {
-  const novo = { ..._contato.value, ...dados }
-  localStorage.setItem(KEY_CONTATO, JSON.stringify(novo))
-  _contato.value = novo
+export async function saveContato(dados: Partial<ContatoInfo>) {
+  _contato.value = { ..._contato.value, ...dados }
+  await persistContato()
 }
 
-export function saveDescricao(texto: string) {
-  localStorage.setItem(KEY_DESC, texto)
+export async function saveDescricao(texto: string) {
   _descricao.value = texto
+  await persistGestaoInfo()
 }
 
-export function saveInfo(info: GestaoInfo) {
-  localStorage.setItem(KEY_INFO, JSON.stringify(info))
+export async function saveInfo(info: GestaoInfo) {
   _info.value = { ...info }
+  await persistGestaoInfo()
 }
 
-export function setHistoricoVisivel(val: boolean) {
+export async function setHistoricoVisivel(val: boolean) {
   _histVis.value = val
-  localStorage.setItem(KEY_HIST_VIS, String(val))
+  await persistGestaoInfo()
 }
 
-export function adicionarGestaoManual({ nomeChapa, periodo, descricao, membros }: NovaGestaoManual) {
-  const entrada: GestaoHistorico = { id: Date.now(), nomeChapa, periodo, descricao, membros: membros ?? [] }
-  const nova = [entrada, ..._historico.value]
-  localStorage.setItem(KEY_HIST, JSON.stringify(nova))
-  _historico.value = nova
+export async function adicionarGestaoManual({ nomeChapa, periodo, descricao, membros }: NovaGestaoManual) {
+  const contentObj = { nomeChapa, periodo, descricao, membros: membros ?? [] }
+  const res = await fetch(`${API_BASE}/admin/informations/`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'gestoes_anteriores', content: JSON.stringify(contentObj) })
+  })
+  let newId = Date.now()
+  if (res && res.ok) {
+    const data = await res.json()
+    newId = data.id
+  }
+  const entrada: GestaoHistorico = { id: newId, ...contentObj }
+  _historico.value = [entrada, ..._historico.value]
 }
 
-export function arquivarGestaoAtual() {
-  const entrada: GestaoHistorico = {
-    id:       Date.now(),
+export async function arquivarGestaoAtual() {
+  const contentObj = {
     nomeChapa: _info.value.nomeChapa,
     periodo:  periodoFormatado.value,
     descricao: _descricao.value,
     membros:  _membros.value.map(({ nome, diretoria, periodo, foto }) => ({ nome, diretoria: diretoria ?? '', periodo: periodo ?? '', foto: foto ?? '' })),
   }
-  const nova = [entrada, ..._historico.value]
-  localStorage.setItem(KEY_HIST, JSON.stringify(nova))
-  _historico.value = nova
+  const res = await fetch(`${API_BASE}/admin/informations/`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'gestoes_anteriores', content: JSON.stringify(contentObj) })
+  })
+  let newId = Date.now()
+  if (res && res.ok) {
+    const data = await res.json()
+    newId = data.id
+  }
+  const entrada: GestaoHistorico = { id: newId, ...contentObj }
+  _historico.value = [entrada, ..._historico.value]
 }
 
-export function removerGestaoHistorico(id: number) {
-  const nova = _historico.value.filter(g => g.id !== id)
-  localStorage.setItem(KEY_HIST, JSON.stringify(nova))
-  _historico.value = nova
+export async function removerGestaoHistorico(id: number) {
+  await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  })
+  _historico.value = _historico.value.filter(g => g.id !== id)
 }
 
-function persistSecoes(list: SecaoCustom[]) {
-  localStorage.setItem(KEY_SECOES, JSON.stringify(list))
-  _secoes.value = [...list]
-}
-
-export function addSecao({ titulo, conteudo, imagem = '' }: NovaSecaoCustom): SecaoCustom {
-  const nova: SecaoCustom = { id: Date.now(), titulo, conteudo, imagem }
-  persistSecoes([..._secoes.value, nova])
+export async function addSecao({ titulo, conteudo, imagem = '' }: NovaSecaoCustom): Promise<SecaoCustom> {
+  const payload = { titulo, conteudo, imagem }
+  const res = await fetch(`${API_BASE}/admin/informations/`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'sobre_secoes', content: JSON.stringify(payload) })
+  })
+  let newId = Date.now()
+  if (res && res.ok) {
+    const data = await res.json()
+    newId = data.id
+  }
+  const nova: SecaoCustom = { id: newId, titulo, conteudo, imagem }
+  _secoes.value = [..._secoes.value, nova]
   return nova
 }
 
-export function updateSecao(id: number, data: Partial<SecaoCustom>) {
-  persistSecoes(_secoes.value.map(s => s.id === id ? { ...s, ...data } : s))
+export async function updateSecao(id: number, data: Partial<SecaoCustom>) {
+  const existing = _secoes.value.find(s => s.id === id)
+  if (!existing) return
+  const updated = { ...existing, ...data }
+  const payload = { ...updated }
+  delete (payload as any).id
+
+  await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'sobre_secoes', content: JSON.stringify(payload) })
+  })
+  _secoes.value = _secoes.value.map(s => s.id === id ? updated : s)
 }
 
-export function removeSecao(id: number) {
-  persistSecoes(_secoes.value.filter(s => s.id !== id))
+export async function removeSecao(id: number) {
+  await fetch(`${API_BASE}/admin/informations/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  })
+  _secoes.value = _secoes.value.filter(s => s.id !== id)
 }
 
-export function moverSecao(id: number, direcao: number) {
+export async function moverSecao(id: number, direcao: number) {
   const list = [..._secoes.value]
   const idx = list.findIndex(s => s.id === id)
   const alvo = idx + direcao
   if (idx < 0 || alvo < 0 || alvo >= list.length) return
   ;[list[idx], list[alvo]] = [list[alvo], list[idx]]
-  persistSecoes(list)
+  _secoes.value = list
 }

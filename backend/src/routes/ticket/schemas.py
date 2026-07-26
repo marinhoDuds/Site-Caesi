@@ -1,3 +1,4 @@
+from datetime import date
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from enum import Enum
@@ -31,9 +32,20 @@ class TicketUpdate(BaseModel):
     semester: Optional[str] = None
 
 
+class TicketAdminUpdate(TicketUpdate):
+    status: Optional[str] = None
+    admin_notes: Optional[str] = None
+
+
+
 class TicketResponse(TicketBase):
     id: int
     public_id: str
     protocol: str
-    
+    password: Optional[str] = None
+    status: str = "pendente"
+    admin_notes: Optional[str] = None
+    updated_at: Optional[date] = None
+
     model_config = ConfigDict(from_attributes=True)
+

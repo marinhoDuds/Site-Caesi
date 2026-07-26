@@ -11,18 +11,22 @@ const erro   = ref(false)
 const loading = ref(false)
 const loadingGoogle = ref(false)
 
-function entrar() {
+async function entrar() {
   erro.value = false
   loading.value = true
-  setTimeout(() => {
-    loading.value = false
-    if (!loginAdmin(email.value, senha.value)) {
+  try {
+    const ok = await loginAdmin(email.value, senha.value)
+    if (!ok) {
       erro.value = true
       senha.value = ''
     } else {
       router.push('/admin/painel')
     }
-  }, 400)
+  } catch {
+    erro.value = true
+  } finally {
+    loading.value = false
+  }
 }
 
 function entrarComGoogle() {

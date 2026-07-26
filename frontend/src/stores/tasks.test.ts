@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { Task } from './tasks.ts'
 
+const mockFetch = vi.fn()
+global.fetch = mockFetch
+
 async function storeLimpa() {
-  localStorage.clear()
   vi.resetModules()
   return import('./tasks.ts')
 }
@@ -10,14 +12,19 @@ async function storeLimpa() {
 describe('stores/tasks', () => {
   beforeEach(() => {
     localStorage.clear()
-    vi.useFakeTimers()
+    mockFetch.mockReset()
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => []
+    })
   })
-  afterEach(() => { vi.useRealTimers() })
 
   describe('membros', () => {
     it('começa vazia e addMembro cria com id/token únicos', async () => {
       const { membros, addMembro } = await storeLimpa()
-      const m = addMembro('  Ana  ')
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 1 }) })
+
+      const m = await addMembro('  Ana  ')
 
       expect(membros.value).toHaveLength(1)
       expect(m.nome).toBe('Ana')
@@ -28,7 +35,9 @@ describe('stores/tasks', () => {
 
     it('getMembroByToken encontra pelo token, ou retorna null', async () => {
       const { addMembro, getMembroByToken } = await storeLimpa()
-      const m = addMembro('Ana')
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 2 }) })
+
+      const m = await addMembro('Ana')
 
       expect(getMembroByToken(m.token)?.nome).toBe('Ana')
       expect(getMembroByToken('token-invalido')).toBeNull()
@@ -36,11 +45,18 @@ describe('stores/tasks', () => {
 
     it('removeMembro remove o membro e desaloca ele de todas as tasks', async () => {
       const { tasks, membros, addMembro, criarTask, removeMembro } = await storeLimpa()
-      const ana = addMembro('Ana')
-      const bruno = addMembro('Bruno')
-      const task = criarTask({ titulo: 'Task', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao', alocados: [ana.id, bruno.id] })
 
-      removeMembro(ana.id)
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 10 }) })
+      const ana = await addMembro('Ana')
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 11 }) })
+      const bruno = await addMembro('Bruno')
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 100 }) })
+      const task = await criarTask({ titulo: 'Task', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao', alocados: [ana.id, bruno.id] })
+
+      mockFetch.mockResolvedValue({ ok: true })
+      await removeMembro(ana.id)
 
       expect(membros.value).toHaveLength(1)
       expect(membros.value[0].id).toBe(bruno.id)
@@ -52,7 +68,9 @@ describe('stores/tasks', () => {
   describe('tasks', () => {
     it('criarTask aplica defaults (descricao, alocados, selecionavel, status)', async () => {
       const { tasks, criarTask } = await storeLimpa()
-      const task = criarTask({ titulo: 'Nova task', prioridade: 'alta', prazo: '2026-08-01', categoria: 'ouvidoria' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 200 }) })
+
+      const task = await criarTask({ titulo: 'Nova task', prioridade: 'alta', prazo: '2026-08-01', categoria: 'ouvidoria' })
 
       expect(task.descricao).toBe('')
       expect(task.alocados).toEqual([])
@@ -63,11 +81,15 @@ describe('stores/tasks', () => {
 
     it('editarTask atualiza só os campos informados, na task certa', async () => {
       const { tasks, criarTask, editarTask } = await storeLimpa()
-      const a = criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
-      vi.advanceTimersByTime(1)
-      const b = criarTask({ titulo: 'B', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
 
-      editarTask(a.id, { titulo: 'A editado' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 201 }) })
+      const a = await criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 202 }) })
+      const b = await criarTask({ titulo: 'B', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
+
+      mockFetch.mockResolvedValue({ ok: true })
+      await editarTask(a.id, { titulo: 'A editado' })
 
       expect(tasks.value.find((t: Task) => t.id === a.id)!.titulo).toBe('A editado')
       expect(tasks.value.find((t: Task) => t.id === b.id)!.titulo).toBe('B')
@@ -75,11 +97,15 @@ describe('stores/tasks', () => {
 
     it('excluirTask remove só a task indicada', async () => {
       const { tasks, criarTask, excluirTask } = await storeLimpa()
-      const a = criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
-      vi.advanceTimersByTime(1)
-      const b = criarTask({ titulo: 'B', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
 
-      excluirTask(a.id)
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 203 }) })
+      const a = await criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 204 }) })
+      const b = await criarTask({ titulo: 'B', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
+
+      mockFetch.mockResolvedValue({ ok: true })
+      await excluirTask(a.id)
 
       expect(tasks.value).toHaveLength(1)
       expect(tasks.value[0].id).toBe(b.id)
@@ -87,9 +113,12 @@ describe('stores/tasks', () => {
 
     it('atualizarStatus muda só o status da task indicada', async () => {
       const { tasks, criarTask, atualizarStatus } = await storeLimpa()
-      const task = criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 205 }) })
 
-      atualizarStatus(task.id, 'em-andamento')
+      const task = await criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
+
+      mockFetch.mockResolvedValue({ ok: true })
+      await atualizarStatus(task.id, 'em-andamento')
 
       expect(tasks.value.find((t: Task) => t.id === task.id)!.status).toBe('em-andamento')
     })
@@ -98,30 +127,43 @@ describe('stores/tasks', () => {
   describe('autoAlocar', () => {
     it('adiciona o membro aos alocados quando a task é selecionável', async () => {
       const { tasks, criarTask, addMembro, autoAlocar } = await storeLimpa()
-      const task = criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao', selecionavel: true })
-      const membro = addMembro('Ana')
 
-      autoAlocar(task.id, membro.id)
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 301 }) })
+      const task = await criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao', selecionavel: true })
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 302 }) })
+      const membro = await addMembro('Ana')
+
+      mockFetch.mockResolvedValue({ ok: true })
+      await autoAlocar(task.id, membro.id)
 
       expect(tasks.value.find((t: Task) => t.id === task.id)!.alocados).toEqual([membro.id])
     })
 
     it('não faz nada quando a task não é selecionável', async () => {
       const { tasks, criarTask, addMembro, autoAlocar } = await storeLimpa()
-      const task = criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao', selecionavel: false })
-      const membro = addMembro('Ana')
 
-      autoAlocar(task.id, membro.id)
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 303 }) })
+      const task = await criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao', selecionavel: false })
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 304 }) })
+      const membro = await addMembro('Ana')
+
+      await autoAlocar(task.id, membro.id)
 
       expect(tasks.value.find((t: Task) => t.id === task.id)!.alocados).toEqual([])
     })
 
     it('não duplica o membro se ele já estiver alocado', async () => {
       const { tasks, criarTask, addMembro, autoAlocar } = await storeLimpa()
-      const membro = addMembro('Ana')
-      const task = criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao', selecionavel: true, alocados: [membro.id] })
 
-      autoAlocar(task.id, membro.id)
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 305 }) })
+      const membro = await addMembro('Ana')
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 306 }) })
+      const task = await criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao', selecionavel: true, alocados: [membro.id] })
+
+      await autoAlocar(task.id, membro.id)
 
       expect(tasks.value.find((t: Task) => t.id === task.id)!.alocados).toEqual([membro.id])
     })
@@ -130,10 +172,15 @@ describe('stores/tasks', () => {
   describe('salvarAnotacao', () => {
     it('cria uma anotação nova pro membro', async () => {
       const { tasks, criarTask, addMembro, salvarAnotacao } = await storeLimpa()
-      const task = criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
-      const membro = addMembro('Ana')
 
-      salvarAnotacao(task.id, membro.id, 'Minha anotação')
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 401 }) })
+      const task = await criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 402 }) })
+      const membro = await addMembro('Ana')
+
+      mockFetch.mockResolvedValue({ ok: true })
+      await salvarAnotacao(task.id, membro.id, 'Minha anotação')
 
       const atual = tasks.value.find((t: Task) => t.id === task.id)!
       expect(atual.anotacoes?.[membro.id].texto).toBe('Minha anotação')
@@ -141,11 +188,16 @@ describe('stores/tasks', () => {
 
     it('remove a anotação quando o texto fica vazio', async () => {
       const { tasks, criarTask, addMembro, salvarAnotacao } = await storeLimpa()
-      const task = criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
-      const membro = addMembro('Ana')
 
-      salvarAnotacao(task.id, membro.id, 'Texto')
-      salvarAnotacao(task.id, membro.id, '   ')
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 403 }) })
+      const task = await criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 404 }) })
+      const membro = await addMembro('Ana')
+
+      mockFetch.mockResolvedValue({ ok: true })
+      await salvarAnotacao(task.id, membro.id, 'Texto')
+      await salvarAnotacao(task.id, membro.id, '   ')
 
       const atual = tasks.value.find((t: Task) => t.id === task.id)!
       expect(atual.anotacoes?.[membro.id]).toBeUndefined()
@@ -153,12 +205,19 @@ describe('stores/tasks', () => {
 
     it('anotações de membros diferentes na mesma task não se sobrescrevem', async () => {
       const { tasks, criarTask, addMembro, salvarAnotacao } = await storeLimpa()
-      const task = criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
-      const ana = addMembro('Ana')
-      const bruno = addMembro('Bruno')
 
-      salvarAnotacao(task.id, ana.id, 'Anotação da Ana')
-      salvarAnotacao(task.id, bruno.id, 'Anotação do Bruno')
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 405 }) })
+      const task = await criarTask({ titulo: 'A', prioridade: 'media', prazo: '2026-08-01', categoria: 'gestao' })
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 406 }) })
+      const ana = await addMembro('Ana')
+
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 407 }) })
+      const bruno = await addMembro('Bruno')
+
+      mockFetch.mockResolvedValue({ ok: true })
+      await salvarAnotacao(task.id, ana.id, 'Anotação da Ana')
+      await salvarAnotacao(task.id, bruno.id, 'Anotação do Bruno')
 
       const atual = tasks.value.find((t: Task) => t.id === task.id)!
       expect(atual.anotacoes?.[ana.id].texto).toBe('Anotação da Ana')

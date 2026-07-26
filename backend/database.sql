@@ -17,6 +17,10 @@ CREATE TABLE `ticket` (
     ) NOT NULL,
     `author` VARCHAR(120),
     `email` VARCHAR(255),
+    `status` VARCHAR(50) DEFAULT 'pendente',
+    `password` VARCHAR(32) DEFAULT NULL,
+    `admin_notes` VARCHAR(2200),
+    `updated_at` DATE,
     CONSTRAINT pk_ticket PRIMARY KEY (id),
     CONSTRAINT fk_ticket_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id),
     CONSTRAINT unique_ticket_public_id UNIQUE (public_id),
@@ -86,6 +90,11 @@ CREATE TABLE `event` (
     `id` BIGINT AUTO_INCREMENT,
     `title` VARCHAR(255) NOT NULL,
     `scheduled_to` DATE NOT NULL,
+    `start_time` VARCHAR(10) DEFAULT NULL,
+    `end_time` VARCHAR(10) DEFAULT NULL,
+    `location` VARCHAR(255) DEFAULT NULL,
+    `category` VARCHAR(50) DEFAULT 'CAESI',
     `description` VARCHAR(200),
+    `formulario_id` BIGINT DEFAULT NULL,
     CONSTRAINT pk_event PRIMARY KEY (id)
 );

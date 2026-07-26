@@ -1,5 +1,12 @@
 import { ref, computed } from 'vue'
 
+const API_BASE = 'http://localhost:8000'
+
+function getHeaders() {
+  const token = localStorage.getItem('caesi_admin_token')
+  return token ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } : { 'Content-Type': 'application/json' }
+}
+
 export type PrioridadeTask = 'alta' | 'media' | 'baixa'
 export type CategoriaTask = 'gestao' | 'formularios' | 'ouvidoria'
 export type StatusTask = 'pendente' | 'em-andamento' | 'concluida'
@@ -21,6 +28,7 @@ export interface Task {
   selecionavel: boolean
   criadoEm: string
   anotacoes?: Record<string, Anotacao>
+  db_id?: number
 }
 
 export interface NovaTask {
@@ -37,101 +45,175 @@ export interface Membro {
   id: string
   nome: string
   token: string
+  db_id?: number
 }
 
-const KEY_TASKS   = 'caesi_tasks'
-const KEY_MEMBROS = 'caesi_tasks_membros'
+const _tasks = ref<Task[]>([])
+const _membros = ref<Membro[]>([])
 
-function loadTasks(): Task[]     { return JSON.parse(localStorage.getItem(KEY_TASKS)   || '[]') }
-function loadMembros(): Membro[] { return JSON.parse(localStorage.getItem(KEY_MEMBROS) || '[]') }
-
-const _tasks   = ref<Task[]>(loadTasks())
-const _membros = ref<Membro[]>(loadMembros())
-
-function persistTasks(data: Task[]) {
-  localStorage.setItem(KEY_TASKS, JSON.stringify(data))
-  _tasks.value = [...data]
-}
-
-function persistMembros(data: Membro[]) {
-  localStorage.setItem(KEY_MEMBROS, JSON.stringify(data))
-  _membros.value = [...data]
-}
-
-export const tasks   = computed(() => _tasks.value)
+export const tasks = computed(() => _tasks.value)
 export const membros = computed(() => _membros.value)
 
+export async function fetchTasks() {
+  try {
+    const res = await fetch(`${API_BASE}/informations/type/tasks`)
+    if (res.ok) {
+      const data = await res.json()
+      _tasks.value = data.map((d: any) => ({
+        db_id: d.id,
+        ...JSON.parse(d.content)
+      }))
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
 
-export function addMembro(nome: string): Membro {
+export async function fetchMembros() {
+  try {
+    const res = await fetch(`${API_BASE}/informations/type/task_membros`)
+    if (res.ok) {
+      const data = await res.json()
+      _membros.value = data.map((d: any) => ({
+        db_id: d.id,
+        ...JSON.parse(d.content)
+      }))
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export async function addMembro(nome: string): Promise<Membro> {
   const membro: Membro = {
-    id:    crypto.randomUUID(),
-    nome:  nome.trim(),
+    id: crypto.randomUUID(),
+    nome: nome.trim(),
     token: crypto.randomUUID(),
   }
-  persistMembros([..._membros.value, membro])
+
+  const res = await fetch(`${API_BASE}/admin/informations/`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'task_membros', content: JSON.stringify(membro) })
+  })
+
+  if (res && res.ok) {
+    const data = await res.json()
+    membro.db_id = data.id
+  }
+
+  _membros.value = [..._membros.value, membro]
   return membro
 }
 
-export function removeMembro(id: string) {
-  persistMembros(_membros.value.filter(m => m.id !== id))
-  persistTasks(_tasks.value.map(t => ({
+export async function removeMembro(id: string) {
+  const target = _membros.value.find(m => m.id === id)
+  if (target && target.db_id) {
+    await fetch(`${API_BASE}/admin/informations/${target.db_id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    })
+  }
+
+  _membros.value = _membros.value.filter(m => m.id !== id)
+  
+  const updatedTasks = _tasks.value.map(t => ({
     ...t,
     alocados: t.alocados.filter(a => a !== id),
-  })))
+  }))
+
+  _tasks.value = updatedTasks
+  
+  for (const t of updatedTasks) {
+    if (t.db_id) {
+      await fetch(`${API_BASE}/admin/informations/${t.db_id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ information_type: 'tasks', content: JSON.stringify(t) })
+      })
+    }
+  }
 }
 
 export function getMembroByToken(token: string): Membro | null {
   return _membros.value.find(m => m.token === token) || null
 }
 
-
-export function criarTask(dados: NovaTask): Task {
+export async function criarTask(dados: NovaTask): Promise<Task> {
   const task: Task = {
-    id:          Date.now().toString(),
-    titulo:      dados.titulo,
-    descricao:   dados.descricao || '',
-    prioridade:  dados.prioridade,
-    prazo:       dados.prazo,
-    categoria:   dados.categoria,
-    status:      'pendente',
-    alocados:    dados.alocados || [],
+    id: crypto.randomUUID(),
+    titulo: dados.titulo,
+    descricao: dados.descricao || '',
+    prioridade: dados.prioridade,
+    prazo: dados.prazo,
+    categoria: dados.categoria,
+    status: 'pendente',
+    alocados: dados.alocados || [],
     selecionavel: dados.selecionavel || false,
-    criadoEm:   new Date().toISOString(),
+    criadoEm: new Date().toISOString(),
   }
-  persistTasks([..._tasks.value, task])
+
+  const res = await fetch(`${API_BASE}/admin/informations/`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'tasks', content: JSON.stringify(task) })
+  })
+
+  if (res && res.ok) {
+    const data = await res.json()
+    task.db_id = data.id
+  }
+
+  _tasks.value = [..._tasks.value, task]
   return task
 }
 
-export function editarTask(id: string, dados: Partial<Task>) {
-  persistTasks(_tasks.value.map(t =>
-    t.id === id ? { ...t, ...dados } : t
-  ))
+export async function editarTask(id: string, dados: Partial<Task>) {
+  const target = _tasks.value.find(t => t.id === id)
+  if (!target) return
+  const updated = { ...target, ...dados }
+
+  if (target.db_id) {
+    await fetch(`${API_BASE}/admin/informations/${target.db_id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'tasks', content: JSON.stringify(updated) })
+    })
+  }
+
+  _tasks.value = _tasks.value.map(t => t.id === id ? updated : t)
 }
 
-export function excluirTask(id: string) {
-  persistTasks(_tasks.value.filter(t => t.id !== id))
+export async function excluirTask(id: string) {
+  const target = _tasks.value.find(t => t.id === id)
+  if (target && target.db_id) {
+    await fetch(`${API_BASE}/admin/informations/${target.db_id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    })
+  }
+
+  _tasks.value = _tasks.value.filter(t => t.id !== id)
 }
 
-export function atualizarStatus(id: string, status: StatusTask) {
-  persistTasks(_tasks.value.map(t => t.id === id ? { ...t, status } : t))
+export async function atualizarStatus(id: string, status: StatusTask) {
+  await editarTask(id, { status })
 }
 
-export function autoAlocar(taskId: string, membroId: string) {
-  persistTasks(_tasks.value.map(t => {
-    if (t.id !== taskId || !t.selecionavel || t.alocados.includes(membroId)) return t
-    return { ...t, alocados: [...t.alocados, membroId] }
-  }))
+export async function autoAlocar(taskId: string, membroId: string) {
+  const target = _tasks.value.find(t => t.id === taskId)
+  if (!target || !target.selecionavel || target.alocados.includes(membroId)) return
+  await editarTask(taskId, { alocados: [...target.alocados, membroId] })
 }
 
-export function salvarAnotacao(taskId: string, membroId: string, texto: string) {
-  persistTasks(_tasks.value.map(t => {
-    if (t.id !== taskId) return t
-    const anotacoes = { ...(t.anotacoes || {}) }
-    if (texto.trim()) {
-      anotacoes[membroId] = { texto: texto.trim(), updatedAt: new Date().toISOString() }
-    } else {
-      delete anotacoes[membroId]
-    }
-    return { ...t, anotacoes }
-  }))
+export async function salvarAnotacao(taskId: string, membroId: string, texto: string) {
+  const target = _tasks.value.find(t => t.id === taskId)
+  if (!target) return
+  const anotacoes = { ...(target.anotacoes || {}) }
+  if (texto.trim()) {
+    anotacoes[membroId] = { texto: texto.trim(), updatedAt: new Date().toISOString() }
+  } else {
+    delete anotacoes[membroId]
+  }
+  await editarTask(taskId, { anotacoes })
 }

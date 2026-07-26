@@ -1,3 +1,4 @@
+from datetime import date
 import string
 import random
 from typing import List, Optional, Any
@@ -7,9 +8,8 @@ from sqlalchemy import Engine, text
 from src.service.database import run_query
 from src.routes.ticket.schemas import (
     TicketCreate,
-    TicketUpdate,
-    TicketType,
     TicketResponse,
+    TicketType,
 )
 
 ticket_table = Table("ticket")
@@ -31,18 +31,39 @@ class TicketService:
         chars = string.ascii_letters + string.digits
         return "".join(random.choices(chars, k=16))
 
+    def _generate_password(self) -> str:
+        """Generate a random 6-character alphanumeric ticket password."""
+        chars = string.ascii_uppercase + string.digits
+        return "".join(random.choices(chars, k=6))
+
     def _map_row_to_response(self, row: Any) -> TicketResponse:
         """Map a raw database tuple to a TicketResponse schema."""
-        op_id, public_id, protocol, semester, content, ticket_type, author, email = row
+        op_id = row[0]
+        public_id = row[1]
+        protocol = row[2]
+        semester = row[3]
+        content = row[4]
+        ticket_type = row[5]
+        author = row[6]
+        email = row[7]
+        status_val = row[8] if len(row) > 8 and row[8] is not None else "pendente"
+        pwd = row[9] if len(row) > 9 else None
+        admin_notes = row[10] if len(row) > 10 else None
+        updated_at = row[11] if len(row) > 11 else None
+
         return TicketResponse(
             id=op_id,
             public_id=public_id,
             protocol=protocol,
+            password=pwd,
             semester=semester,
             content=content,
             ticket_type=ticket_type,
             author=author,
             email=email,
+            status=status_val,
+            admin_notes=admin_notes,
+            updated_at=updated_at,
         )
 
     def _insert_attachment_owner(self) -> int:
@@ -64,38 +85,43 @@ class TicketService:
         owner_id = self._insert_attachment_owner()
         public_id = self._generate_public_id()
         protocol = self._generate_protocol()
+        password = self._generate_password()
 
         with self.engine.connect() as conn:
             conn.execute(
                 text(
                     "INSERT INTO ticket "
-                    "(id, public_id, protocol, semester, content, ticket_type, author, email) "
-                    "VALUES (:id, :pub_id, :prot, :sem, :cnt, :tt, :aut, :em)"
+                    "(id, public_id, protocol, password, semester, content, ticket_type, author, email, status) "
+                    "VALUES (:id, :pub_id, :prot, :pwd, :sem, :cnt, :tt, :aut, :em, :st)"
                 ),
                 {
                     "id": owner_id,
                     "pub_id": public_id,
                     "prot": protocol,
+                    "pwd": password,
                     "sem": payload.semester,
                     "cnt": payload.content,
                     "tt": payload.ticket_type.value,
                     "aut": payload.author,
                     "em": payload.email,
+                    "st": "pendente",
                 },
             )
             conn.commit()
-
-        
 
         return TicketResponse(
             id=owner_id,
             public_id=public_id,
             protocol=protocol,
+            password=password,
             semester=payload.semester,
             content=payload.content,
             ticket_type=payload.ticket_type,
             author=payload.author,
             email=payload.email,
+            status="pendente",
+            admin_notes=None,
+            updated_at=None,
         )
 
     def get_ticket_by_protocol(self, protocol: str) -> Optional[TicketResponse]:
@@ -111,6 +137,10 @@ class TicketService:
                 "ticket_type",
                 "author",
                 "email",
+                "status",
+                "password",
+                "admin_notes",
+                "updated_at",
             )
             .where(ticket_table.protocol == protocol)
         )
@@ -120,6 +150,17 @@ class TicketService:
             return None
 
         return self._map_row_to_response(result[0])
+
+    def get_ticket_by_protocol_and_password(
+        self, protocol: str, password: str
+    ) -> Optional[TicketResponse]:
+        """Fetch a ticket by its protocol and validate password."""
+        ticket = self.get_ticket_by_protocol(protocol)
+        if not ticket:
+            return None
+        if ticket.password and ticket.password != password.strip():
+            return None
+        return ticket
 
     def list_tickets(
         self, ticket_type: Optional[TicketType] = None
@@ -136,6 +177,10 @@ class TicketService:
                 "ticket_type",
                 "author",
                 "email",
+                "status",
+                "password",
+                "admin_notes",
+                "updated_at",
             )
         )
         if ticket_type:
@@ -149,22 +194,28 @@ class TicketService:
                 tickets.append(self._map_row_to_response(row))
         return tickets
 
-    def update_ticket(self, protocol: str, payload: TicketUpdate) -> Optional[TicketResponse]:
+    def update_ticket(self, protocol: str, payload: Any) -> Optional[TicketResponse]:
         """Update fields of an existing ticket identified by protocol."""
         ticket = self.get_ticket_by_protocol(protocol)
         if not ticket:
             return None
 
         updates = {}
-        if payload.content is not None:
+        if getattr(payload, "content", None) is not None:
             updates["content"] = payload.content
-        if payload.ticket_type is not None:
+        if getattr(payload, "ticket_type", None) is not None:
             updates["ticket_type"] = payload.ticket_type.value
-        if payload.semester is not None:
+        if getattr(payload, "semester", None) is not None:
             updates["semester"] = payload.semester
+        if getattr(payload, "status", None) is not None:
+            updates["status"] = payload.status
+        if getattr(payload, "admin_notes", None) is not None:
+            updates["admin_notes"] = payload.admin_notes
 
         if not updates:
             return ticket
+
+        updates["updated_at"] = date.today()
             
         with self.engine.connect() as conn:
             set_clause = ", ".join([f"{k} = :{k}" for k in updates.keys()])
@@ -174,6 +225,5 @@ class TicketService:
             conn.execute(text(sql), params)
             conn.commit()
 
-        
-
         return self.get_ticket_by_protocol(protocol)
+

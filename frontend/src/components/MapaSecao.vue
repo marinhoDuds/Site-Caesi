@@ -146,10 +146,14 @@ onMounted(() => {
     zoomDelta: 0.5,
     wheelPxPerZoomLevel: 180,
   }).setView([CENTRO_PADRAO.lat, CENTRO_PADRAO.lng], 17)
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19,
-  }).addTo(mapa)
+  })
+  tileLayer.on('tileerror', () => {
+    mapaEl.value?.classList.add('mapa-fallback-active')
+  })
+  tileLayer.addTo(mapa)
   renderMapaMarkers()
 
   if (isAdmin.value) {

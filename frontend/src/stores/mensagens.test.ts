@@ -1,94 +1,116 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import type { Mensagem, NovaMensagem } from './mensagens.ts'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { Mensagem } from './mensagens.ts'
+
+const mockFetch = vi.fn()
+global.fetch = mockFetch
 
 async function storeLimpa() {
-  localStorage.clear()
   vi.resetModules()
   return import('./mensagens.ts')
 }
 
-const msgBase: NovaMensagem = {
-  tipo: 'Reclamação',
-  periodo: '2026.1',
-  corpo: 'Mensagem de teste com conteúdo suficiente.',
-  nome: null,
-  email: null,
+const ticketApiResponse = {
+  id: 1,
+  protocol: 'PROT-001',
+  ticket_type: 'infrastructure',
+  semester: '2026.1',
+  content: 'Descrição do problema com tamanho suficiente para o preview.',
+  author: 'Maria',
+  email: 'maria@ufcg.edu.br',
+  status: 'pendente',
+  admin_notes: null,
+  updated_at: null,
 }
 
 describe('stores/mensagens', () => {
   beforeEach(() => {
     localStorage.clear()
-    vi.useFakeTimers()
+    mockFetch.mockReset()
+    mockFetch.mockResolvedValue({ ok: true, json: async () => [] })
   })
-  afterEach(() => { vi.useRealTimers() })
 
-  it('começa vazia quando não há nada no localStorage', async () => {
+  it('começa vazia antes do fetch', async () => {
     const { mensagens } = await storeLimpa()
     expect(mensagens.value).toEqual([])
   })
 
-  it('addMensagem gera protocolo, status pendente e preview truncado', async () => {
-    const { mensagens, addMensagem } = await storeLimpa()
+  it('fetchMensagens popula a lista com dados da API', async () => {
+    const { mensagens, fetchMensagens } = await storeLimpa()
 
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [ticketApiResponse],
+    })
+
+    await fetchMensagens()
+
+    expect(mensagens.value).toHaveLength(1)
+    expect(mensagens.value[0].protocolo).toBe('PROT-001')
+    expect(mensagens.value[0].tipo).toBe('infrastructure')
+    expect(mensagens.value[0].status).toBe('pendente')
+  })
+
+  it('fetchMensagens mapeia o preview truncado corretamente', async () => {
+    const { mensagens, fetchMensagens } = await storeLimpa()
     const corpoLongo = 'x'.repeat(150)
-    const nova = addMensagem({ ...msgBase, corpo: corpoLongo })
 
-    expect(nova.status).toBe('pendente')
-    expect(nova.nota).toBe('')
-    expect(nova.protocolo).toMatch(/^#\d{4}-\d{4}$/)
-    expect(nova.preview).toBe('x'.repeat(110) + '…')
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [{ ...ticketApiResponse, content: corpoLongo }],
+    })
+
+    await fetchMensagens()
+
+    expect(mensagens.value[0].preview).toBe('x'.repeat(110) + '…')
+  })
+
+  it('fetchMensagens não quebra em caso de erro de rede', async () => {
+    const { mensagens, fetchMensagens } = await storeLimpa()
+
+    mockFetch.mockRejectedValueOnce(new Error('Network error'))
+
+    await fetchMensagens()
+
+    expect(mensagens.value).toEqual([])
+  })
+
+  it('updateStatus chama PATCH e atualiza localmente', async () => {
+    const { mensagens, fetchMensagens, updateStatus } = await storeLimpa()
+
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [ticketApiResponse] })
+    await fetchMensagens()
+
+    mockFetch.mockResolvedValueOnce({ ok: true })
+    await updateStatus(1, 'atendida')
+
+    expect(mensagens.value.find((m: Mensagem) => m.id === 1)!.status).toBe('atendida')
+    const patchCall = mockFetch.mock.calls.find(call => String(call[0]).includes('PROT-001'))
+    expect(patchCall).toBeDefined()
+    expect(JSON.parse(patchCall![1].body)).toMatchObject({ status: 'atendida' })
+  })
+
+  it('updateNota chama PATCH e atualiza localmente', async () => {
+    const { mensagens, fetchMensagens, updateNota } = await storeLimpa()
+
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [ticketApiResponse] })
+    await fetchMensagens()
+
+    mockFetch.mockResolvedValueOnce({ ok: true })
+    await updateNota(1, 'Encaminhado à coordenação.')
+
+    expect(mensagens.value.find((m: Mensagem) => m.id === 1)!.nota).toBe('Encaminhado à coordenação.')
+  })
+
+  it('deleteMensagem remove a mensagem localmente', async () => {
+    const { mensagens, fetchMensagens, deleteMensagem } = await storeLimpa()
+
+    const segundo = { ...ticketApiResponse, id: 2, protocol: 'PROT-002' }
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [ticketApiResponse, segundo] })
+    await fetchMensagens()
+
+    await deleteMensagem(1)
+
     expect(mensagens.value).toHaveLength(1)
-  })
-
-  it('addMensagem não trunca o preview quando o corpo é curto', async () => {
-    const { addMensagem } = await storeLimpa()
-    const nova = addMensagem(msgBase)
-    expect(nova.preview).toBe(msgBase.corpo)
-  })
-
-  it('updateStatus muda só a mensagem indicada', async () => {
-    const { mensagens, addMensagem, updateStatus } = await storeLimpa()
-    const a = addMensagem(msgBase)
-    vi.advanceTimersByTime(1)
-    const b = addMensagem(msgBase)
-
-    updateStatus(a.id, 'atendida')
-
-    expect(mensagens.value.find((m: Mensagem) => m.id === a.id)!.status).toBe('atendida')
-    expect(mensagens.value.find((m: Mensagem) => m.id === b.id)!.status).toBe('pendente')
-  })
-
-  it('updateNota atualiza a nota administrativa', async () => {
-    const { mensagens, addMensagem, updateNota } = await storeLimpa()
-    const nova = addMensagem(msgBase)
-
-    updateNota(nova.id, 'Encaminhado à coordenação.')
-
-    expect(mensagens.value.find((m: Mensagem) => m.id === nova.id)!.nota).toBe('Encaminhado à coordenação.')
-  })
-
-  it('deleteMensagem remove só a mensagem indicada', async () => {
-    const { mensagens, addMensagem, deleteMensagem } = await storeLimpa()
-    const a = addMensagem(msgBase)
-    vi.advanceTimersByTime(1)
-    const b = addMensagem(msgBase)
-
-    deleteMensagem(a.id)
-
-    expect(mensagens.value).toHaveLength(1)
-    expect(mensagens.value[0].id).toBe(b.id)
-  })
-
-  it('addComplemento acumula complementos em ordem', async () => {
-    const { mensagens, addMensagem, addComplemento } = await storeLimpa()
-    const nova = addMensagem(msgBase)
-
-    addComplemento(nova.id, 'Primeiro complemento')
-    addComplemento(nova.id, 'Segundo complemento')
-
-    const atualizada = mensagens.value.find((m: Mensagem) => m.id === nova.id)!
-    expect(atualizada.complementos).toHaveLength(2)
-    expect(atualizada.complementos![0].texto).toBe('Primeiro complemento')
-    expect(atualizada.complementos![1].texto).toBe('Segundo complemento')
+    expect(mensagens.value[0].id).toBe(2)
   })
 })

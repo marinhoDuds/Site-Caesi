@@ -1,5 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import type { Formulario, Inscricao, NovoFormulario } from './formularios.ts'
+
+const mockFetch = vi.fn()
+global.fetch = mockFetch
 
 async function storeLimpa() {
   localStorage.clear()
@@ -22,6 +25,11 @@ const formBase: NovoFormulario = {
 
 describe('stores/formularios', () => {
   beforeEach(() => {
+    mockFetch.mockReset()
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => []
+    })
     localStorage.clear()
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-06-15T12:00:00'))
@@ -38,7 +46,7 @@ describe('stores/formularios', () => {
       expect(novo.criadoEm).toBe('2026-06-15')
     })
 
-    it.skip('addFormulario com dataEvento cria um evento vinculado no calendário', async () => {
+    it('addFormulario com dataEvento cria um evento vinculado no calendário', async () => {
       const { addFormulario } = await storeLimpa()
       const novo = addFormulario({ ...formBase, dataEvento: '2026-07-01' })
 
@@ -56,7 +64,7 @@ describe('stores/formularios', () => {
       expect(getFormulario(999999)).toBeNull()
     })
 
-    it.skip('updateFormulario atualiza só o formulário indicado e ressincroniza o evento', async () => {
+    it('updateFormulario atualiza só o formulário indicado e ressincroniza o evento', async () => {
       const { formularios, addFormulario, updateFormulario } = await storeLimpa()
       const a = addFormulario({ ...formBase, dataEvento: '2026-07-01' })
       vi.advanceTimersByTime(1)
@@ -71,7 +79,8 @@ describe('stores/formularios', () => {
       expect(eventos.value.find(e => e.formularioId === a.id)?.data).toBe('2026-07-10')
     })
 
-    it.skip('deleteFormulario remove o formulário, suas inscrições e o evento vinculado', async () => {
+
+    it('deleteFormulario remove o formulário, suas inscrições e o evento vinculado', async () => {
       const { formularios, inscricoes, addFormulario, addInscricao, deleteFormulario } = await storeLimpa()
       const form = addFormulario({ ...formBase, pago: false, valor: null, dataEvento: '2026-07-01' })
       addInscricao(form.id, {})

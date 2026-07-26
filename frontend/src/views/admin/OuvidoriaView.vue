@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import Navbar from '../../components/Navbar.vue'
 import BackLink from '../../components/BackLink.vue'
 import EmptyState from '../../components/EmptyState.vue'
@@ -7,7 +7,9 @@ import MsgCard from '../../components/MsgCard.vue'
 import Pagination from '../../components/Pagination.vue'
 import { usePagination } from '../../composables/usePagination.ts'
 import { usePersistedFilter } from '../../composables/usePersistedFilter.ts'
-import { mensagens } from '../../stores/mensagens.ts'
+import { mensagens, fetchMensagens } from '../../stores/mensagens.ts'
+
+onMounted(() => { fetchMensagens() })
 import { Doughnut, Bar } from 'vue-chartjs'
 import {
   Chart as ChartJS,

@@ -1,5 +1,14 @@
 import { ref, computed } from 'vue'
 
+const API_BASE = 'http://localhost:8000'
+
+function getAdminHeaders(): Record<string, string> {
+  const token = localStorage.getItem('caesi_admin_token')
+  return token
+    ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+    : { 'Content-Type': 'application/json' }
+}
+
 export type StatusMensagem = 'pendente' | 'atendida'
 
 export interface Complemento {
@@ -25,49 +34,69 @@ export interface Mensagem extends NovaMensagem {
   complementos?: Complemento[]
 }
 
-const KEY = 'caesi_mensagens'
+function mapTicketToMensagem(t: Record<string, unknown>): Mensagem {
+  const corpo = String(t.content ?? '')
+  return {
+    id: Number(t.id),
+    protocolo: String(t.protocol ?? ''),
+    tipo: String(t.ticket_type ?? ''),
+    periodo: String(t.semester ?? ''),
+    corpo,
+    nome: t.author ? String(t.author) : null,
+    email: t.email ? String(t.email) : null,
+    status: (t.status as StatusMensagem) ?? 'pendente',
+    nota: String(t.admin_notes ?? ''),
+    data: t.updated_at ? String(t.updated_at) : new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
+    preview: corpo.slice(0, 110) + (corpo.length > 110 ? '…' : ''),
+  }
+}
 
-const _list = ref<Mensagem[]>(JSON.parse(localStorage.getItem(KEY) || '[]'))
+const _list = ref<Mensagem[]>([])
 
 export const mensagens = computed(() => _list.value)
 
-function persist(data: Mensagem[]) {
-  localStorage.setItem(KEY, JSON.stringify(data))
-  _list.value = [...data]
-}
-
-export function addMensagem(msg: NovaMensagem): Mensagem {
-  const id = Date.now()
-  const ano = new Date().getFullYear()
-  const nova: Mensagem = {
-    ...msg,
-    id,
-    protocolo: `#${ano}-${String(id).slice(-4)}`,
-    status: 'pendente',
-    nota: '',
-    data: new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
-    preview: msg.corpo.slice(0, 110) + (msg.corpo.length > 110 ? '…' : ''),
+export async function fetchMensagens() {
+  try {
+    const res = await fetch(`${API_BASE}/admin/tickets/`, { headers: getAdminHeaders() })
+    if (res.ok) {
+      const data: Record<string, unknown>[] = await res.json()
+      _list.value = data.map(mapTicketToMensagem)
+    }
+  } catch (error) {
+    console.error('Erro ao buscar tickets:', error)
   }
-  persist([..._list.value, nova])
-  return nova
 }
 
-export function updateStatus(id: number, status: StatusMensagem) {
-  persist(_list.value.map(m => m.id === id ? { ...m, status } : m))
-}
-
-export function updateNota(id: number, nota: string) {
-  persist(_list.value.map(m => m.id === id ? { ...m, nota } : m))
-}
-
-export function deleteMensagem(id: number) {
-  persist(_list.value.filter(m => m.id !== id))
-}
-
-export function addComplemento(id: number, texto: string) {
-  const item: Complemento = {
-    texto,
-    data: new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
+export async function updateStatus(id: number, status: StatusMensagem) {
+  const mensagem = _list.value.find(m => m.id === id)
+  if (!mensagem) return
+  try {
+    await fetch(`${API_BASE}/admin/tickets/${mensagem.protocolo}`, {
+      method: 'PATCH',
+      headers: getAdminHeaders(),
+      body: JSON.stringify({ status }),
+    })
+  } catch (error) {
+    console.error('Erro ao atualizar status:', error)
   }
-  persist(_list.value.map(m => m.id === id ? { ...m, complementos: [...(m.complementos ?? []), item] } : m))
+  _list.value = _list.value.map(m => m.id === id ? { ...m, status } : m)
+}
+
+export async function updateNota(id: number, nota: string) {
+  const mensagem = _list.value.find(m => m.id === id)
+  if (!mensagem) return
+  try {
+    await fetch(`${API_BASE}/admin/tickets/${mensagem.protocolo}`, {
+      method: 'PATCH',
+      headers: getAdminHeaders(),
+      body: JSON.stringify({ admin_notes: nota }),
+    })
+  } catch (error) {
+    console.error('Erro ao salvar nota:', error)
+  }
+  _list.value = _list.value.map(m => m.id === id ? { ...m, nota } : m)
+}
+
+export async function deleteMensagem(id: number) {
+  _list.value = _list.value.filter(m => m.id !== id)
 }

@@ -403,3 +403,27 @@ class PortalService:
             for row in result:
                 ops.append(self._map_row_to_response(row))
         return ops
+
+    def delete_operation(self, operation_id: int) -> bool:
+        """Delete an operation by ID.
+
+        Parameters
+        ----------
+        operation_id : int
+            The ID of the operation to delete.
+
+        Returns
+        -------
+        bool
+            True if deleted successfully, False if not found.
+        """
+        existing = self.get_operation(operation_id)
+        if not existing:
+            return False
+
+        with self.engine.connect() as conn:
+            conn.execute(text("DELETE FROM operation WHERE id = :id"), {"id": operation_id})
+            conn.execute(text("DELETE FROM attachment_owner WHERE id = :id"), {"id": operation_id})
+            conn.commit()
+        return True
+

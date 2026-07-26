@@ -96,3 +96,19 @@ def test_delete_post_admin_not_found(mock_journal_service, override_admin_auth):
     mock_journal_service.delete_post.return_value = False
     response = client.delete("/admin/journal/999")
     assert response.status_code == 404
+
+def test_sync_instagram_posts_admin(mock_journal_service, override_admin_auth):
+    mock_journal_service.list_posts.return_value = []
+    mock_journal_service.create_post.side_effect = lambda payload: {
+        "id": 1,
+        "title": payload.title,
+        "post_type": payload.post_type,
+        "caption": payload.caption,
+        "created_at": "2026-07-26"
+    }
+    response = client.post("/admin/journal/sync-instagram")
+    assert response.status_code == 200
+    res_data = response.json()
+    assert res_data["imported_count"] >= 1
+    assert "posts" in res_data
+

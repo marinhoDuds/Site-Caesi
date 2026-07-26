@@ -28,6 +28,7 @@ const errors = ref<Record<string, boolean>>({})
 const charCount = ref(0)
 const enviado = ref(false)
 const protocolo = ref('')
+const ticketSenha = ref('')
 const emailEnviado = ref(false)
 
 function onInput(e: Event) {
@@ -57,6 +58,7 @@ async function submit() {
       if (!res.ok) throw new Error('Erro ao enviar ticket');
       const nova = await res.json();
       protocolo.value = nova.protocol
+      ticketSenha.value = nova.password || ''
       emailEnviado.value = !!form.value.email.trim()
       enviado.value = true
     } catch (err) {
@@ -70,10 +72,12 @@ function resetForm() {
   form.value = { tipo: '', periodo: '', mensagem: '', nome: '', email: '' }
   charCount.value = 0
   enviado.value = false
+  ticketSenha.value = ''
   emailEnviado.value = false
 }
 
 const protocoloBusca = ref('')
+const senhaBusca = ref('')
 const resultado = ref<Mensagem | null>(null)
 const naoEncontrado = ref(false)
 const campoVazio = ref(false)
@@ -110,8 +114,11 @@ async function consultar() {
   if (!p) return
   
   try {
-    const res = await fetch(`${API_URL}/${p}`);
-    if (res.status === 404) {
+    const url = senhaBusca.value.trim()
+      ? `${API_URL}/${p}?password=${encodeURIComponent(senhaBusca.value.trim())}`
+      : `${API_URL}/${p}`
+    const res = await fetch(url);
+    if (res.status === 404 || res.status === 401) {
       naoEncontrado.value = true;
       return;
     }
@@ -124,7 +131,7 @@ async function consultar() {
       tipo: data.ticket_type,
       periodo: data.semester,
       corpo: data.content,
-      status: 'pendente', // backend não possui status por enquanto
+      status: data.status || 'pendente',
       complementos: [],
       data: 'Hoje'
     }
@@ -195,13 +202,22 @@ onMounted(() => {
         </p>
       </div>
 
-      <div class="ouvidoria-busca">
+      <div class="ouvidoria-busca" style="flex-wrap:wrap;gap:8px;">
         <input
           v-model="protocoloBusca" type="text"
-          placeholder="Digite seu nº de protocolo…"
+          placeholder="Nº de protocolo…"
           class="ouvidoria-busca-input"
+          style="flex:2;min-width:180px;"
           autocomplete="off" spellcheck="false"
           @input="campoVazio = false; naoEncontrado = false"
+          @keyup.enter="consultar"
+        >
+        <input
+          v-model="senhaBusca" type="password"
+          placeholder="Senha de acesso…"
+          class="ouvidoria-busca-input"
+          style="flex:1;min-width:140px;"
+          autocomplete="off"
           @keyup.enter="consultar"
         >
         <button type="button" class="btn btn-outline" @click="consultar">Consultar</button>
@@ -211,7 +227,7 @@ onMounted(() => {
         Informe um número de protocolo.
       </div>
       <div v-if="naoEncontrado" class="alert-erro" style="margin-top:1rem;">
-        Protocolo não encontrado. Verifique o número e tente novamente.
+        Protocolo ou senha inválidos. Verifique as credenciais e tente novamente.
       </div>
 
       <div v-if="resultado" class="paper" style="margin-top:1.5rem;">
@@ -333,12 +349,18 @@ onMounted(() => {
             Ticket enviado!
           </h3>
           <p style="font-size:0.9rem;color:var(--cinza);margin-bottom:1.2rem;line-height:1.6;">
-            Guarde o protocolo abaixo para acompanhar o andamento do seu relato.
-            <template v-if="emailEnviado"> O protocolo também será enviado para o seu e-mail.</template>
+            Guarde o protocolo e a senha abaixo para acompanhar o andamento do seu relato.
+            <template v-if="emailEnviado"> As credenciais também foram enviadas para o seu e-mail.</template>
           </p>
-          <div class="protocolo-box">
-            <div class="protocolo-label">Protocolo</div>
-            <div class="protocolo-value">{{ protocolo }}</div>
+          <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+            <div class="protocolo-box">
+              <div class="protocolo-label">Protocolo</div>
+              <div class="protocolo-value">{{ protocolo }}</div>
+            </div>
+            <div v-if="ticketSenha" class="protocolo-box">
+              <div class="protocolo-label">Senha de Acesso</div>
+              <div class="protocolo-value">{{ ticketSenha }}</div>
+            </div>
           </div>
           <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1.2rem;">
             <button type="button" class="btn btn-primary btn-sm" @click="consultarStatusDoTicket(protocolo)">Consultar status →</button>

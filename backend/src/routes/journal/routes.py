@@ -6,11 +6,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.service.database import create_engine
 from src.service.journal_management.service import JournalService
+from src.service.instagram_management.service import InstagramService
 from src.routes.journal.schemas import PostCreate, PostUpdate, PostResponse
 from src.service.authentication.auth import get_current_admin
 
 router = APIRouter(prefix="/journal", tags=["journal"])
 admin_router = APIRouter(prefix="/admin/journal", tags=["admin-journal"])
+
 
 
 def get_journal_service() -> JournalService:
@@ -81,3 +83,15 @@ def delete_post_admin(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
         )
     return
+
+
+@admin_router.post("/sync-instagram")
+def sync_instagram_posts(
+    service: JournalService = Depends(get_journal_service),
+    _admin: dict = Depends(get_current_admin),
+):
+    """Import recent Instagram posts into Journal/Mural (Admin only)."""
+    ig_service = InstagramService(service)
+    return ig_service.sync_posts()
+
+

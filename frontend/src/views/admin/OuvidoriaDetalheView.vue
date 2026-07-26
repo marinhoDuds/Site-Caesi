@@ -42,7 +42,12 @@ function desfazer() {
 }
 
 function salvarNota() {
-  updateNota(id, nota.value.trim())
+  const texto = nota.value.trim()
+  if (!texto) {
+    alert('Por favor, preencha uma anotação antes de salvar.')
+    return
+  }
+  updateNota(id, texto)
   notaSalva.value = true
   setTimeout(() => { notaSalva.value = false }, 2000)
 }

@@ -1,7 +1,9 @@
 from datetime import date
-from typing import Optional, List
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Optional
+from pydantic import BaseModel, Field
+
+
 
 class PostType(str, Enum):
     aviso = "aviso"

@@ -203,3 +203,31 @@ def get_operation(
     if not result:
         raise HTTPException(status_code=404, detail="Operation not found")
     return result
+
+
+@router.delete("/operations/{operation_id}", status_code=204)
+def delete_operation(
+    operation_id: int,
+    service: PortalService = Depends(get_portal_service),
+    admin: dict = Depends(get_current_admin),
+) -> None:
+    """Delete an operation.
+
+    Parameters
+    ----------
+    operation_id : int
+        The ID of the operation to delete.
+    service : PortalService, optional
+        The injected portal service dependency.
+    admin : dict
+        The authenticated administrator payload.
+
+    Raises
+    ------
+    HTTPException
+        If the given operation_id is not found in the database.
+    """
+    deleted = service.delete_operation(operation_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Operation not found")
+

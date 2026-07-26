@@ -1,23 +1,76 @@
 services:
   garage:
-    build: ./backend/infra/garage
+    build:
+      context: ./backend/infra/garage
+      dockerfile: Dockerfile
     container_name: garage
     restart: unless-stopped
     ports:
-      - "3900:3900"
-      - "3901:3901"
-      - "3902:3902"
-      - "3903:3903"
+      - "3900:3900" # S3 API
+      - "3901:3901" # RPC
+      - "3902:3902" # S3 Web
+      - "3903:3903" # Admin API
     volumes:
       - ./backend/infra/garage/garage.toml.template:/etc/garage.toml.template
-      - ./backend/infra/garage/meta:/meta
-      - ./backend/infra/garage/data:/data
+      - garage_meta:/meta
+      - garage_data:/data
     environment:
-      - RPC_SECRET
-      - ADMIN_TOKEN
-      - METRICS_TOKEN
-      - GARAGE_DEFAULT_ACCESS_KEY
-      - GARAGE_DEFAULT_SECRET_KEY
-      - GARAGE_DEFAULT_BUCKET
-      - AWS_ENDPOINT_URL
-      - AWS_REGION
+      - RPC_SECRET=${RPC_SECRET:-32bytesecretforrpccommunication123}
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-admin_secret_token_change_in_prod}
+      - METRICS_TOKEN=${METRICS_TOKEN:-metrics_secret_token_change_in_prod}
+      - GARAGE_DEFAULT_ACCESS_KEY=${GARAGE_DEFAULT_ACCESS_KEY:-GK1234567890abcdef1234567890abcd}
+      - GARAGE_DEFAULT_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-secret1234567890abcdef1234567890abcdef1234567890abcdef}
+      - GARAGE_DEFAULT_BUCKET=${GARAGE_DEFAULT_BUCKET:-caesi-attachments}
+      - AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL:-http://garage:3900}
+      - AWS_REGION=${AWS_REGION:-garage}
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 3900 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: caesi_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - SQL_ALCHEMY_CONNECTION=${SQL_ALCHEMY_CONNECTION:-sqlite:////app/data/database.db}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-supersecretkey_change_me_in_production}
+      - GARAGE_DEFAULT_ACCESS_KEY=${GARAGE_DEFAULT_ACCESS_KEY:-GK1234567890abcdef1234567890abcd}
+      - GARAGE_DEFAULT_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-secret1234567890abcdef1234567890abcdef1234567890abcdef}
+      - GARAGE_DEFAULT_BUCKET=${GARAGE_DEFAULT_BUCKET:-caesi-attachments}
+      - AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL:-http://garage:3900}
+      - AWS_REGION=${AWS_REGION:-garage}
+    depends_on:
+      garage:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - backend_data:/app/data
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+    container_name: caesi_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  garage_meta:
+  garage_data:
+  backend_data:

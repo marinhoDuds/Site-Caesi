@@ -29,3 +29,6 @@ infra/garage/meta/
 infra/garage/data/
 backend/infra/garage/meta/
 backend/infra/garage/data/
+
+#Database
+backend/database.db

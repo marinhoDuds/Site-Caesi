@@ -1,44 +1,42 @@
 import { ref, computed } from 'vue'
 
+const API_BASE = 'http://localhost:8000'
+
 export interface AuthUser {
   role: 'admin'
   nome: string
   email: string
 }
 
-const MOCK_EMAIL    = 'caesi@ccc.ufcg.edu.br'
-const MOCK_PASSWORD = 'caesi2025'
-const KEY_SENHA       = 'caesi_admin_senha'
-const KEY_MUST_CHANGE = 'caesi_admin_deve_trocar_senha'
+const _admin = ref(!!localStorage.getItem('caesi_admin'))
 
-const _admin      = ref(!!localStorage.getItem('caesi_admin'))
-const _mustChange = ref(!!localStorage.getItem(KEY_MUST_CHANGE))
+export const isAdmin = computed(() => _admin.value)
+export const isLoggedIn = computed(() => _admin.value)
+export const mustChangePassword = computed(() => false)
+export const user = computed<AuthUser | null>(() =>
+  _admin.value ? { role: 'admin', nome: 'Admin', email: 'admin' } : null
+)
 
-export const isAdmin            = computed(() => _admin.value)
-export const isLoggedIn         = computed(() => _admin.value)
-export const mustChangePassword = computed(() => _mustChange.value)
-export const user               = computed<AuthUser | null>(() => _admin.value ? { role: 'admin', nome: 'Admin', email: 'admin' } : null)
+export async function loginAdmin(email: string, senha: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim().toLowerCase(), password: senha }),
+    })
 
-function senhaAtual(): string {
-  return localStorage.getItem(KEY_SENHA) || MOCK_PASSWORD
-}
+    if (!res.ok) return false
 
-export function loginAdmin(email: string, senha: string): boolean {
-  if (email.trim().toLowerCase() !== MOCK_EMAIL || senha !== senhaAtual()) return false
-  _admin.value = true
-  localStorage.setItem('caesi_admin', '1')
+    const data = await res.json()
+    const token: string = data.access_token
 
-  if (!localStorage.getItem(KEY_SENHA)) {
-    _mustChange.value = true
-    localStorage.setItem(KEY_MUST_CHANGE, '1')
+    localStorage.setItem('caesi_admin', '1')
+    localStorage.setItem('caesi_admin_token', token)
+    _admin.value = true
+    return true
+  } catch {
+    return false
   }
-  return true
-}
-
-export function trocarSenha(novaSenha: string) {
-  localStorage.setItem(KEY_SENHA, novaSenha)
-  localStorage.removeItem(KEY_MUST_CHANGE)
-  _mustChange.value = false
 }
 
 export function loginComGoogle() {
@@ -46,7 +44,27 @@ export function loginComGoogle() {
   localStorage.setItem('caesi_admin', '1')
 }
 
+export async function trocarSenha(novaSenha: string): Promise<boolean> {
+  const token = localStorage.getItem('caesi_admin_token')
+  if (!token) return false
+
+  try {
+    const res = await fetch(`${API_BASE}/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ new_password: novaSenha }),
+    })
+    return res.ok || res.status === 204
+  } catch {
+    return false
+  }
+}
+
 export function logout() {
   _admin.value = false
   localStorage.removeItem('caesi_admin')
+  localStorage.removeItem('caesi_admin_token')
 }
