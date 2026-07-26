@@ -179,6 +179,49 @@ class InformationService:
 
         return self._map_row_to_response(result[0])
 
+    def list_informations(
+        self,
+        info_type: Optional[str] = None,
+        keyword: Optional[str] = None,
+    ) -> list[InformationResponse]:
+        """List informations, optionally filtered by type and/or keyword.
+ 
+        Parameters
+        ----------
+        info_type : Optional[str]
+            If provided, only informations of this exact type are returned.
+        keyword : Optional[str]
+            If provided, only informations whose content contains this
+            keyword (case-insensitive substring match) are returned.
+ 
+        Returns
+        -------
+        list[InformationResponse]
+            The matching informations. Empty list if none match.
+        """
+        query = (
+            Query.from_(information_table)
+            .left_join(attachment_table)
+            .on(attachment_table.owner_id == information_table.id)
+            .select(
+                information_table.id,
+                information_table.content,
+                information_table.information_type,
+                attachment_table.midia_url,
+            )
+        )
+ 
+        if info_type is not None:
+            value = info_type.value if hasattr(info_type, "value") else info_type
+            query = query.where(information_table.information_type == value)
+ 
+        if keyword is not None:
+            query = query.where(information_table.content.like(f"%{keyword}%"))
+ 
+        result = run_query(self.engine, query)
+ 
+        return [self._map_row_to_response(row) for row in result]
+    
     def create_information(
         self,
         payload: InformationCreate,
