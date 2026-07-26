@@ -19,6 +19,7 @@ import {
   missaoTexto, saveMissao, missaoImagem, saveMissaoImagem, contatoInfo, saveContato, periodoFormatado,
   secoesCustom, addSecao, updateSecao, removeSecao, moverSecao,
   type Membro, type GestaoInfo, type SecaoCustom, type MembroHistorico,
+  fetchEquipe,
 } from '../stores/equipe.ts'
 import { CENTRO_PADRAO } from '../stores/mapa.ts'
 import { markdownParaHtmlSeguro } from '../utils/markdown.ts'
@@ -404,6 +405,7 @@ const mapaMiniEl = ref<HTMLElement | null>(null)
 let mapaMini: L.Map | null = null
 
 onMounted(() => {
+  fetchEquipe()
   if (!mapaMiniEl.value) return
   mapaMini = L.map(mapaMiniEl.value, {
     zoomControl: false,
