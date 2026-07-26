@@ -341,7 +341,7 @@ function submitNovoForm() {
           <div class="form-card-title">{{ f.titulo }}</div>
           <div class="form-card-desc">{{ f.descricao }}</div>
           <div class="form-card-meta">
-            <span>{{ inscricoesCount(f.id) }} inscrição{{ inscricoesCount(f.id) !== 1 ? 'ões' : '' }}</span>
+            <span>{{ inscricoesCount(f.id) }} inscriç{{ inscricoesCount(f.id) !== 1 ? 'ões' : 'ão' }}</span>
             <template v-if="f.pago">
               <span>·</span>
               <span>{{ formatValor(f.valor) }} / pessoa</span>
