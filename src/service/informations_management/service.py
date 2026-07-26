@@ -170,7 +170,7 @@ class InformationService:
                 information_table.information_type,
                 attachment_table.midia_url,
             )
-            .where(information_table.id == info_id)
+            .where(information_table.id == id)
         )
         result = run_query(self.engine, query)
 
