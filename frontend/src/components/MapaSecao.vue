@@ -106,10 +106,10 @@ function excluirEstrutura() {
   cancelarSelecao()
 }
 
-function salvarNovaEstrutura() {
+async function salvarNovaEstrutura() {
   if (!pendingPoint.value) return
   if (!novaEstruturaForm.value.nome.trim()) { showToast('Informe o nome da estrutura.', 'error'); return }
-  const nova = addEstrutura({
+  const nova = await addEstrutura({
     nome: novaEstruturaForm.value.nome.trim(),
     descricao: novaEstruturaForm.value.descricao.trim(),
     lat: pendingPoint.value.lat,

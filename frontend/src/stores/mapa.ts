@@ -2,9 +2,13 @@ import { ref, computed } from 'vue'
 
 const API_BASE = 'http://localhost:8000'
 
-function getHeaders() {
+function getHeaders(): Record<string, string> {
   const token = localStorage.getItem('caesi_admin_token')
-  return token ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } : { 'Content-Type': 'application/json' }
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
 }
 
 export interface Estrutura {
@@ -33,10 +37,10 @@ export async function fetchEstruturas() {
   try {
     const res = await fetch(`${API_BASE}/informations/type/map`)
     if (!res.ok) throw new Error('Failed to fetch estruturas')
-    const data = await res.json()
-    _estruturas.value = data.map((d: any) => {
+    const data: Array<{ id: number; content: string }> = await res.json()
+    _estruturas.value = data.map((d) => {
       const parsed = JSON.parse(d.content)
-      return { id: d.id, ...parsed }
+      return { ...parsed, id: d.id }
     })
   } catch (error) {
     console.error(error)
@@ -47,7 +51,7 @@ export function getEstrutura(id: number): Estrutura | null {
   return _estruturas.value.find(e => e.id === id) ?? null
 }
 
-export async function addEstrutura(nova: NovaEstrutura) {
+export async function addEstrutura(nova: NovaEstrutura): Promise<Estrutura | undefined> {
   const content = JSON.stringify(nova)
   const res = await fetch(`${API_BASE}/admin/informations/`, {
     method: 'POST',
@@ -57,7 +61,9 @@ export async function addEstrutura(nova: NovaEstrutura) {
   if (res.ok) {
     const data = await res.json()
     const parsed = JSON.parse(data.content)
-    _estruturas.value.push({ id: data.id, ...parsed })
+    const criada: Estrutura = { ...parsed, id: data.id }
+    _estruturas.value.push(criada)
+    return criada
   }
 }
 
@@ -65,7 +71,7 @@ export async function updateEstrutura(id: number, updates: Partial<Estrutura>) {
   const existing = _estruturas.value.find(e => e.id === id)
   if (!existing) return
   const novoConteudo = { ...existing, ...updates }
-  delete (novoConteudo as any).id
+  delete (novoConteudo as { id?: number }).id
   
   const res = await fetch(`${API_BASE}/admin/informations/${id}`, {
     method: 'PUT',
@@ -75,7 +81,7 @@ export async function updateEstrutura(id: number, updates: Partial<Estrutura>) {
   if (res.ok) {
     const index = _estruturas.value.findIndex(e => e.id === id)
     if (index !== -1) {
-      _estruturas.value[index] = { id, ...novoConteudo } as Estrutura
+      _estruturas.value[index] = { ...novoConteudo, id } as Estrutura
     }
   }
 }

@@ -2,9 +2,13 @@ import { ref, computed } from 'vue'
 
 const API_BASE = 'http://localhost:8000'
 
-function getHeaders() {
+function getHeaders(): Record<string, string> {
   const token = localStorage.getItem('caesi_admin_token')
-  return token ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } : { 'Content-Type': 'application/json' }
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
 }
 
 export interface Anexo {
@@ -90,8 +94,8 @@ export async function fetchEditais() {
   try {
     const res = await fetch(`${API_BASE}/informations/type/announcements`)
     if (!res.ok) throw new Error('Failed to fetch editais')
-    const data = await res.json()
-    _editais.value = data.map((d: any) => {
+    const data: Array<{ id: number; content: string }> = await res.json()
+    _editais.value = data.map((d) => {
       const parsed = JSON.parse(d.content)
       return { id: d.id, ...parsed }
     })
@@ -118,7 +122,7 @@ export async function updateEdital(id: number, updates: Partial<Edital>) {
   const existing = _editais.value.find(e => e.id === id)
   if (!existing) return
   const novoConteudo = { ...existing, ...updates }
-  delete (novoConteudo as any).id // do not save id in json content
+  delete (novoConteudo as { id?: number }).id // do not save id in json content
   
   const res = await fetch(`${API_BASE}/admin/informations/${id}`, {
     method: 'PUT',
@@ -128,7 +132,7 @@ export async function updateEdital(id: number, updates: Partial<Edital>) {
   if (res.ok) {
     const index = _editais.value.findIndex(e => e.id === id)
     if (index !== -1) {
-      _editais.value[index] = { id, ...novoConteudo } as Edital
+      _editais.value[index] = { ...novoConteudo, id } as Edital
     }
   }
 }
@@ -150,8 +154,8 @@ export async function fetchProfessores() {
   try {
     const res = await fetch(`${API_BASE}/informations/type/professors`)
     if (!res.ok) throw new Error('Failed to fetch professores')
-    const data = await res.json()
-    _professores.value = data.map((d: any) => {
+    const data: Array<{ id: number; content: string }> = await res.json()
+    _professores.value = data.map((d) => {
       const parsed = JSON.parse(d.content)
       return { id: d.id, ...parsed }
     })
@@ -178,7 +182,7 @@ export async function updateProfessor(id: number, updates: Partial<Professor>) {
   const existing = _professores.value.find(p => p.id === id)
   if (!existing) return
   const novoConteudo = { ...existing, ...updates }
-  delete (novoConteudo as any).id
+  delete (novoConteudo as { id?: number }).id
   
   const res = await fetch(`${API_BASE}/admin/informations/${id}`, {
     method: 'PUT',
@@ -188,7 +192,7 @@ export async function updateProfessor(id: number, updates: Partial<Professor>) {
   if (res.ok) {
     const index = _professores.value.findIndex(p => p.id === id)
     if (index !== -1) {
-      _professores.value[index] = { id, ...novoConteudo } as Professor
+      _professores.value[index] = { ...novoConteudo, id } as Professor
     }
   }
 }
@@ -210,8 +214,8 @@ export async function fetchLaboratorios() {
   try {
     const res = await fetch(`${API_BASE}/informations/type/laboratories`)
     if (!res.ok) throw new Error('Failed to fetch laboratorios')
-    const data = await res.json()
-    _laboratorios.value = data.map((d: any) => {
+    const data: Array<{ id: number; content: string }> = await res.json()
+    _laboratorios.value = data.map((d) => {
       const parsed = JSON.parse(d.content)
       return { id: d.id, ...parsed }
     })
@@ -238,7 +242,7 @@ export async function updateLaboratorio(id: number, updates: Partial<Laboratorio
   const existing = _laboratorios.value.find(l => l.id === id)
   if (!existing) return
   const novoConteudo = { ...existing, ...updates }
-  delete (novoConteudo as any).id
+  delete (novoConteudo as { id?: number }).id
   
   const res = await fetch(`${API_BASE}/admin/informations/${id}`, {
     method: 'PUT',
@@ -248,7 +252,7 @@ export async function updateLaboratorio(id: number, updates: Partial<Laboratorio
   if (res.ok) {
     const index = _laboratorios.value.findIndex(l => l.id === id)
     if (index !== -1) {
-      _laboratorios.value[index] = { id, ...novoConteudo } as Laboratorio
+      _laboratorios.value[index] = { ...novoConteudo, id } as Laboratorio
     }
   }
 }

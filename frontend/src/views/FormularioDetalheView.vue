@@ -102,7 +102,7 @@ onBeforeRouteLeave(() => {
   }
 })
 
-function submitForm() {
+async function submitForm() {
   submitError.value = ''
   const form = formulario.value
   if (!form) return
@@ -158,7 +158,7 @@ function submitForm() {
     ? { nome: comprovanteNome.value, url: null }
     : null
 
-  const result = addInscricao(id, todasRespostas, comprovante)
+  const result = await addInscricao(id, todasRespostas, comprovante)
   if ('error' in result) {
     submitError.value = result.error
     return

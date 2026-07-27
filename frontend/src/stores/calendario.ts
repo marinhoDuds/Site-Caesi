@@ -49,7 +49,7 @@ export async function fetchEventos() {
     if (res.ok) {
       const data = await res.json()
       if (Array.isArray(data)) {
-        _eventos.value = data.map((e: any) => ({
+        _eventos.value = data.map((e: { id: number; title: string; scheduled_to: string; description?: string; formulario_id?: number | null }) => ({
           id: e.id,
           nome: e.title,
           data: e.scheduled_to,

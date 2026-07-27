@@ -14,7 +14,7 @@ export interface Mensagem {
   periodo: string;
   corpo: string;
   status: 'pendente' | 'atendida';
-  complementos?: any[];
+  complementos?: Array<{ corpo?: string; texto?: string; data: string; autor?: string }>;
   data: string;
 }
 

@@ -2,9 +2,13 @@ import { ref, computed } from 'vue'
 
 const API_BASE = 'http://localhost:8000'
 
-function getHeaders() {
+function getHeaders(): Record<string, string> {
   const token = localStorage.getItem('caesi_admin_token')
-  return token ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } : { 'Content-Type': 'application/json' }
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
 }
 
 export interface Membro {
@@ -125,7 +129,7 @@ export async function fetchEquipe() {
     const resMembros = await fetch(`${API_BASE}/informations/type/membros`)
     if (resMembros.ok) {
       const data = await resMembros.json()
-      _membros.value = data.map((d: any) => ({ id: d.id, ...JSON.parse(d.content) }))
+      _membros.value = data.map((d: { id: number; content: string }) => ({ id: d.id, ...JSON.parse(d.content) }))
     }
 
     const resGestao = await fetch(`${API_BASE}/informations/type/gestao_info`)
@@ -143,7 +147,7 @@ export async function fetchEquipe() {
     const resHist = await fetch(`${API_BASE}/informations/type/gestoes_anteriores`)
     if (resHist.ok) {
       const data = await resHist.json()
-      _historico.value = data.map((d: any) => ({ id: d.id, ...JSON.parse(d.content) }))
+      _historico.value = data.map((d: { id: number; content: string }) => ({ id: d.id, ...JSON.parse(d.content) }))
     }
 
     const resMissao = await fetch(`${API_BASE}/informations/type/sobre_missao`)
@@ -169,7 +173,7 @@ export async function fetchEquipe() {
     const resSecoes = await fetch(`${API_BASE}/informations/type/sobre_secoes`)
     if (resSecoes.ok) {
       const data = await resSecoes.json()
-      _secoes.value = data.map((d: any) => ({ id: d.id, ...JSON.parse(d.content) }))
+      _secoes.value = data.map((d: { id: number; content: string }) => ({ id: d.id, ...JSON.parse(d.content) }))
     }
   } catch (error) {
     console.error(error)
@@ -273,7 +277,7 @@ export async function updateMembro(id: number, data: Partial<Membro>) {
   if (!existing) return
   const updated = { ...existing, ...data }
   const payload = { ...updated }
-  delete (payload as any).id
+  delete (payload as { id?: number }).id
 
   await fetch(`${API_BASE}/admin/informations/${id}`, {
     method: 'PUT',
@@ -380,7 +384,7 @@ export async function updateSecao(id: number, data: Partial<SecaoCustom>) {
   if (!existing) return
   const updated = { ...existing, ...data }
   const payload = { ...updated }
-  delete (payload as any).id
+  delete (payload as { id?: number }).id
 
   await fetch(`${API_BASE}/admin/informations/${id}`, {
     method: 'PUT',

@@ -2,9 +2,13 @@ import { ref, computed } from 'vue'
 
 const API_BASE = 'http://localhost:8000'
 
-function getHeaders() {
+function getHeaders(): Record<string, string> {
   const token = localStorage.getItem('caesi_admin_token')
-  return token ? { 'Authorization': `Bearer ${token}` } : {}
+  const headers: Record<string, string> = {}
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
 }
 
 function mapTipoToOperationType(tipo: string): string {
@@ -73,7 +77,7 @@ export async function fetchArtefatos() {
     const res = await fetch(`${API_BASE}/operations`)
     if (res.ok) {
       const data = await res.json()
-      _artefatos.value = data.map((op: any) => ({
+      _artefatos.value = data.map((op: { id: number; operation_type: string; description: string; value: number; attachment_url?: string | null; created_at?: string; previous?: unknown }) => ({
         id: op.id,
         tipo: op.operation_type,
         descricao: op.description,

@@ -72,9 +72,13 @@ export type ResultadoOperacao = { success: true } | { error: string }
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-function getHeaders() {
+function getHeaders(): Record<string, string> {
   const token = localStorage.getItem('caesi_admin_token')
-  return token ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } : { 'Content-Type': 'application/json' }
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
 }
 
 const _forms = ref<Formulario[]>([])
@@ -88,13 +92,13 @@ export async function fetchFormularios() {
     const res = await fetch(`${API_BASE}/informations/type/formularios`)
     if (res.ok) {
       const data = await res.json()
-      _forms.value = data.map((d: any) => ({ id: d.id, ...JSON.parse(d.content) }))
+      _forms.value = data.map((d: { id: number; content: string }) => ({ id: d.id, ...JSON.parse(d.content) }))
     }
 
     const resInsc = await fetch(`${API_BASE}/informations/type/inscricoes`)
     if (resInsc.ok) {
       const data = await resInsc.json()
-      _inscricoes.value = data.map((d: any) => ({ id: d.id, ...JSON.parse(d.content) }))
+      _inscricoes.value = data.map((d: { id: number; content: string }) => ({ id: d.id, ...JSON.parse(d.content) }))
     }
   } catch (error) {
     console.error('Erro ao buscar formulários:', error)
