@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const mockFetch = vi.fn()
-global.fetch = mockFetch
+globalThis.fetch = mockFetch
 
 async function storeLimpa() {
   vi.resetModules()
@@ -82,7 +82,7 @@ describe('stores/informacoes', () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({id: 1, content: '{"titulo":"Novo"}'}) })
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, content: '{"titulo":"Novo"}'}] })
     
-    await saveTamburetei({ titulo: 'Novo' } as any)
+    await saveTamburetei({ titulo: 'Novo', descricao: 'Desc', linkExterno: 'http://example.com' })
     
     expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/admin/informations/', expect.objectContaining({ method: 'POST' }))
   })

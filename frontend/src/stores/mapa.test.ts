@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import type { Estrutura } from './mapa.ts'
 
 const mockFetch = vi.fn()
-global.fetch = mockFetch
+globalThis.fetch = mockFetch
 
 async function storeLimpa() {
   vi.resetModules()
@@ -20,7 +19,7 @@ describe('stores/mapa', () => {
   })
 
   it('addEstrutura, updateEstrutura e removeEstrutura chamam a API', async () => {
-    const { addEstrutura, updateEstrutura, removeEstrutura, fetchEstruturas } = await storeLimpa()
+    const { addEstrutura, updateEstrutura, removeEstrutura } = await storeLimpa()
     
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 1, content: '{"nome":"Bloco CP","lat":-7.21,"lng":-35.9}' }) }) // add
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, content: '{"nome":"Bloco CP","lat":-7.21,"lng":-35.9}'}] }) // fetch

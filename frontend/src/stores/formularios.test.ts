@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import type { Formulario, Inscricao, NovoFormulario } from './formularios.ts'
 
 const mockFetch = vi.fn()
-global.fetch = mockFetch
+globalThis.fetch = mockFetch
 
 async function storeLimpa() {
   localStorage.clear()

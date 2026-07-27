@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import type { Evento } from './calendario.ts'
 
 const mockFetch = vi.fn()
-global.fetch = mockFetch
+globalThis.fetch = mockFetch
 
 async function storeLimpa() {
   vi.resetModules()
@@ -57,7 +57,7 @@ describe('stores/calendario', () => {
   })
 
   it('addEvento, updateEvento e removeEvento chamam a API', async () => {
-    const { addEvento, updateEvento, removeEvento, fetchEventos } = await storeLimpa()
+    const { addEvento, updateEvento, removeEvento } = await storeLimpa()
     
     mockFetch.mockResolvedValueOnce({ ok: true }) // add
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [{id: 1, title: 'A', scheduled_to: '2026-07-01', description: ''}] }) // fetch

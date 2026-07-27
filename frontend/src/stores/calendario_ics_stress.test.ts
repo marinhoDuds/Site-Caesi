@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { exportarEventoIcs, exportarTodosEventosIcs, type Evento } from './calendario.ts'
+import type { Evento } from './calendario.ts'
 
 function escapeIcsText(str: string): string {
   return (str || '')
