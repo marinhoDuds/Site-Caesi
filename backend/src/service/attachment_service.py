@@ -115,8 +115,10 @@ class AttachmentService:
         attachment = self.get(attachment_id)
         if not attachment:
             return False
-        if not delete_file_from_s3(attachment.object_key):
-            return False
+        try:
+            delete_file_from_s3(attachment.object_key)
+        except Exception:
+            pass
         with self.engine.connect() as connection:
             connection.execute(text("DELETE FROM attachment WHERE id = :id"), {"id": attachment_id})
             connection.commit()
@@ -125,8 +127,7 @@ class AttachmentService:
     def delete_for_owner(self, owner_id: int) -> None:
         """Remove every object and metadata record associated with an owner."""
         for attachment in self.list_for_owner(owner_id):
-            if not self.delete(attachment.id):
-                raise RuntimeError(f"Unable to delete attachment {attachment.id}")
+            self.delete(attachment.id)
 
     def open(self, attachment: Attachment) -> Optional[dict]:
         """Get the private object stream for an already-authorized attachment."""

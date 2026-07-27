@@ -22,7 +22,7 @@ CREATE TABLE `ticket` (
     `admin_notes` VARCHAR(2200),
     `updated_at` DATE,
     CONSTRAINT pk_ticket PRIMARY KEY (id),
-    CONSTRAINT fk_ticket_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id),
+    CONSTRAINT fk_ticket_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id) ON DELETE CASCADE,
     CONSTRAINT unique_ticket_public_id UNIQUE (public_id),
     CONSTRAINT unique_ticket_protocol UNIQUE (protocol)
 );
@@ -37,7 +37,7 @@ CREATE TABLE `operation` (
     ) NOT NULL,
     `previous` BIGINT,
     CONSTRAINT pk_operation PRIMARY KEY (id),
-    CONSTRAINT fk_operation_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id),
+    CONSTRAINT fk_operation_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id) ON DELETE CASCADE,
     CONSTRAINT fk_operation_operation_id FOREIGN KEY (previous) REFERENCES operation(id)
 );
 
@@ -46,7 +46,7 @@ CREATE TABLE `information` (
     `content` MEDIUMTEXT NOT NULL,
     `information_type` VARCHAR(100) NOT NULL,
     CONSTRAINT pk_information PRIMARY KEY (id),
-    CONSTRAINT fk_information_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id)
+    CONSTRAINT fk_information_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id) ON DELETE CASCADE
 );
 
 CREATE TABLE `post` (
@@ -57,7 +57,7 @@ CREATE TABLE `post` (
     `updated_at` DATE,
     `caption` VARCHAR(2200),
     CONSTRAINT pk_post PRIMARY KEY (id),
-    CONSTRAINT fk_post_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id)
+    CONSTRAINT fk_post_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id) ON DELETE CASCADE
 );
 
 -- TODO: talvez adicionar public_id nanoID
@@ -72,7 +72,7 @@ CREATE TABLE `administrator` (
     `github` VARCHAR(2083),
     `lattes` VARCHAR(2083),
     CONSTRAINT pk_administrator PRIMARY KEY (id),
-    CONSTRAINT fk_administrator_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id)
+    CONSTRAINT fk_administrator_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id) ON DELETE CASCADE
 );
 
 -- TODO: ver sobre hash da url gerada pelo S3, pra poder fazer UNIQUE KEY com owner_id
@@ -83,7 +83,7 @@ CREATE TABLE `attachment` (
     `filename` VARCHAR(255) NOT NULL,
     `content_type` VARCHAR(255) NOT NULL,
     CONSTRAINT pk_attachment PRIMARY KEY (id),
-    CONSTRAINT fk_attachment_attachment_owner_id FOREIGN KEY (owner_id) REFERENCES attachment_owner(id)
+    CONSTRAINT fk_attachment_attachment_owner_id FOREIGN KEY (owner_id) REFERENCES attachment_owner(id) ON DELETE CASCADE
 );
 
 CREATE TABLE `event` (

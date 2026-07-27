@@ -2,8 +2,11 @@
 Service for managing generic information records (announcements, labs, professors, etc.).
 """
 from typing import List, Optional
+
 from pypika import Order, Query, Table
 from sqlalchemy import Engine, text
+
+from src.service.attachment_service import AttachmentService
 from src.service.database import run_query
 
 
@@ -154,6 +157,7 @@ class InformationService:
         bool
             True if deletion was executed successfully.
         """
+        AttachmentService(self.engine).delete_for_owner(info_id)
         table = Table("information")
         q = Query.from_(table).delete().where(table.id == info_id)
         run_query(self.engine, q)

@@ -3,6 +3,7 @@ from typing import List, Optional, Any
 from pypika import Table, Query, Order
 from sqlalchemy import Engine, text
 
+from src.service.attachment_service import AttachmentService
 from src.service.database import run_query
 from src.routes.journal.schemas import PostCreate, PostUpdate, PostResponse
 
@@ -154,11 +155,11 @@ class JournalService:
         post = self.get_post(post_id)
         if not post:
             return False
-            
+
         with self.engine.connect() as conn:
+            AttachmentService(self.engine).delete_for_owner(post_id)
             conn.execute(text("DELETE FROM post WHERE id = :id"), {"id": post_id})
-            
             conn.execute(text("DELETE FROM attachment_owner WHERE id = :id"), {"id": post_id})
             conn.commit()
-            
+
         return True
