@@ -1,6 +1,7 @@
 """
 API routes for Journal (Mural) management.
 """
+
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -12,7 +13,6 @@ from src.service.authentication.auth import get_current_admin
 
 router = APIRouter(prefix="/journal", tags=["journal"])
 admin_router = APIRouter(prefix="/admin/journal", tags=["admin-journal"])
-
 
 
 def get_journal_service() -> JournalService:
@@ -44,7 +44,9 @@ def get_post(
     return post
 
 
-@admin_router.post("/", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
+@admin_router.post(
+    "/", response_model=PostResponse, status_code=status.HTTP_201_CREATED
+)
 def create_post_admin(
     payload: PostCreate,
     service: JournalService = Depends(get_journal_service),
@@ -93,5 +95,3 @@ def sync_instagram_posts(
     """Import recent Instagram posts into Journal/Mural (Admin only)."""
     ig_service = InstagramService(service)
     return ig_service.sync_posts()
-
-

@@ -230,4 +230,3 @@ def delete_operation(
     deleted = service.delete_operation(operation_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Operation not found")
-

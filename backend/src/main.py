@@ -37,6 +37,7 @@ app.include_router(events_router)
 app.include_router(admin_events_router)
 app.include_router(portal_router)
 
+
 @app.get("/health")
 def health_check() -> dict[str, str]:
     return {"status": "ok"}

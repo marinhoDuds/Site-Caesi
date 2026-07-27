@@ -1,6 +1,7 @@
 """
 Routes for managing generic information records (announcements, labs, professors, etc.).
 """
+
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -145,4 +146,3 @@ def delete_information(
     if not existing:
         raise HTTPException(status_code=404, detail="Information not found")
     service.delete_information(info_id)
-

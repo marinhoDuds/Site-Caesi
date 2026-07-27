@@ -92,13 +92,13 @@ export async function fetchFormularios() {
     const res = await fetch(`${API_BASE}/informations/type/formularios`)
     if (res.ok) {
       const data = await res.json()
-      _forms.value = data.map((d: { id: number; content: string }) => ({ id: d.id, ...JSON.parse(d.content) }))
+      _forms.value = data.map((d: { id: number; content: string }) => ({ ...JSON.parse(d.content), id: d.id }))
     }
 
     const resInsc = await fetch(`${API_BASE}/informations/type/inscricoes`)
     if (resInsc.ok) {
       const data = await resInsc.json()
-      _inscricoes.value = data.map((d: { id: number; content: string }) => ({ id: d.id, ...JSON.parse(d.content) }))
+      _inscricoes.value = data.map((d: { id: number; content: string }) => ({ ...JSON.parse(d.content), id: d.id }))
     }
   } catch (error) {
     console.error('Erro ao buscar formulários:', error)

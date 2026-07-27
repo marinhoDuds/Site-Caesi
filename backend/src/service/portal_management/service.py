@@ -439,7 +439,12 @@ class PortalService:
 
         with self.engine.connect() as conn:
             AttachmentService(self.engine).delete_for_owner(operation_id)
-            conn.execute(text("DELETE FROM operation WHERE id = :id"), {"id": operation_id})
-            conn.execute(text("DELETE FROM attachment_owner WHERE id = :id"), {"id": operation_id})
+            conn.execute(
+                text("DELETE FROM operation WHERE id = :id"), {"id": operation_id}
+            )
+            conn.execute(
+                text("DELETE FROM attachment_owner WHERE id = :id"),
+                {"id": operation_id},
+            )
             conn.commit()
         return True

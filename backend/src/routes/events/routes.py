@@ -1,6 +1,7 @@
 """
 API routes for Event (Calendar) management.
 """
+
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -27,7 +28,9 @@ def list_events(
     return service.list_events()
 
 
-@admin_router.post("/", response_model=EventResponse, status_code=status.HTTP_201_CREATED)
+@admin_router.post(
+    "/", response_model=EventResponse, status_code=status.HTTP_201_CREATED
+)
 def create_event(
     payload: EventCreate,
     service: EventService = Depends(get_event_service),

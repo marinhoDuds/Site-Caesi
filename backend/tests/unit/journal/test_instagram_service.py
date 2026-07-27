@@ -13,10 +13,17 @@ def mock_journal_service():
 
 def test_infer_post_type(mock_journal_service):
     ig_service = InstagramService(mock_journal_service)
-    assert ig_service._infer_post_type("Confira o #evento semat") == PostType.evento.value
+    assert (
+        ig_service._infer_post_type("Confira o #evento semat") == PostType.evento.value
+    )
     assert ig_service._infer_post_type("Nova #vaga de estágio") == PostType.vaga.value
-    assert ig_service._infer_post_type("Ótima #oportunidade de pesquisa") == PostType.oportunidade.value
-    assert ig_service._infer_post_type("Apenas um #aviso normal") == PostType.aviso.value
+    assert (
+        ig_service._infer_post_type("Ótima #oportunidade de pesquisa")
+        == PostType.oportunidade.value
+    )
+    assert (
+        ig_service._infer_post_type("Apenas um #aviso normal") == PostType.aviso.value
+    )
 
 
 def test_extract_title(mock_journal_service):
@@ -38,7 +45,7 @@ def test_sync_posts_deduplication(mock_journal_service):
         title=payload.title,
         post_type=payload.post_type,
         caption=payload.caption,
-        created_at=date.today()
+        created_at=date.today(),
     )
 
     res1 = ig_service.sync_posts()
@@ -103,7 +110,9 @@ def test_fetch_instagram_posts_http_error(mock_journal_service, monkeypatch):
     monkeypatch.setenv("INSTAGRAM_ACCESS_TOKEN", "valid_token")
     monkeypatch.setenv("INSTAGRAM_ACCOUNT_ID", "123456")
 
-    error = urllib.error.HTTPError("http://graph.facebook.com", 400, "Bad Request", {}, None)
+    error = urllib.error.HTTPError(
+        "http://graph.facebook.com", 400, "Bad Request", {}, None
+    )
     with patch("urllib.request.urlopen", side_effect=error):
         ig_service = InstagramService(mock_journal_service)
         posts = ig_service.fetch_instagram_posts()
@@ -141,4 +150,3 @@ def test_fetch_instagram_posts_json_error(mock_journal_service, monkeypatch):
         ig_service = InstagramService(mock_journal_service)
         posts = ig_service.fetch_instagram_posts()
         assert posts == []
-

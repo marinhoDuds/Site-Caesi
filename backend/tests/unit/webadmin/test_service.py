@@ -15,7 +15,10 @@ def test_ensure_default_admin_seeds_when_empty():
         MagicMock(),
     ]
     service = AdminAuthService(engine)
-    with patch("src.service.authentication.admin_auth_service.hash_password", return_value="hash"):
+    with patch(
+        "src.service.authentication.admin_auth_service.hash_password",
+        return_value="hash",
+    ):
         service._ensure_default_admin()
     assert conn_mock.commit.called
 
@@ -32,9 +35,20 @@ def test_login_returns_token_on_valid_credentials():
         MagicMock(fetchone=lambda: (42, "$2b$12$fakehash")),
     ]
 
-    with patch("src.service.authentication.admin_auth_service.verify_password", return_value=True), \
-         patch("src.service.authentication.admin_auth_service.create_access_token", return_value="access.xyz"), \
-         patch("src.service.authentication.admin_auth_service.create_refresh_token", return_value="refresh.xyz"):
+    with (
+        patch(
+            "src.service.authentication.admin_auth_service.verify_password",
+            return_value=True,
+        ),
+        patch(
+            "src.service.authentication.admin_auth_service.create_access_token",
+            return_value="access.xyz",
+        ),
+        patch(
+            "src.service.authentication.admin_auth_service.create_refresh_token",
+            return_value="refresh.xyz",
+        ),
+    ):
         tokens = service.login("caesi@ccc.ufcg.edu.br", "caesi2025")
 
     assert tokens == ("access.xyz", "refresh.xyz")
@@ -51,7 +65,10 @@ def test_login_returns_none_on_wrong_password():
         MagicMock(fetchone=lambda: (42, "$2b$12$fakehash")),
     ]
 
-    with patch("src.service.authentication.admin_auth_service.verify_password", return_value=False):
+    with patch(
+        "src.service.authentication.admin_auth_service.verify_password",
+        return_value=False,
+    ):
         token = service.login("caesi@ccc.ufcg.edu.br", "wrongpass")
 
     assert token is None
@@ -80,7 +97,10 @@ def test_change_password_returns_true_when_updated():
 
     conn_mock.execute.return_value.rowcount = 1
 
-    with patch("src.service.authentication.admin_auth_service.hash_password", return_value="$2b$hashed"):
+    with patch(
+        "src.service.authentication.admin_auth_service.hash_password",
+        return_value="$2b$hashed",
+    ):
         result = service.change_password(1, "novasenha")
 
     assert result is True
@@ -94,7 +114,10 @@ def test_change_password_returns_false_when_not_found():
 
     conn_mock.execute.return_value.rowcount = 0
 
-    with patch("src.service.authentication.admin_auth_service.hash_password", return_value="$2b$hashed"):
+    with patch(
+        "src.service.authentication.admin_auth_service.hash_password",
+        return_value="$2b$hashed",
+    ):
         result = service.change_password(999, "novasenha")
 
     assert result is False

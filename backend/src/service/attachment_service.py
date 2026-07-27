@@ -1,4 +1,5 @@
 """Private S3-backed attachment persistence."""
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO, Optional
@@ -37,7 +38,9 @@ class AttachmentService:
 
         with self.engine.connect() as connection:
             connection.execute(
-                text(f"UPDATE attachment SET owner_id = :owner_id WHERE id IN ({','.join(placeholders)})"),
+                text(
+                    f"UPDATE attachment SET owner_id = :owner_id WHERE id IN ({','.join(placeholders)})"
+                ),
                 params,
             )
             connection.commit()
@@ -81,13 +84,17 @@ class AttachmentService:
                         "content_type": content_type,
                     },
                 )
-                attachment_id = connection.execute(text("SELECT LAST_INSERT_ID()")).scalar_one()
+                attachment_id = connection.execute(
+                    text("SELECT LAST_INSERT_ID()")
+                ).scalar_one()
                 connection.commit()
         except Exception:
             delete_file_from_s3(object_key)
             raise
 
-        return Attachment(int(attachment_id), owner_id, object_key, safe_name, content_type)
+        return Attachment(
+            int(attachment_id), owner_id, object_key, safe_name, content_type
+        )
 
     def get(self, attachment_id: int) -> Optional[Attachment]:
         with self.engine.connect() as connection:
@@ -120,7 +127,9 @@ class AttachmentService:
         except Exception:
             pass
         with self.engine.connect() as connection:
-            connection.execute(text("DELETE FROM attachment WHERE id = :id"), {"id": attachment_id})
+            connection.execute(
+                text("DELETE FROM attachment WHERE id = :id"), {"id": attachment_id}
+            )
             connection.commit()
         return True
 

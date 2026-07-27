@@ -1,6 +1,7 @@
 """
 Instagram Integration Service for importing and automating journal/mural posts.
 """
+
 import json
 import logging
 import os
@@ -140,4 +141,3 @@ class InstagramService:
             "skipped_count": skipped_count,
             "posts": new_posts,
         }
-

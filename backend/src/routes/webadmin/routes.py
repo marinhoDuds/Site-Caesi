@@ -39,7 +39,9 @@ class ChangePasswordRequest(BaseModel):
 
 
 @router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
-def login(payload: LoginRequest, service: AdminAuthService = Depends(get_admin_auth_service)):
+def login(
+    payload: LoginRequest, service: AdminAuthService = Depends(get_admin_auth_service)
+):
     """Authenticate an administrator and return access + refresh tokens."""
     clean_email = payload.email.strip().lower()
     if service.check_lockout(clean_email):
@@ -83,4 +85,6 @@ def change_password(
     """Change the password of the currently authenticated administrator."""
     ok = service.change_password(int(current_admin["id"]), payload.new_password)
     if not ok:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin não encontrado.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Admin não encontrado."
+        )

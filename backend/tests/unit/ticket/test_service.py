@@ -2,7 +2,12 @@ import pytest
 from unittest.mock import MagicMock, patch
 from sqlalchemy import Engine
 from src.service.ticket_management.service import TicketService
-from src.routes.ticket.schemas import TicketCreate, TicketUpdate, TicketType, TicketResponse
+from src.routes.ticket.schemas import (
+    TicketCreate,
+    TicketUpdate,
+    TicketType,
+    TicketResponse,
+)
 
 
 @pytest.fixture
@@ -12,7 +17,7 @@ def mock_engine():
     engine.dialect.name = "mysql"
     conn = MagicMock()
     engine.connect.return_value.__enter__.return_value = conn
-    
+
     conn.execute.return_value.scalar.return_value = 1
     return engine
 
@@ -24,9 +29,9 @@ def test_create_ticket(mock_engine):
         content="Test issue",
         ticket_type=TicketType.infrastructure,
         author="John",
-        email="john@example.com"
+        email="john@example.com",
     )
-    
+
     ticket = service.create_ticket(payload)
     assert ticket.id == 1
     assert ticket.semester == "2024"
@@ -46,9 +51,9 @@ def test_create_ticket_mysql(mock_engine):
         content="Test issue",
         ticket_type=TicketType.infrastructure,
         author="John",
-        email="john@example.com"
+        email="john@example.com",
     )
-    
+
     ticket = service.create_ticket(payload)
     assert ticket.id == 1
 
@@ -57,7 +62,20 @@ def test_get_ticket_by_protocol(mock_engine):
     service = TicketService(mock_engine)
     with patch("src.service.ticket_management.service.run_query") as mock_run_query:
         mock_run_query.return_value = [
-            (1, "pub123", "PROT123", "2024", "Content", "infrastructure", "Test Author", "test@test.com", "pendente", "PASS12", None, None)
+            (
+                1,
+                "pub123",
+                "PROT123",
+                "2024",
+                "Content",
+                "infrastructure",
+                "Test Author",
+                "test@test.com",
+                "pendente",
+                "PASS12",
+                None,
+                None,
+            )
         ]
         ticket = service.get_ticket_by_protocol("PROT123")
         assert ticket is not None
@@ -71,12 +89,23 @@ def test_get_ticket_by_protocol(mock_engine):
 
 def test_get_ticket_by_protocol_and_password(mock_engine):
     service = TicketService(mock_engine)
-    with patch("src.service.ticket_management.service.TicketService.get_ticket_by_protocol") as mock_get:
+    with patch(
+        "src.service.ticket_management.service.TicketService.get_ticket_by_protocol"
+    ) as mock_get:
         mock_get.return_value = TicketResponse(
-            id=1, public_id="pub123", protocol="PROT123", password="PASS12", semester="2024",
-            content="Content", ticket_type=TicketType.infrastructure, author="John", email="test@test.com"
+            id=1,
+            public_id="pub123",
+            protocol="PROT123",
+            password="PASS12",
+            semester="2024",
+            content="Content",
+            ticket_type=TicketType.infrastructure,
+            author="John",
+            email="test@test.com",
         )
-        assert service.get_ticket_by_protocol_and_password("PROT123", "PASS12") is not None
+        assert (
+            service.get_ticket_by_protocol_and_password("PROT123", "PASS12") is not None
+        )
         assert service.get_ticket_by_protocol_and_password("PROT123", "WRONG") is None
 
         mock_get.return_value = None
@@ -87,7 +116,20 @@ def test_list_tickets(mock_engine):
     service = TicketService(mock_engine)
     with patch("src.service.ticket_management.service.run_query") as mock_run_query:
         mock_run_query.return_value = [
-            (1, "pub123", "PROT123", "2024", "Content", "infrastructure", "Test Author", "test@test.com", "pendente", "PASS12", None, None)
+            (
+                1,
+                "pub123",
+                "PROT123",
+                "2024",
+                "Content",
+                "infrastructure",
+                "Test Author",
+                "test@test.com",
+                "pendente",
+                "PASS12",
+                None,
+                None,
+            )
         ]
         tickets = service.list_tickets()
         assert len(tickets) == 1
@@ -99,25 +141,41 @@ def test_list_tickets(mock_engine):
 
 def test_update_ticket(mock_engine):
     service = TicketService(mock_engine)
-    payload = TicketUpdate(content="New content", semester="2025", ticket_type=TicketType.classmates)
-    
-    with patch("src.service.ticket_management.service.TicketService.get_ticket_by_protocol") as mock_get:
+    payload = TicketUpdate(
+        content="New content", semester="2025", ticket_type=TicketType.classmates
+    )
+
+    with patch(
+        "src.service.ticket_management.service.TicketService.get_ticket_by_protocol"
+    ) as mock_get:
         mock_get.return_value = TicketResponse(
-            id=1, public_id="pub123", protocol="PROT123", password="PASS12", semester="2025", 
-            content="New content", ticket_type=TicketType.classmates,
-            author="John", email="john@example.com"
+            id=1,
+            public_id="pub123",
+            protocol="PROT123",
+            password="PASS12",
+            semester="2025",
+            content="New content",
+            ticket_type=TicketType.classmates,
+            author="John",
+            email="john@example.com",
         )
         ticket = service.update_ticket("PROT123", payload)
         assert ticket is not None
         assert ticket.content == "New content"
-        
+
         mock_get.return_value = None
         assert service.update_ticket("UNKNOWN", payload) is None
-        
+
         mock_get.return_value = TicketResponse(
-            id=1, public_id="pub123", protocol="PROT123", password="PASS12", semester="2025", 
-            content="New content", ticket_type=TicketType.classmates,
-            author="John", email="john@example.com"
+            id=1,
+            public_id="pub123",
+            protocol="PROT123",
+            password="PASS12",
+            semester="2025",
+            content="New content",
+            ticket_type=TicketType.classmates,
+            author="John",
+            email="john@example.com",
         )
         empty_payload = TicketUpdate(content=None, semester=None, ticket_type=None)
         ticket_no_change = service.update_ticket("PROT123", empty_payload)

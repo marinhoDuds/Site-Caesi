@@ -129,7 +129,7 @@ export async function fetchEquipe() {
     const resMembros = await fetch(`${API_BASE}/informations/type/membros`)
     if (resMembros.ok) {
       const data = await resMembros.json()
-      _membros.value = data.map((d: { id: number; content: string }) => ({ id: d.id, ...JSON.parse(d.content) }))
+      _membros.value = data.map((d: { id: number; content: string }) => ({ ...JSON.parse(d.content), id: d.id }))
     }
 
     const resGestao = await fetch(`${API_BASE}/informations/type/gestao_info`)
@@ -147,7 +147,7 @@ export async function fetchEquipe() {
     const resHist = await fetch(`${API_BASE}/informations/type/gestoes_anteriores`)
     if (resHist.ok) {
       const data = await resHist.json()
-      _historico.value = data.map((d: { id: number; content: string }) => ({ id: d.id, ...JSON.parse(d.content) }))
+      _historico.value = data.map((d: { id: number; content: string }) => ({ ...JSON.parse(d.content), id: d.id }))
     }
 
     const resMissao = await fetch(`${API_BASE}/informations/type/sobre_missao`)
@@ -173,7 +173,7 @@ export async function fetchEquipe() {
     const resSecoes = await fetch(`${API_BASE}/informations/type/sobre_secoes`)
     if (resSecoes.ok) {
       const data = await resSecoes.json()
-      _secoes.value = data.map((d: { id: number; content: string }) => ({ id: d.id, ...JSON.parse(d.content) }))
+      _secoes.value = data.map((d: { id: number; content: string }) => ({ ...JSON.parse(d.content), id: d.id }))
     }
   } catch (error) {
     console.error(error)

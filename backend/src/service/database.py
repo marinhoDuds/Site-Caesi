@@ -1,6 +1,7 @@
 """
 Database utilities and connection management.
 """
+
 import os
 from typing import Any
 
@@ -29,11 +30,11 @@ def run_query(engine: Engine, query: Any) -> Any:
     param_handler = QmarkParameter()
     sql_query = query.get_sql(quote_char="`", parameter=param_handler)
     parameters = param_handler.get_parameters()
-    
+
     named_params = {}
     for index, value in enumerate(parameters):
-        sql_query = sql_query.replace('?', f':p{index}', 1)
-        named_params[f'p{index}'] = value
+        sql_query = sql_query.replace("?", f":p{index}", 1)
+        named_params[f"p{index}"] = value
 
     with engine.connect() as conn:
         result = conn.execute(text(sql_query), named_params)

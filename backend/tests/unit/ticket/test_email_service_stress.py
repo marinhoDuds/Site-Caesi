@@ -32,7 +32,7 @@ def test_global_state_simulation_logs_leak():
     s2 = EmailNotificationService()
 
     s1.send_ticket_created_notification("PROT-1", "user1@caesi.ufcg.edu.br", "User 1")
-    
+
     # Class variable _simulation_logs means s2 sees s1's logs
     assert len(s2.get_logs()) == 1
     assert s2.get_logs()[0]["protocol"] == "PROT-1"
@@ -67,7 +67,7 @@ def test_background_tasks_execution_via_fastapi(monkeypatch):
         "content": "Computador não liga no LCC",
         "ticket_type": "infrastructure",
         "email": "aluno@ufcg.edu.br",
-        "author": "Aluno Teste"
+        "author": "Aluno Teste",
     }
     resp = client.post("/tickets/", json=payload)
     assert resp.status_code == 201
@@ -88,7 +88,9 @@ def test_smtp_mode_stub_behavior(monkeypatch):
     assert service.mode == "smtp"
 
     # In smtp mode without active server, _dispatch_email fails gracefully returning False after logging
-    res = service.send_ticket_created_notification("PROT-999", "admin@caesi.ufcg.edu.br", "Admin")
+    res = service.send_ticket_created_notification(
+        "PROT-999", "admin@caesi.ufcg.edu.br", "Admin"
+    )
     assert res is False
     logs = service.get_logs()
     assert len(logs) == 1
@@ -97,6 +99,7 @@ def test_smtp_mode_stub_behavior(monkeypatch):
 
 def test_smtp_mode_successful_dispatch(monkeypatch):
     from unittest.mock import patch, MagicMock
+
     monkeypatch.setenv("EMAIL_MODE", "smtp")
     monkeypatch.setenv("SMTP_HOST", "smtp.test.com")
     monkeypatch.setenv("SMTP_PORT", "587")
@@ -107,7 +110,9 @@ def test_smtp_mode_successful_dispatch(monkeypatch):
     mock_smtp_inst = MagicMock()
     with patch("smtplib.SMTP", return_value=mock_smtp_inst) as mock_smtp_class:
         service = EmailNotificationService()
-        res = service.send_ticket_created_notification("PROT-777", "recipient@caesi.ufcg.edu.br", "User")
+        res = service.send_ticket_created_notification(
+            "PROT-777", "recipient@caesi.ufcg.edu.br", "User"
+        )
         assert res is True
         mock_smtp_class.assert_called_once_with("smtp.test.com", 587, timeout=10)
         mock_smtp_inst.starttls.assert_called_once()
@@ -118,6 +123,7 @@ def test_smtp_mode_successful_dispatch(monkeypatch):
 
 def test_smtp_ssl_mode_successful_dispatch(monkeypatch):
     from unittest.mock import patch, MagicMock
+
     monkeypatch.setenv("EMAIL_MODE", "smtp")
     monkeypatch.setenv("SMTP_HOST", "smtp.ssl.test.com")
     monkeypatch.setenv("SMTP_PORT", "465")
@@ -128,10 +134,15 @@ def test_smtp_ssl_mode_successful_dispatch(monkeypatch):
     mock_ssl_inst = MagicMock()
     with patch("smtplib.SMTP_SSL", return_value=mock_ssl_inst) as mock_ssl_class:
         service = EmailNotificationService()
-        res = service.send_ticket_status_notification("PROT-888", "recipient@caesi.ufcg.edu.br", "pendente", "atendida", "Resolvido")
+        res = service.send_ticket_status_notification(
+            "PROT-888",
+            "recipient@caesi.ufcg.edu.br",
+            "pendente",
+            "atendida",
+            "Resolvido",
+        )
         assert res is True
         mock_ssl_class.assert_called_once_with("smtp.ssl.test.com", 465, timeout=10)
         mock_ssl_inst.login.assert_called_once_with("ssluser@test.com", "sslsecret")
         mock_ssl_inst.send_message.assert_called_once()
         mock_ssl_inst.quit.assert_called_once()
-

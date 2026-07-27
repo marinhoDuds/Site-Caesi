@@ -37,7 +37,6 @@ class TicketAdminUpdate(TicketUpdate):
     admin_notes: Optional[str] = None
 
 
-
 class TicketResponse(TicketBase):
     id: int
     public_id: str
@@ -48,4 +47,3 @@ class TicketResponse(TicketBase):
     updated_at: Optional[date] = None
 
     model_config = ConfigDict(from_attributes=True)
-

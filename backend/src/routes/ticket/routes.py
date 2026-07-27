@@ -25,7 +25,9 @@ MAX_TICKETS_PER_WINDOW = 5
 def check_rate_limit(request: Request):
     client_ip = request.client.host if request.client else "unknown"
     now = time.time()
-    timestamps = [t for t in _TICKET_SUBMISSIONS.get(client_ip, []) if now - t < RATE_LIMIT_WINDOW]
+    timestamps = [
+        t for t in _TICKET_SUBMISSIONS.get(client_ip, []) if now - t < RATE_LIMIT_WINDOW
+    ]
     if len(timestamps) >= MAX_TICKETS_PER_WINDOW:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -74,7 +76,8 @@ def get_ticket_by_protocol(
 
     if not ticket:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Ticket não encontrado ou credenciais inválidas"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket não encontrado ou credenciais inválidas",
         )
     return ticket
 
@@ -146,11 +149,17 @@ def update_ticket_admin(
     modified = False
     if payload.status is not None and payload.status != old_ticket.status:
         modified = True
-    if payload.admin_notes is not None and payload.admin_notes != old_ticket.admin_notes:
+    if (
+        payload.admin_notes is not None
+        and payload.admin_notes != old_ticket.admin_notes
+    ):
         modified = True
     if payload.content is not None and payload.content != old_ticket.content:
         modified = True
-    if payload.ticket_type is not None and payload.ticket_type != old_ticket.ticket_type:
+    if (
+        payload.ticket_type is not None
+        and payload.ticket_type != old_ticket.ticket_type
+    ):
         modified = True
     if payload.semester is not None and payload.semester != old_ticket.semester:
         modified = True
@@ -178,6 +187,7 @@ def update_ticket_admin(
             payload.admin_notes,
         )
     return updated_ticket
+
 
 @admin_router.delete("/{protocol}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_ticket_admin(

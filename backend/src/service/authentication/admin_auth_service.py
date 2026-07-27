@@ -43,7 +43,9 @@ class AdminAuthService:
             count = conn.execute(text("SELECT COUNT(*) FROM administrator")).scalar()
             if count == 0:
                 conn.execute(
-                    text("INSERT INTO attachment_owner (owner_type) VALUES ('administrator')")
+                    text(
+                        "INSERT INTO attachment_owner (owner_type) VALUES ('administrator')"
+                    )
                 )
                 owner_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
                 hashed = hash_password(ADMIN_PASSWORD)
@@ -52,7 +54,12 @@ class AdminAuthService:
                         "INSERT INTO administrator (id, name, email, password) "
                         "VALUES (:id, :name, :email, :pwd)"
                     ),
-                    {"id": owner_id, "name": "Admin CAESI", "email": ADMIN_EMAIL, "pwd": hashed},
+                    {
+                        "id": owner_id,
+                        "name": "Admin CAESI",
+                        "email": ADMIN_EMAIL,
+                        "pwd": hashed,
+                    },
                 )
                 conn.commit()
 

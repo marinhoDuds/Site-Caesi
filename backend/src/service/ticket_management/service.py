@@ -15,6 +15,7 @@ from src.routes.ticket.schemas import (
 ticket_table = Table("ticket")
 attachment_owner_table = Table("attachment_owner")
 
+
 class TicketService:
     """Service layer for managing tickets (Ouvidoria)."""
 
@@ -25,7 +26,7 @@ class TicketService:
         """Generate a random 10-character alphanumeric protocol."""
         chars = string.ascii_uppercase + string.digits
         return "".join(random.choices(chars, k=10))
-        
+
     def _generate_public_id(self) -> str:
         """Generate a random 16-character alphanumeric public ID."""
         chars = string.ascii_letters + string.digits
@@ -165,22 +166,19 @@ class TicketService:
         self, ticket_type: Optional[TicketType] = None
     ) -> List[TicketResponse]:
         """List all tickets, optionally filtering by ticket_type."""
-        query = (
-            Query.from_(ticket_table)
-            .select(
-                "id",
-                "public_id",
-                "protocol",
-                "semester",
-                "content",
-                "ticket_type",
-                "author",
-                "email",
-                "status",
-                "password",
-                "admin_notes",
-                "updated_at",
-            )
+        query = Query.from_(ticket_table).select(
+            "id",
+            "public_id",
+            "protocol",
+            "semester",
+            "content",
+            "ticket_type",
+            "author",
+            "email",
+            "status",
+            "password",
+            "admin_notes",
+            "updated_at",
         )
         if ticket_type:
             query = query.where(ticket_table.ticket_type == ticket_type.value)
@@ -215,12 +213,12 @@ class TicketService:
             return ticket
 
         updates["updated_at"] = date.today()
-            
+
         with self.engine.connect() as conn:
             set_clause = ", ".join([f"{k} = :{k}" for k in updates.keys()])
             sql = f"UPDATE ticket SET {set_clause} WHERE protocol = :protocol"
             params = {**updates, "protocol": protocol}
-            
+
             conn.execute(text(sql), params)
             conn.commit()
 
@@ -234,7 +232,9 @@ class TicketService:
 
         with self.engine.connect() as conn:
             conn.execute(text("DELETE FROM ticket WHERE id = :id"), {"id": ticket.id})
-            conn.execute(text("DELETE FROM attachment_owner WHERE id = :id"), {"id": ticket.id})
+            conn.execute(
+                text("DELETE FROM attachment_owner WHERE id = :id"), {"id": ticket.id}
+            )
             conn.commit()
-            
+
         return True

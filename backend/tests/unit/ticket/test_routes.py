@@ -12,16 +12,20 @@ app.include_router(admin_router)
 
 mock_service = MagicMock()
 
+
 def override_get_ticket_service():
     return mock_service
 
+
 def override_get_current_admin():
     return {"id": 1}
+
 
 app.dependency_overrides[get_ticket_service] = override_get_ticket_service
 app.dependency_overrides[get_current_admin] = override_get_current_admin
 
 client = TestClient(app)
+
 
 def _make_ticket(
     op_id=1,
@@ -35,7 +39,7 @@ def _make_ticket(
     email="test@test.com",
     status="pendente",
     admin_notes=None,
-    updated_at=None
+    updated_at=None,
 ) -> TicketResponse:
     return TicketResponse(
         id=op_id,
@@ -49,16 +53,18 @@ def _make_ticket(
         email=email,
         status=status,
         admin_notes=admin_notes,
-        updated_at=updated_at
+        updated_at=updated_at,
     )
 
 
 def test_get_ticket_service_dependency():
     from unittest.mock import patch
+
     with patch("src.routes.ticket.routes.create_engine") as mock_engine:
         service = get_ticket_service()
         assert service is not None
         mock_engine.assert_called_once()
+
 
 def test_create_ticket_route():
     mock_service.create_ticket.return_value = _make_ticket()
@@ -70,12 +76,13 @@ def test_create_ticket_route():
             "content": "Test",
             "ticket_type": "infrastructure",
             "author": "John",
-            "email": "test@test.com"
-        }
+            "email": "test@test.com",
+        },
     )
 
     assert response.status_code == 201
     assert response.json()["protocol"] == "PROT123"
+
 
 def test_get_ticket_route():
     mock_service.get_ticket_by_protocol_and_password.return_value = _make_ticket()
@@ -85,6 +92,7 @@ def test_get_ticket_route():
     assert response.status_code == 200
     assert response.json()["protocol"] == "PROT123"
 
+
 def test_get_ticket_not_found():
     mock_service.get_ticket_by_protocol_and_password.return_value = None
 
@@ -92,24 +100,20 @@ def test_get_ticket_not_found():
 
     assert response.status_code == 404
 
+
 def test_update_ticket_route():
     mock_service.update_ticket.return_value = _make_ticket(content="Updated")
 
-    response = client.patch(
-        "/tickets/PROT123",
-        json={"content": "Updated"}
-    )
+    response = client.patch("/tickets/PROT123", json={"content": "Updated"})
 
     assert response.status_code == 200
     assert response.json()["content"] == "Updated"
 
+
 def test_update_ticket_not_found():
     mock_service.update_ticket.return_value = None
 
-    response = client.patch(
-        "/tickets/UNKNOWN",
-        json={"content": "Updated"}
-    )
+    response = client.patch("/tickets/UNKNOWN", json={"content": "Updated"})
 
     assert response.status_code == 404
 
@@ -122,6 +126,7 @@ def test_admin_list_tickets():
     assert response.status_code == 200
     assert len(response.json()) == 1
 
+
 def test_admin_list_tickets_with_filter():
     mock_service.list_tickets.return_value = [_make_ticket()]
 
@@ -130,11 +135,13 @@ def test_admin_list_tickets_with_filter():
     assert response.status_code == 200
     mock_service.list_tickets.assert_called_with(TicketType.infrastructure)
 
+
 def test_admin_get_ticket():
     mock_service.get_ticket_by_protocol.return_value = _make_ticket()
 
     response = client.get("/admin/tickets/PROT123")
     assert response.status_code == 200
+
 
 def test_admin_get_ticket_not_found():
     mock_service.get_ticket_by_protocol.return_value = None
@@ -142,35 +149,35 @@ def test_admin_get_ticket_not_found():
     response = client.get("/admin/tickets/UNKNOWN")
     assert response.status_code == 404
 
+
 def test_admin_update_ticket():
     mock_service.get_ticket_by_protocol.return_value = _make_ticket()
     mock_service.update_ticket.return_value = _make_ticket(content="Updated by admin")
 
     response = client.patch(
-        "/admin/tickets/PROT123",
-        json={"content": "Updated by admin"}
+        "/admin/tickets/PROT123", json={"content": "Updated by admin"}
     )
     assert response.status_code == 200
+
 
 def test_admin_update_ticket_not_found():
     mock_service.get_ticket_by_protocol.return_value = None
     mock_service.update_ticket.return_value = None
 
     response = client.patch(
-        "/admin/tickets/UNKNOWN",
-        json={"content": "Updated by admin"}
+        "/admin/tickets/UNKNOWN", json={"content": "Updated by admin"}
     )
     assert response.status_code == 404
 
+
 def test_ticket_email_notification_simulation():
     from src.service.notification.email_service import EmailNotificationService
+
     EmailNotificationService.clear_logs()
 
     # 1. Create ticket
     mock_service.create_ticket.return_value = _make_ticket(
-        protocol="NOTIF123",
-        email="aluno@ufcg.edu.br",
-        author="Maria"
+        protocol="NOTIF123", email="aluno@ufcg.edu.br", author="Maria"
     )
 
     resp_create = client.post(
@@ -180,8 +187,8 @@ def test_ticket_email_notification_simulation():
             "content": "Problema no laboratório",
             "ticket_type": "infrastructure",
             "author": "Maria",
-            "email": "aluno@ufcg.edu.br"
-        }
+            "email": "aluno@ufcg.edu.br",
+        },
     )
     assert resp_create.status_code == 201
 
@@ -192,20 +199,18 @@ def test_ticket_email_notification_simulation():
 
     # 2. Update status as Admin
     mock_service.get_ticket_by_protocol.return_value = _make_ticket(
-        protocol="NOTIF123",
-        email="aluno@ufcg.edu.br",
-        status="pendente"
+        protocol="NOTIF123", email="aluno@ufcg.edu.br", status="pendente"
     )
     mock_service.update_ticket.return_value = _make_ticket(
         protocol="NOTIF123",
         email="aluno@ufcg.edu.br",
         status="atendida",
-        admin_notes="Equipamento substituído."
+        admin_notes="Equipamento substituído.",
     )
 
     resp_update = client.patch(
         "/admin/tickets/NOTIF123",
-        json={"status": "atendida", "admin_notes": "Equipamento substituído."}
+        json={"status": "atendida", "admin_notes": "Equipamento substituído."},
     )
     assert resp_update.status_code == 200
 
@@ -218,4 +223,3 @@ def test_ticket_email_notification_simulation():
     resp_logs = client.get("/admin/tickets/notifications/logs")
     assert resp_logs.status_code == 200
     assert len(resp_logs.json()) == 2
-

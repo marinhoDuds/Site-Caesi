@@ -1,6 +1,7 @@
 """
 Service for Event (Calendar) management.
 """
+
 from typing import List, Optional
 from pypika import Query, Table, Order
 from sqlalchemy import Engine
@@ -16,8 +17,10 @@ class EventService:
 
     def list_events(self) -> List[dict]:
         """Return all events ordered by scheduled date."""
-        q = Query.from_(self.table).select("*").orderby(
-            self.table.scheduled_to, order=Order.asc
+        q = (
+            Query.from_(self.table)
+            .select("*")
+            .orderby(self.table.scheduled_to, order=Order.asc)
         )
         result = run_query(self.engine, q)
         return [dict(r._mapping) if hasattr(r, "_mapping") else dict(r) for r in result]
@@ -43,16 +46,29 @@ class EventService:
         category: Optional[str] = "CAESI",
     ) -> dict:
         """Insert a new event and return it."""
-        q = Query.into(self.table).columns(
-            self.table.title,
-            self.table.scheduled_to,
-            self.table.description,
-            self.table.formulario_id,
-            self.table.start_time,
-            self.table.end_time,
-            self.table.location,
-            self.table.category,
-        ).insert(title, scheduled_to, description, formulario_id, start_time, end_time, location, category)
+        q = (
+            Query.into(self.table)
+            .columns(
+                self.table.title,
+                self.table.scheduled_to,
+                self.table.description,
+                self.table.formulario_id,
+                self.table.start_time,
+                self.table.end_time,
+                self.table.location,
+                self.table.category,
+            )
+            .insert(
+                title,
+                scheduled_to,
+                description,
+                formulario_id,
+                start_time,
+                end_time,
+                location,
+                category,
+            )
+        )
         run_query(self.engine, q)
         return self._get_latest_event()
 
@@ -92,9 +108,12 @@ class EventService:
 
     def _get_latest_event(self) -> dict:
         """Return the most recently inserted event."""
-        q = Query.from_(self.table).select("*").orderby(
-            self.table.id, order=Order.desc
-        ).limit(1)
+        q = (
+            Query.from_(self.table)
+            .select("*")
+            .orderby(self.table.id, order=Order.desc)
+            .limit(1)
+        )
         result = run_query(self.engine, q)
         if not result:
             return {}

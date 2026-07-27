@@ -29,7 +29,9 @@ def test_login_success():
     mock_service.check_lockout.return_value = False
     mock_service.login.return_value = ("jwt.access.here", "jwt.refresh.here")
 
-    resp = client.post("/auth/login", json={"email": "caesi@ccc.ufcg.edu.br", "password": "caesi2025"})
+    resp = client.post(
+        "/auth/login", json={"email": "caesi@ccc.ufcg.edu.br", "password": "caesi2025"}
+    )
 
     assert resp.status_code == 200
     body = resp.json()
@@ -42,7 +44,9 @@ def test_login_invalid_credentials():
     mock_service.check_lockout.return_value = False
     mock_service.login.return_value = None
 
-    resp = client.post("/auth/login", json={"email": "wrong@email.com", "password": "wrongpass"})
+    resp = client.post(
+        "/auth/login", json={"email": "wrong@email.com", "password": "wrongpass"}
+    )
 
     assert resp.status_code == 401
     assert resp.json()["detail"] == "Credenciais inválidas."
@@ -51,7 +55,9 @@ def test_login_invalid_credentials():
 def test_login_locked_out():
     mock_service.check_lockout.return_value = True
 
-    resp = client.post("/auth/login", json={"email": "locked@email.com", "password": "pass"})
+    resp = client.post(
+        "/auth/login", json={"email": "locked@email.com", "password": "pass"}
+    )
 
     assert resp.status_code == 429
     assert "bloqueada" in resp.json()["detail"]
@@ -59,6 +65,7 @@ def test_login_locked_out():
 
 def test_refresh_token_success():
     from src.service.authentication.auth import create_refresh_token
+
     token = create_refresh_token({"sub": "1"})
 
     resp = client.post("/auth/refresh", json={"refresh_token": token})

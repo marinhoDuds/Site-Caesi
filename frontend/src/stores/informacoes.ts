@@ -97,7 +97,7 @@ export async function fetchEditais() {
     const data: Array<{ id: number; content: string }> = await res.json()
     _editais.value = data.map((d) => {
       const parsed = JSON.parse(d.content)
-      return { id: d.id, ...parsed }
+      return { ...parsed, id: d.id }
     })
   } catch (error) {
     console.error(error)
@@ -157,7 +157,7 @@ export async function fetchProfessores() {
     const data: Array<{ id: number; content: string }> = await res.json()
     _professores.value = data.map((d) => {
       const parsed = JSON.parse(d.content)
-      return { id: d.id, ...parsed }
+      return { ...parsed, id: d.id }
     })
   } catch (error) {
     console.error(error)
@@ -217,7 +217,7 @@ export async function fetchLaboratorios() {
     const data: Array<{ id: number; content: string }> = await res.json()
     _laboratorios.value = data.map((d) => {
       const parsed = JSON.parse(d.content)
-      return { id: d.id, ...parsed }
+      return { ...parsed, id: d.id }
     })
   } catch (error) {
     console.error(error)

@@ -1,6 +1,7 @@
 """
 Email Notification Service for sending and simulating ticket notifications.
 """
+
 import logging
 import os
 import smtplib
@@ -29,7 +30,11 @@ class EmailNotificationService:
         )
 
     def send_ticket_created_notification(
-        self, protocol: str, email: Optional[str], author: Optional[str], password: Optional[str] = None
+        self,
+        protocol: str,
+        email: Optional[str],
+        author: Optional[str],
+        password: Optional[str] = None,
     ) -> bool:
         """Send notification when a ticket is created."""
         if not email:
@@ -57,12 +62,12 @@ class EmailNotificationService:
         if not email:
             return False
         subject = f"[CAESI] Atualização do Ticket #{protocol}"
-        body = (
-            f"Seu ticket #{protocol} teve o status alterado de '{old_status}' para '{new_status}'.\n"
-        )
+        body = f"Seu ticket #{protocol} teve o status alterado de '{old_status}' para '{new_status}'.\n"
         if admin_notes:
             body += f"\nNota da Gestão:\n{admin_notes}\n"
-        return self._dispatch_email(email, subject, body, protocol, "ticket_status_updated")
+        return self._dispatch_email(
+            email, subject, body, protocol, "ticket_status_updated"
+        )
 
     def _dispatch_email(
         self, recipient: str, subject: str, body: str, protocol: str, event_type: str
@@ -88,7 +93,9 @@ class EmailNotificationService:
                 msg.attach(MIMEText(body, "plain", "utf-8"))
 
                 if self.smtp_port == 465 and not self.smtp_tls:
-                    server = smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, timeout=10)
+                    server = smtplib.SMTP_SSL(
+                        self.smtp_host, self.smtp_port, timeout=10
+                    )
                 else:
                     server = smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=10)
                     if self.smtp_tls:
@@ -118,4 +125,3 @@ class EmailNotificationService:
     def clear_logs(cls) -> None:
         """Clear simulation logs."""
         cls._simulation_logs.clear()
-

@@ -1,6 +1,7 @@
 """
 Service for managing generic information records (announcements, labs, professors, etc.).
 """
+
 from typing import List, Optional
 
 from pypika import Order, Query, Table
@@ -50,14 +51,10 @@ class InformationService:
         """
         owner_id = self._insert_attachment_owner()
         table = Table("information")
-        q = Query.into(table).columns(
-            table.id,
-            table.information_type,
-            table.content
-        ).insert(
-            owner_id,
-            information_type,
-            content
+        q = (
+            Query.into(table)
+            .columns(table.id, table.information_type, table.content)
+            .insert(owner_id, information_type, content)
         )
 
         run_query(self.engine, q)
@@ -114,11 +111,17 @@ class InformationService:
             List of matching information record dictionaries.
         """
         table = Table("information")
-        q = Query.from_(table).select("*").where(table.information_type == information_type)
+        q = (
+            Query.from_(table)
+            .select("*")
+            .where(table.information_type == information_type)
+        )
         result = run_query(self.engine, q)
         return [dict(r._mapping) if hasattr(r, "_mapping") else dict(r) for r in result]
 
-    def update_information(self, info_id: int, information_type: str, content: str) -> Optional[dict]:
+    def update_information(
+        self, info_id: int, information_type: str, content: str
+    ) -> Optional[dict]:
         """Update an existing information entry by ID.
 
         Parameters
@@ -136,11 +139,12 @@ class InformationService:
             Updated information record dictionary, or None if record does not exist.
         """
         table = Table("information")
-        q = Query.update(table).set(
-            table.information_type, information_type
-        ).set(
-            table.content, content
-        ).where(table.id == info_id)
+        q = (
+            Query.update(table)
+            .set(table.information_type, information_type)
+            .set(table.content, content)
+            .where(table.id == info_id)
+        )
         run_query(self.engine, q)
         return self.get_information_by_id(info_id)
 
@@ -163,9 +167,7 @@ class InformationService:
         run_query(self.engine, q)
         with self.engine.connect() as conn:
             conn.execute(
-                text("DELETE FROM attachment_owner WHERE id = :id"),
-                {"id": info_id}
+                text("DELETE FROM attachment_owner WHERE id = :id"), {"id": info_id}
             )
             conn.commit()
         return True
-

@@ -15,17 +15,27 @@ def test_hashtag_parsing_case_and_variations(mock_journal_service):
     ig_service = InstagramService(mock_journal_service)
 
     # Uppercase hashtags
-    assert ig_service._infer_post_type("Confira o #EVENTO semat") == PostType.evento.value
+    assert (
+        ig_service._infer_post_type("Confira o #EVENTO semat") == PostType.evento.value
+    )
     assert ig_service._infer_post_type("Nova #VAGA de estágio") == PostType.vaga.value
-    assert ig_service._infer_post_type("Ótima #OPORTUNIDADE de pesquisa") == PostType.oportunidade.value
+    assert (
+        ig_service._infer_post_type("Ótima #OPORTUNIDADE de pesquisa")
+        == PostType.oportunidade.value
+    )
 
     # Multiple hashtags (evaluates #evento first, then #vaga, then #oportunidade)
-    assert ig_service._infer_post_type("Post com #vaga e #evento") == PostType.evento.value
+    assert (
+        ig_service._infer_post_type("Post com #vaga e #evento") == PostType.evento.value
+    )
 
     # Substrings or plural hashtags (#vagas, #oportunidades)
     # Note: "#vagas" contains "#vaga" so it matches vaga. "#oportunidades" contains "#oportunidade" so it matches oportunidade.
     assert ig_service._infer_post_type("Temos #vagas abertas") == PostType.vaga.value
-    assert ig_service._infer_post_type("Muitas #oportunidades de TCC") == PostType.oportunidade.value
+    assert (
+        ig_service._infer_post_type("Muitas #oportunidades de TCC")
+        == PostType.oportunidade.value
+    )
 
     # Accented or non-ASCII characters in hashtag
     # "#oportunidâde" does NOT match "#oportunidade" exact string
@@ -43,7 +53,9 @@ def test_extract_title_corner_cases(mock_journal_service):
 
     # First line with emoji and hashtag
     caption_emoji = "🚀 Inscreva-se no #evento de Computação!\nLink na bio."
-    assert ig_service._extract_title(caption_emoji) == "🚀 Inscreva-se no  de Computação!"
+    assert (
+        ig_service._extract_title(caption_emoji) == "🚀 Inscreva-se no  de Computação!"
+    )
 
     # Very long title > 255 chars
     long_title_caption = ("A" * 300) + "\nSegunda linha"
@@ -60,13 +72,19 @@ def test_deduplication_whitespace_and_same_batch(mock_journal_service):
     mock_journal_service.list_posts.return_value = [existing_post]
 
     # Mock fetch returns post with trailing whitespace
-    ig_service.fetch_instagram_posts = MagicMock(return_value=[
-        {"id": "1", "caption": "Legenda idêntica \n"},
-        {"id": "2", "caption": "Legenda idêntica \n"},
-    ])
+    ig_service.fetch_instagram_posts = MagicMock(
+        return_value=[
+            {"id": "1", "caption": "Legenda idêntica \n"},
+            {"id": "2", "caption": "Legenda idêntica \n"},
+        ]
+    )
 
     mock_journal_service.create_post.side_effect = lambda p: PostResponse(
-        id=10, title=p.title, post_type=p.post_type, caption=p.caption, created_at=date.today()
+        id=10,
+        title=p.title,
+        post_type=p.post_type,
+        caption=p.caption,
+        created_at=date.today(),
     )
 
     res = ig_service.sync_posts()

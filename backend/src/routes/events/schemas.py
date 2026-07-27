@@ -5,18 +5,24 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 class EventBase(BaseModel):
     title: str = Field(..., description="Event title")
-    scheduled_to: Union[date, str] = Field(..., description="Date the event is scheduled for (YYYY-MM-DD)")
+    scheduled_to: Union[date, str] = Field(
+        ..., description="Date the event is scheduled for (YYYY-MM-DD)"
+    )
     start_time: Optional[str] = Field(None, description="Start time (HH:MM)")
     end_time: Optional[str] = Field(None, description="End time (HH:MM)")
     location: Optional[str] = Field(None, description="Event location")
-    category: Optional[str] = Field("CAESI", description="Event category: CAESI or Acadêmico")
+    category: Optional[str] = Field(
+        "CAESI", description="Event category: CAESI or Acadêmico"
+    )
     description: Optional[str] = Field("", description="Short description of the event")
     formulario_id: Optional[int] = Field(None, description="Linked form ID")
 
     @model_validator(mode="after")
     def validate_time_range(self) -> "EventBase":
         if self.start_time and self.end_time and self.start_time > self.end_time:
-            raise ValueError("Data/hora inicial não pode ser posterior à data/hora final")
+            raise ValueError(
+                "Data/hora inicial não pode ser posterior à data/hora final"
+            )
         return self
 
 

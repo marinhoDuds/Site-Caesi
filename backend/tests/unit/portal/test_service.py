@@ -103,7 +103,6 @@ def test_update_operation_append_only_inherits_attachment(portal_service, mock_e
     mock_conn.execute.return_value.scalar.return_value = 3
     mock_engine.connect.return_value = mock_conn
 
-    
     with patch("src.service.portal_management.service.run_query") as mock_run:
         mock_run.return_value = [(1,)]
 

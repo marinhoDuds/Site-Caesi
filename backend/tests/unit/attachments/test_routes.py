@@ -13,11 +13,14 @@ app.include_router(admin_router)
 
 mock_service = MagicMock()
 
+
 def override_service():
     return mock_service
 
+
 def override_admin():
     return {"id": "1"}
+
 
 app.dependency_overrides[get_attachment_service] = override_service
 app.dependency_overrides[get_current_admin] = override_admin
@@ -26,10 +29,12 @@ client = TestClient(app)
 
 
 def test_upload_attachment_with_owner():
-    mock_service.upload.return_value = Attachment(1, 10, "key", "test.txt", "text/plain")
+    mock_service.upload.return_value = Attachment(
+        1, 10, "key", "test.txt", "text/plain"
+    )
     res = client.post(
         "/admin/attachments/10",
-        files={"attachment": ("test.txt", b"hello world", "text/plain")}
+        files={"attachment": ("test.txt", b"hello world", "text/plain")},
     )
     assert res.status_code == 201
     assert res.json()["id"] == 1
@@ -37,10 +42,12 @@ def test_upload_attachment_with_owner():
 
 def test_upload_attachment_generic():
     mock_service.create_owner.return_value = 20
-    mock_service.upload.return_value = Attachment(2, 20, "key2", "test.txt", "text/plain")
+    mock_service.upload.return_value = Attachment(
+        2, 20, "key2", "test.txt", "text/plain"
+    )
     res = client.post(
         "/admin/attachments/upload",
-        files={"attachment": ("test.txt", b"hello world", "text/plain")}
+        files={"attachment": ("test.txt", b"hello world", "text/plain")},
     )
     assert res.status_code == 201
     assert res.json()["id"] == 2
