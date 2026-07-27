@@ -1,15 +1,13 @@
+import logging
 import os
+from pathlib import Path
 from typing import BinaryIO, Optional
 
 import boto3
 from botocore.exceptions import ClientError
 from mypy_boto3_s3 import S3Client
-import logging
 
 logger = logging.getLogger(__name__)
-
-
-from pathlib import Path
 
 UPLOAD_DIR = Path("uploads")
 

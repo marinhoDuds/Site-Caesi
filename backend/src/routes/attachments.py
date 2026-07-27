@@ -1,5 +1,4 @@
-"""HTTP endpoints for private S3 attachments."""
-from typing import Annotated
+from io import BytesIO
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
@@ -42,8 +41,6 @@ async def upload_attachment_generic(
 
     owner_id = service.create_owner("information")
 
-    from io import BytesIO
-
     stored = service.upload(
         owner_id,
         BytesIO(contents),
@@ -65,8 +62,6 @@ async def upload_attachment(
     contents = await attachment.read(MAX_FILE_SIZE + 1)
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(status_code=413, detail="Attachments are limited to 10 MB")
-
-    from io import BytesIO
 
     stored = service.upload(
         owner_id,
