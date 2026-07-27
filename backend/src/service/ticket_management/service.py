@@ -38,18 +38,20 @@ class TicketService:
 
     def _map_row_to_response(self, row: Any) -> TicketResponse:
         """Map a raw database tuple to a TicketResponse schema."""
-        op_id = row[0]
-        public_id = row[1]
-        protocol = row[2]
-        semester = row[3]
-        content = row[4]
-        ticket_type = row[5]
-        author = row[6]
-        email = row[7]
-        status_val = row[8] if len(row) > 8 and row[8] is not None else "pendente"
-        pwd = row[9] if len(row) > 9 else None
-        admin_notes = row[10] if len(row) > 10 else None
-        updated_at = row[11] if len(row) > 11 else None
+        (
+            op_id,
+            public_id,
+            protocol,
+            semester,
+            content,
+            ticket_type,
+            author,
+            email,
+            status_val,
+            pwd,
+            admin_notes,
+            updated_at,
+        ) = row
 
         return TicketResponse(
             id=op_id,
@@ -61,7 +63,7 @@ class TicketService:
             ticket_type=ticket_type,
             author=author,
             email=email,
-            status=status_val,
+            status=status_val if status_val is not None else "pendente",
             admin_notes=admin_notes,
             updated_at=updated_at,
         )
