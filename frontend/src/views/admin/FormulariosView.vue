@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import Navbar from '../../components/Navbar.vue'
 import BackLink from '../../components/BackLink.vue'
 import EmptyState from '../../components/EmptyState.vue'
-import { formularios, inscricoes, addFormulario, type TipoFormulario, type TipoCampo } from '../../stores/formularios.ts'
+import { formularios, fetchFormularios, inscricoes, addFormulario, type TipoFormulario, type TipoCampo } from '../../stores/formularios.ts'
 import { usePersistedFilter } from '../../composables/usePersistedFilter.ts'
 import { showToast } from '../../stores/toast.ts'
 import { isTodayOrFuture } from '../../utils/validation.ts'
+
+onMounted(async () => {
+  await fetchFormularios()
+})
 
 const filtro = usePersistedFilter('caesi-admin-forms-filtro', 'todos')
 const busca  = usePersistedFilter('caesi-admin-forms-busca', '')

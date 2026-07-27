@@ -1,11 +1,14 @@
-"""
-Authentication routes for administrator login and password management.
-"""
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from src.service.authentication.admin_auth_service import AdminAuthService
-from src.service.authentication.auth import get_current_admin
+from src.service.authentication.auth import (
+    create_access_token,
+    create_refresh_token,
+    get_current_admin,
+    verify_refresh_token,
+)
 from src.service.database import create_engine
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -17,53 +20,58 @@ def get_admin_auth_service() -> AdminAuthService:
 
 
 class LoginRequest(BaseModel):
-    """Payload for the login endpoint."""
-
     email: str
     password: str
 
 
-class TokenResponse(BaseModel):
-    """Response schema containing the access token."""
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
+
+class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: Optional[str] = None
     token_type: str = "bearer"
 
 
 class ChangePasswordRequest(BaseModel):
-    """Payload for the change-password endpoint."""
-
     new_password: str
 
 
 @router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
 def login(payload: LoginRequest, service: AdminAuthService = Depends(get_admin_auth_service)):
-    """Authenticate an administrator and return a JWT access token.
+    """Authenticate an administrator and return access + refresh tokens."""
+    clean_email = payload.email.strip().lower()
+    if service.check_lockout(clean_email):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas tentativas de login falhas. Conta temporariamente bloqueada.",
+        )
 
-    Parameters
-    ----------
-    payload : LoginRequest
-        The e-mail and password supplied by the administrator.
-    service : AdminAuthService
-        Injected authentication service.
-
-    Returns
-    -------
-    TokenResponse
-        A bearer JWT token valid for 24 hours.
-
-    Raises
-    ------
-    HTTPException
-        HTTP 401 if the credentials are invalid.
-    """
-    token = service.login(payload.email, payload.password)
-    if token is None:
+    tokens = service.login(clean_email, payload.password)
+    if tokens is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="E-mail ou senha inválidos.",
+            detail="Credenciais inválidas.",
         )
-    return TokenResponse(access_token=token)
+
+    access_token, refresh_token = tokens
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+
+
+@router.post("/refresh", response_model=TokenResponse, status_code=status.HTTP_200_OK)
+def refresh_token_route(payload: RefreshRequest):
+    """Generate a new access token using a valid refresh token."""
+    decoded = verify_refresh_token(payload.refresh_token)
+    admin_id = decoded.get("sub")
+    if not admin_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciais inválidas.",
+        )
+    new_access = create_access_token({"sub": admin_id})
+    new_refresh = create_refresh_token({"sub": admin_id})
+    return TokenResponse(access_token=new_access, refresh_token=new_refresh)
 
 
 @router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
@@ -72,22 +80,7 @@ def change_password(
     current_admin: dict = Depends(get_current_admin),
     service: AdminAuthService = Depends(get_admin_auth_service),
 ):
-    """Change the password of the currently authenticated administrator.
-
-    Parameters
-    ----------
-    payload : ChangePasswordRequest
-        The new plain-text password.
-    current_admin : dict
-        The authenticated admin dict injected by ``get_current_admin``.
-    service : AdminAuthService
-        Injected authentication service.
-
-    Raises
-    ------
-    HTTPException
-        HTTP 404 if the administrator record is not found.
-    """
+    """Change the password of the currently authenticated administrator."""
     ok = service.change_password(int(current_admin["id"]), payload.new_password)
     if not ok:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin não encontrado.")

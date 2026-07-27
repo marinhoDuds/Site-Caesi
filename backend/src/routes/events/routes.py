@@ -22,7 +22,7 @@ def get_event_service() -> EventService:
 @router.get("/", response_model=List[EventResponse])
 def list_events(
     service: EventService = Depends(get_event_service),
-) -> List[EventResponse]:
+):
     """List all calendar events."""
     return service.list_events()
 
@@ -32,7 +32,7 @@ def create_event(
     payload: EventCreate,
     service: EventService = Depends(get_event_service),
     _admin: dict = Depends(get_current_admin),
-) -> EventResponse:
+):
     """Create a new calendar event (Admin only)."""
     return service.create_event(
         title=payload.title,
@@ -52,7 +52,7 @@ def update_event(
     payload: EventUpdate,
     service: EventService = Depends(get_event_service),
     _admin: dict = Depends(get_current_admin),
-) -> EventResponse:
+):
     """Update an existing calendar event (Admin only)."""
     existing = service.get_event_by_id(event_id)
     if not existing:

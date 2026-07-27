@@ -26,10 +26,7 @@ class InformationService:
                 text("INSERT INTO attachment_owner (owner_type) VALUES (:t)"),
                 {"t": "information"},
             )
-            if self.engine.dialect.name == "sqlite":
-                owner_id = conn.execute(text("SELECT last_insert_rowid()")).scalar()
-            else:
-                owner_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+            owner_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
             conn.commit()
         return int(owner_id or 0)
 
@@ -167,5 +164,4 @@ class InformationService:
             )
             conn.commit()
         return True
-
 

@@ -73,10 +73,7 @@ class TicketService:
                 text("INSERT INTO attachment_owner (owner_type) VALUES (:t)"),
                 {"t": "ticket"},
             )
-            if self.engine.dialect.name == "sqlite":
-                owner_id = conn.execute(text("SELECT last_insert_rowid()")).scalar()
-            else:
-                owner_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+            owner_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
             conn.commit()
         return int(owner_id or 0)
 
@@ -104,7 +101,7 @@ class TicketService:
                     "tt": payload.ticket_type.value,
                     "aut": payload.author,
                     "em": payload.email,
-                    "st": "pendente",
+                    "st": "Aberto",
                 },
             )
             conn.commit()
@@ -119,7 +116,7 @@ class TicketService:
             ticket_type=payload.ticket_type,
             author=payload.author,
             email=payload.email,
-            status="pendente",
+            status="Aberto",
             admin_notes=None,
             updated_at=None,
         )
@@ -226,4 +223,3 @@ class TicketService:
             conn.commit()
 
         return self.get_ticket_by_protocol(protocol)
-

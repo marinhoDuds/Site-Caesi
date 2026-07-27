@@ -1,9 +1,15 @@
+from unittest.mock import MagicMock
+from sqlalchemy import Engine
 import pytest
 from src.service.informations_management.service import InformationService
 
 @pytest.fixture
 def service():
-    return InformationService(engine="mock_engine")
+    engine = MagicMock(spec=Engine)
+    conn = MagicMock()
+    engine.connect.return_value.__enter__.return_value = conn
+    conn.execute.return_value.scalar.return_value = 1
+    return InformationService(engine=engine)
 
 def test_create_and_get_information(service, monkeypatch):
     mock_db = []

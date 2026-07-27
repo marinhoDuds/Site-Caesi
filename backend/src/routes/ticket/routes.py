@@ -1,8 +1,6 @@
-"""
-API routes for Ticket (Ouvidoria) management.
-"""
+import time
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Request, status, BackgroundTasks
 
 from src.service.database import create_engine
 from src.service.ticket_management.service import TicketService
@@ -19,6 +17,23 @@ from src.service.authentication.auth import get_current_admin
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 admin_router = APIRouter(prefix="/admin/tickets", tags=["admin-tickets"])
 
+_TICKET_SUBMISSIONS: dict[str, list[float]] = {}
+RATE_LIMIT_WINDOW = 600  # 10 minutes
+MAX_TICKETS_PER_WINDOW = 5
+
+
+def check_rate_limit(request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    now = time.time()
+    timestamps = [t for t in _TICKET_SUBMISSIONS.get(client_ip, []) if now - t < RATE_LIMIT_WINDOW]
+    if len(timestamps) >= MAX_TICKETS_PER_WINDOW:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Limite de submissões excedido. Por favor, aguarde antes de enviar um novo ticket.",
+        )
+    timestamps.append(now)
+    _TICKET_SUBMISSIONS[client_ip] = timestamps
+
 
 def get_ticket_service() -> TicketService:
     """Dependency injection for the TicketService."""
@@ -29,10 +44,12 @@ def get_ticket_service() -> TicketService:
 @router.post("/", response_model=TicketResponse, status_code=status.HTTP_201_CREATED)
 def create_ticket(
     payload: TicketCreate,
+    request: Request,
     background_tasks: BackgroundTasks,
     service: TicketService = Depends(get_ticket_service),
 ) -> TicketResponse:
     """Create a new ticket and receive its unique protocol."""
+    check_rate_limit(request)
     ticket = service.create_ticket(payload)
     if ticket.email:
         notifier = EmailNotificationService()
@@ -57,7 +74,7 @@ def get_ticket_by_protocol(
 
     if not ticket:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found or invalid credentials"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ticket não encontrado ou credenciais inválidas"
         )
     return ticket
 
@@ -123,6 +140,25 @@ def update_ticket_admin(
     if not old_ticket:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found"
+        )
+
+    # Check if any field is modified
+    modified = False
+    if payload.status is not None and payload.status != old_ticket.status:
+        modified = True
+    if payload.admin_notes is not None and payload.admin_notes != old_ticket.admin_notes:
+        modified = True
+    if payload.content is not None and payload.content != old_ticket.content:
+        modified = True
+    if payload.ticket_type is not None and payload.ticket_type != old_ticket.ticket_type:
+        modified = True
+    if payload.semester is not None and payload.semester != old_ticket.semester:
+        modified = True
+
+    if not modified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nenhuma alteração foi realizada.",
         )
 
     updated_ticket = service.update_ticket(protocol, payload)

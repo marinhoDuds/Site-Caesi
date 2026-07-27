@@ -167,8 +167,11 @@ docker exec -it <container_name_or_id> sh
 docker stop <container_name_or_id>
 docker rm <container_name_or_id>
 
-# Start services from compose file in background
+# Start services from compose file for production deployment
 docker compose up -d
+
+# Start development environment (MySQL + S3 Garage + Backend hot-reload)
+docker compose -f docker-compose.dev.yml up -d
 
 # Stop and remove compose services
 docker compose down

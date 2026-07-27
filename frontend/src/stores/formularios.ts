@@ -70,60 +70,108 @@ export interface Inscricao {
 export type ResultadoInscricao = { inscricao: Inscricao } | { error: string }
 export type ResultadoOperacao = { success: true } | { error: string }
 
-const KEY_FORMS = 'caesi_formularios_v2'
-const KEY_INSCRICOES = 'caesi_inscricoes_v2'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-const _forms = ref<Formulario[]>(JSON.parse(localStorage.getItem(KEY_FORMS) || '[]'))
-const _inscricoes = ref<Inscricao[]>(JSON.parse(localStorage.getItem(KEY_INSCRICOES) || '[]'))
+function getHeaders() {
+  const token = localStorage.getItem('caesi_admin_token')
+  return token ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } : { 'Content-Type': 'application/json' }
+}
+
+const _forms = ref<Formulario[]>([])
+const _inscricoes = ref<Inscricao[]>([])
 
 export const formularios = computed(() => _forms.value)
 export const inscricoes  = computed(() => _inscricoes.value)
 
-function persistForms(data: Formulario[]) {
-  localStorage.setItem(KEY_FORMS, JSON.stringify(data))
-  _forms.value = [...data]
-}
+export async function fetchFormularios() {
+  try {
+    const res = await fetch(`${API_BASE}/informations/type/formularios`)
+    if (res.ok) {
+      const data = await res.json()
+      _forms.value = data.map((d: any) => ({ id: d.id, ...JSON.parse(d.content) }))
+    }
 
-function persistInscricoes(data: Inscricao[]) {
-  localStorage.setItem(KEY_INSCRICOES, JSON.stringify(data))
-  _inscricoes.value = [...data]
+    const resInsc = await fetch(`${API_BASE}/informations/type/inscricoes`)
+    if (resInsc.ok) {
+      const data = await resInsc.json()
+      _inscricoes.value = data.map((d: any) => ({ id: d.id, ...JSON.parse(d.content) }))
+    }
+  } catch (error) {
+    console.error('Erro ao buscar formulários:', error)
+  }
 }
 
 export function getFormulario(id: number): Formulario | null {
   return _forms.value.find(f => f.id === id) ?? null
 }
 
-export function addFormulario(dados: NovoFormulario): Formulario {
+export async function addFormulario(dados: NovoFormulario): Promise<Formulario> {
+  const tempId = Date.now()
   const novo: Formulario = {
     ...dados,
-    id: Date.now(),
+    id: tempId,
     status: 'aberto',
     criadoEm: new Date().toISOString().split('T')[0],
   }
-  persistForms([..._forms.value, novo])
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/informations/`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'formularios', content: JSON.stringify(novo) }),
+    })
+    if (res && res.ok) {
+      const data = await res.json()
+      if (data && data.id) novo.id = data.id
+    }
+  } catch (e) {
+    console.error(e)
+  }
+
+  _forms.value = [..._forms.value, novo]
   upsertEventoFormulario(novo.id, { nome: novo.titulo, data: novo.dataEvento, descricao: novo.descricao })
   return novo
 }
 
-export function updateFormulario(id: number, updates: Partial<Formulario>) {
-  persistForms(_forms.value.map(f => f.id === id ? { ...f, ...updates } : f))
-  const atualizado = _forms.value.find(f => f.id === id)
-  if (atualizado) {
-    upsertEventoFormulario(id, { nome: atualizado.titulo, data: atualizado.dataEvento, descricao: atualizado.descricao })
+export async function updateFormulario(id: number, updates: Partial<Formulario>) {
+  const existing = _forms.value.find(f => f.id === id)
+  if (!existing) return
+  const updated = { ...existing, ...updates }
+  _forms.value = _forms.value.map(f => f.id === id ? updated : f)
+
+  try {
+    await fetch(`${API_BASE}/admin/informations/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'formularios', content: JSON.stringify(updated) }),
+    })
+  } catch (e) {
+    console.error(e)
   }
+
+  upsertEventoFormulario(id, { nome: updated.titulo, data: updated.dataEvento, descricao: updated.descricao })
 }
 
-export function deleteFormulario(id: number) {
-  persistForms(_forms.value.filter(f => f.id !== id))
-  persistInscricoes(_inscricoes.value.filter(i => i.formularioId !== id))
+export async function deleteFormulario(id: number) {
+  _forms.value = _forms.value.filter(f => f.id !== id)
+  _inscricoes.value = _inscricoes.value.filter(i => i.formularioId !== id)
   removeEventoByFormulario(id)
+
+  try {
+    await fetch(`${API_BASE}/admin/informations/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    })
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 export function getInscricoesByFormulario(formularioId: number): Inscricao[] {
   return _inscricoes.value.filter(i => i.formularioId === formularioId)
 }
 
-export function addInscricao(formularioId: number, respostas: Record<string, unknown>, comprovante: NovoComprovante | null = null): ResultadoInscricao {
+export async function addInscricao(formularioId: number, respostas: Record<string, unknown>, comprovante: NovoComprovante | null = null): Promise<ResultadoInscricao> {
   const formulario = _forms.value.find(f => f.id === formularioId)
   if (!formulario)                    return { error: 'Formulário não encontrado.' }
   if (formulario.status !== 'aberto') return { error: 'Este formulário está encerrado.' }
@@ -138,6 +186,7 @@ export function addInscricao(formularioId: number, respostas: Record<string, unk
   if (email && _inscricoes.value.find(i => i.formularioId === formularioId && i.userEmail === email)) {
     return { error: 'Este e-mail já foi utilizado para se inscrever neste formulário.' }
   }
+
   const nova: Inscricao = {
     id: Date.now(),
     formularioId,
@@ -146,56 +195,89 @@ export function addInscricao(formularioId: number, respostas: Record<string, unk
     comprovante: comprovante ? { ...comprovante, status: 'pendente' } : null,
     criadoEm: new Date().toISOString().split('T')[0],
   }
-  persistInscricoes([..._inscricoes.value, nova])
+
+  try {
+    const res = await fetch(`${API_BASE}/informations/public`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ information_type: 'inscricoes', content: JSON.stringify(nova) }),
+    })
+
+    if (res && res.ok) {
+      const data = await res.json()
+      if (data && data.id) nova.id = data.id
+    }
+  } catch (e) {
+    console.error(e)
+  }
+
+  _inscricoes.value = [..._inscricoes.value, nova]
   return { inscricao: nova }
 }
 
-export function emitirCertificados(formularioId: number) {
+export async function emitirCertificados(formularioId: number) {
   const hoje = new Date().toISOString().split('T')[0]
-  persistForms(_forms.value.map(f =>
-    f.id === formularioId
-      ? { ...f, certificadosEmitidos: true, certificadosEmitidosEm: hoje }
-      : f
-  ))
-  persistInscricoes(_inscricoes.value.map(i =>
+  await updateFormulario(formularioId, { certificadosEmitidos: true, certificadosEmitidosEm: hoje })
+  _inscricoes.value = _inscricoes.value.map(i =>
     i.formularioId === formularioId ? { ...i, certificado: { emitidoEm: hoje } } : i
-  ))
+  )
 }
 
-export function updateStatusComprovante(inscricaoId: number, status: StatusComprovante) {
-  persistInscricoes(_inscricoes.value.map(i =>
-    i.id === inscricaoId && i.comprovante
-      ? { ...i, comprovante: { ...i.comprovante, status } }
-      : i
-  ))
+export async function updateStatusComprovante(inscricaoId: number, status: StatusComprovante) {
+  const target = _inscricoes.value.find(i => i.id === inscricaoId)
+  if (!target || !target.comprovante) return
+  _inscricoes.value = _inscricoes.value.map(i =>
+    i.id === inscricaoId && i.comprovante ? { ...i, comprovante: { ...i.comprovante, status } } : i
+  )
+
+  try {
+    await fetch(`${API_BASE}/admin/informations/${inscricaoId}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ information_type: 'inscricoes', content: JSON.stringify(target) }),
+    })
+  } catch (e) {
+    console.error(e)
+  }
 }
 
-export function cancelarInscricaoDireta(inscricaoId: number): ResultadoOperacao {
-  persistInscricoes(_inscricoes.value.filter(i => i.id !== inscricaoId))
+export async function cancelarInscricaoDireta(inscricaoId: number): Promise<ResultadoOperacao> {
+  await fetch(`${API_BASE}/admin/informations/${inscricaoId}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+  })
+  _inscricoes.value = _inscricoes.value.filter(i => i.id !== inscricaoId)
   return { success: true }
 }
 
-export function solicitarCancelamento(inscricaoId: number, motivo = ''): ResultadoOperacao {
+export async function solicitarCancelamento(inscricaoId: number, motivo = ''): Promise<ResultadoOperacao> {
   const inscricao = _inscricoes.value.find(i => i.id === inscricaoId)
   if (!inscricao) return { error: 'Inscrição não encontrada.' }
-  persistInscricoes(_inscricoes.value.map(i =>
-    i.id === inscricaoId
-      ? { ...i, cancelamento: { solicitado: true, motivo, solicitadoEm: new Date().toISOString() } }
-      : i
-  ))
+  inscricao.cancelamento = { solicitado: true, motivo, solicitadoEm: new Date().toISOString() }
+
+  await fetch(`${API_BASE}/informations/public`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ information_type: 'inscricoes', content: JSON.stringify(inscricao) }),
+  })
+
   return { success: true }
 }
 
-export function aprovarCancelamento(inscricaoId: number): ResultadoOperacao {
-  if (!_inscricoes.value.find(i => i.id === inscricaoId)) return { error: 'Inscrição não encontrada.' }
-  persistInscricoes(_inscricoes.value.filter(i => i.id !== inscricaoId))
-  return { success: true }
+export async function aprovarCancelamento(inscricaoId: number): Promise<ResultadoOperacao> {
+  return cancelarInscricaoDireta(inscricaoId)
 }
 
-export function recusarCancelamento(inscricaoId: number): ResultadoOperacao {
-  if (!_inscricoes.value.find(i => i.id === inscricaoId)) return { error: 'Inscrição não encontrada.' }
-  persistInscricoes(_inscricoes.value.map(i =>
-    i.id === inscricaoId ? { ...i, cancelamento: null } : i
-  ))
+export async function recusarCancelamento(inscricaoId: number): Promise<ResultadoOperacao> {
+  const inscricao = _inscricoes.value.find(i => i.id === inscricaoId)
+  if (!inscricao) return { error: 'Inscrição não encontrada.' }
+  inscricao.cancelamento = null
+
+  await fetch(`${API_BASE}/admin/informations/${inscricaoId}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify({ information_type: 'inscricoes', content: JSON.stringify(inscricao) }),
+  })
+
   return { success: true }
 }

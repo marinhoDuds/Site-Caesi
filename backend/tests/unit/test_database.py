@@ -6,7 +6,8 @@ import src.service.database as db_module
 
 
 def test_create_engine_success(monkeypatch):
-    monkeypatch.setenv("SQL_ALCHEMY_CONNECTION", "sqlite:///:memory:")
+    connection_url = "mysql+pymysql://user:password@localhost:3306/site_caesi"
+    monkeypatch.setenv("SQL_ALCHEMY_CONNECTION", connection_url)
 
     with patch("src.service.database.sa_create_engine") as mock_create_engine:
         mock_engine = MagicMock()
@@ -14,12 +15,19 @@ def test_create_engine_success(monkeypatch):
 
         engine = db_module.create_engine()
         assert engine is mock_engine
-        mock_create_engine.assert_called_once_with("sqlite:///:memory:")
+        mock_create_engine.assert_called_once_with(connection_url)
 
 
 def test_create_engine_missing_env(monkeypatch):
     monkeypatch.delenv("SQL_ALCHEMY_CONNECTION", raising=False)
     with pytest.raises(ValueError, match="SQL_ALCHEMY_CONNECTION is not set"):
+        db_module.create_engine()
+
+
+def test_create_engine_rejects_non_mysql_url(monkeypatch):
+    monkeypatch.setenv("SQL_ALCHEMY_CONNECTION", "sqlite:///:memory:")
+
+    with pytest.raises(ValueError, match="must use a MySQL"):
         db_module.create_engine()
 
 

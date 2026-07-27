@@ -112,7 +112,7 @@ async function consultar() {
   const p = protocoloBusca.value.trim()
   campoVazio.value = !p
   if (!p) return
-  
+
   try {
     const url = senhaBusca.value.trim()
       ? `${API_URL}/${p}?password=${encodeURIComponent(senhaBusca.value.trim())}`
@@ -124,7 +124,7 @@ async function consultar() {
     }
     if (!res.ok) throw new Error('Erro na consulta');
     const data = await res.json();
-    
+
     resultado.value = {
       id: data.id,
       protocolo: data.protocol,
@@ -144,7 +144,7 @@ async function consultar() {
 async function enviarComplemento() {
   const texto = complementoTexto.value.trim()
   if (!texto || !resultado.value) return
-  
+
   try {
     const novoConteudo = resultado.value.corpo + '\n\n[Complemento]: ' + texto;
     const res = await fetch(`${API_URL}/${resultado.value.protocolo}`, {
@@ -152,11 +152,11 @@ async function enviarComplemento() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: novoConteudo })
     });
-    
+
     if (!res.ok) throw new Error('Erro ao adicionar complemento');
     const data = await res.json();
     resultado.value.corpo = data.content;
-    
+
     complementoTexto.value = ''
     complementoEnviado.value = true
     setTimeout(() => { complementoEnviado.value = false }, 2500)
@@ -205,7 +205,7 @@ onMounted(() => {
       <div class="ouvidoria-busca" style="flex-wrap:wrap;gap:8px;">
         <input
           v-model="protocoloBusca" type="text"
-          placeholder="Nº de protocolo…"
+          placeholder="Nº de protocolo"
           class="ouvidoria-busca-input"
           style="flex:2;min-width:180px;"
           autocomplete="off" spellcheck="false"
@@ -214,7 +214,7 @@ onMounted(() => {
         >
         <input
           v-model="senhaBusca" type="password"
-          placeholder="Senha de acesso…"
+          placeholder="Senha"
           class="ouvidoria-busca-input"
           style="flex:1;min-width:140px;"
           autocomplete="off"

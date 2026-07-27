@@ -26,7 +26,7 @@ import { markdownParaHtmlSeguro } from '../utils/markdown.ts'
 import { isAdmin } from '../stores/auth.ts'
 import { showToast } from '../stores/toast.ts'
 import { isEmail, isValidImageFile, validarUrlOpcional } from '../utils/validation.ts'
-import { comprimirImagem } from '../utils/imagem.ts'
+import { uploadImagemS3 } from '../utils/imagem.ts'
 import pencilIcon from '../assets/icons/pencil.svg?raw'
 import xIcon from '../assets/icons/x.svg?raw'
 
@@ -126,7 +126,7 @@ function salvarInfo() {
 }
 
 function comprimirImagemPerfil(file: File): Promise<string> {
-  return comprimirImagem(file, 400, 0.75)
+  return uploadImagemS3(file)
 }
 
 interface MembroFormRascunho extends Membro {

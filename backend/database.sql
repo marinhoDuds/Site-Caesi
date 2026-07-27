@@ -10,14 +10,14 @@ CREATE TABLE `ticket` (
     `id` BIGINT,
     `public_id` VARCHAR(16) COLLATE ascii_bin NOT NULL,
     `protocol` VARCHAR(20) NOT NULL,
-    `semester` VARCHAR(4) NOT NULL,
+    `semester` VARCHAR(10) NOT NULL,
     `content` VARCHAR(2200) NOT NULL,
     `ticket_type` ENUM(
         'classmates', 'infrastructure', 'professors', 'schedules', 'student_groups', 'subjects', 'other'
     ) NOT NULL,
     `author` VARCHAR(120),
     `email` VARCHAR(255),
-    `status` VARCHAR(50) DEFAULT 'pendente',
+    `status` VARCHAR(50) DEFAULT 'Aberto',
     `password` VARCHAR(32) DEFAULT NULL,
     `admin_notes` VARCHAR(2200),
     `updated_at` DATE,
@@ -43,10 +43,8 @@ CREATE TABLE `operation` (
 
 CREATE TABLE `information` (
     `id` BIGINT,
-    `content` VARCHAR(2200) NOT NULL,
-    `information_type` ENUM(
-        'announcements', 'laboratories', 'map', 'professors', 'tamburetei'
-    ) NOT NULL,
+    `content` MEDIUMTEXT NOT NULL,
+    `information_type` VARCHAR(100) NOT NULL,
     CONSTRAINT pk_information PRIMARY KEY (id),
     CONSTRAINT fk_information_attachment_owner_id FOREIGN KEY (id) REFERENCES attachment_owner(id)
 );
@@ -81,7 +79,9 @@ CREATE TABLE `administrator` (
 CREATE TABLE `attachment` (
     `id` BIGINT AUTO_INCREMENT,
     `owner_id` BIGINT NOT NULL,
-    `midia_url` VARCHAR(1024) NOT NULL,
+    `object_key` VARCHAR(1024) NOT NULL,
+    `filename` VARCHAR(255) NOT NULL,
+    `content_type` VARCHAR(255) NOT NULL,
     CONSTRAINT pk_attachment PRIMARY KEY (id),
     CONSTRAINT fk_attachment_attachment_owner_id FOREIGN KEY (owner_id) REFERENCES attachment_owner(id)
 );

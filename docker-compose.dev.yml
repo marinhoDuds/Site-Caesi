@@ -1,0 +1,79 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: caesi_mysql_dev
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-site_caesi_db}
+      MYSQL_USER: ${MYSQL_USER:-site_caesi}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-pwd}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpwd}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+      - ./backend/database.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  garage:
+    build:
+      context: ./backend/infra/garage
+      dockerfile: Dockerfile
+    container_name: garage_dev
+    restart: unless-stopped
+    ports:
+      - "3900:3900" # S3 API
+      - "3901:3901" # RPC
+      - "3902:3902" # S3 Web
+      - "3903:3903" # Admin API
+    volumes:
+      - ./backend/infra/garage/garage.toml.template:/etc/garage.toml.template
+      - garage_dev_meta:/meta
+      - garage_dev_data:/data
+    environment:
+      - RPC_SECRET=${RPC_SECRET:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-admin_secret_token_change_in_prod}
+      - METRICS_TOKEN=${METRICS_TOKEN:-metrics_secret_token_change_in_prod}
+      - GARAGE_DEFAULT_ACCESS_KEY=${GARAGE_DEFAULT_ACCESS_KEY:-GK1234567890abcdef1234567890abcd}
+      - GARAGE_DEFAULT_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-secret1234567890abcdef1234567890abcdef1234567890abcdef}
+      - GARAGE_DEFAULT_BUCKET=${GARAGE_DEFAULT_BUCKET:-caesi-attachments}
+      - AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL:-http://garage:3900}
+      - AWS_REGION=${AWS_REGION:-garage}
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 3900 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+    container_name: caesi_backend_dev
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - SQL_ALCHEMY_CONNECTION=${SQL_ALCHEMY_CONNECTION:-mysql+pymysql://site_caesi:change_me@mysql:3306/site_caesi}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-supersecretkey_change_me_in_production}
+      - GARAGE_DEFAULT_ACCESS_KEY=${GARAGE_DEFAULT_ACCESS_KEY:-GK1234567890abcdef1234567890abcd}
+      - GARAGE_DEFAULT_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-secret1234567890abcdef1234567890abcdef1234567890abcdef}
+      - GARAGE_DEFAULT_BUCKET=${GARAGE_DEFAULT_BUCKET:-caesi-attachments}
+      - AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL:-http://garage:3900}
+      - AWS_REGION=${AWS_REGION:-garage}
+    command: sh -c "uv sync && uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      garage:
+        condition: service_started
+
+volumes:
+  garage_dev_meta:
+  garage_dev_data:
+  mysql_dev_data:

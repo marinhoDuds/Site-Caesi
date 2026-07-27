@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import Navbar from '../components/Navbar.vue'
 import SiteFooter from '../components/SiteFooter.vue'
 import BackLink from '../components/BackLink.vue'
-import { formularios, inscricoes, addInscricao } from '../stores/formularios.ts'
+import { formularios, fetchFormularios, inscricoes, addInscricao } from '../stores/formularios.ts'
 import { showToast } from '../stores/toast.ts'
 import { isEmail, isValidImageFile } from '../utils/validation.ts'
 
@@ -12,9 +12,13 @@ const route  = useRoute()
 const router = useRouter()
 
 const id = Number(route.params.id)
-const formulario = computed(() => formularios.value.find(f => f.id === id))
 
-if (!formulario.value) router.replace('/formularios')
+onMounted(async () => {
+  await fetchFormularios()
+  if (!formulario.value) router.replace('/formularios')
+})
+
+const formulario = computed(() => formularios.value.find(f => f.id === id))
 
 const TIPO_LABEL: Record<string, string> = {
   'evento-com-certificado': 'Evento c/ Certificado',

@@ -1,4 +1,24 @@
 services:
+  mysql:
+    image: mysql:8.4
+    container_name: caesi_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-site_caesi_db}
+      MYSQL_USER: ${MYSQL_USER:-site_caesi}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-pwd}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpwd}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/database.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   garage:
     build:
       context: ./backend/infra/garage
@@ -38,7 +58,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - SQL_ALCHEMY_CONNECTION=${SQL_ALCHEMY_CONNECTION:-sqlite:////app/data/database.db}
+      - SQL_ALCHEMY_CONNECTION=${SQL_ALCHEMY_CONNECTION:-mysql+pymysql://site_caesi:change_me@mysql:3306/site_caesi}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-supersecretkey_change_me_in_production}
       - GARAGE_DEFAULT_ACCESS_KEY=${GARAGE_DEFAULT_ACCESS_KEY:-GK1234567890abcdef1234567890abcd}
       - GARAGE_DEFAULT_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-secret1234567890abcdef1234567890abcdef1234567890abcdef}
@@ -46,6 +66,8 @@ services:
       - AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL:-http://garage:3900}
       - AWS_REGION=${AWS_REGION:-garage}
     depends_on:
+      mysql:
+        condition: service_healthy
       garage:
         condition: service_started
     healthcheck:
@@ -53,8 +75,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    volumes:
-      - backend_data:/app/data
 
   frontend:
     build:
@@ -73,4 +93,4 @@ services:
 volumes:
   garage_meta:
   garage_data:
-  backend_data:
+  mysql_data:

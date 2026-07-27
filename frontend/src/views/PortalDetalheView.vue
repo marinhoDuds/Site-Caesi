@@ -50,10 +50,10 @@ function formatData(data: string | null | undefined) {
                 <span class="msg-meta-label">Valor:</span> {{ formatValor(artefato.valor) }}
               </div>
             </div>
-            <div v-if="artefato.anexo" class="portal-anexo-item">
+            <a v-if="artefato.anexo" :href="artefato.anexo.url" target="_blank" rel="noopener" class="portal-anexo-item">
               <span v-html="paperclipIcon" class="portal-anexo-icon"></span>
               <span>{{ artefato.anexo.nome }}</span>
-            </div>
+            </a>
           </template>
         </div>
 

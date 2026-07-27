@@ -51,6 +51,19 @@ def get_informations_by_type(
     return service.get_informations_by_type(info_type)
 
 
+@router.post(
+    "/public",
+    response_model=InformationResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_public_information(
+    info: InformationCreate,
+    service: InformationService = Depends(get_information_service),
+):
+    """Public route to create information entry (e.g., form submissions)."""
+    return service.create_information(info.information_type, info.content)
+
+
 @admin_router.post(
     "/",
     response_model=InformationResponse,

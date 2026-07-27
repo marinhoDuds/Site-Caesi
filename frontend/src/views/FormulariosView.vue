@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import Navbar from '../components/Navbar.vue'
 import SiteFooter from '../components/SiteFooter.vue'
 import BackLink from '../components/BackLink.vue'
 import EmptyState from '../components/EmptyState.vue'
-import { formularios, inscricoes, type Formulario } from '../stores/formularios.ts'
+import { formularios, fetchFormularios, inscricoes, type Formulario } from '../stores/formularios.ts'
 import { usePersistedFilter } from '../composables/usePersistedFilter.ts'
+
+onMounted(async () => {
+  await fetchFormularios()
+})
 
 const filtro = usePersistedFilter('caesi-forms-filtro', 'todos')
 const busca  = usePersistedFilter('caesi-forms-busca', '')

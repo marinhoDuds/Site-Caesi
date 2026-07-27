@@ -10,7 +10,7 @@ from src.routes.journal.schemas import PostCreate, PostUpdate, PostType
 def mock_engine():
     engine = MagicMock(spec=Engine)
     engine.dialect = MagicMock()
-    engine.dialect.name = "sqlite"
+    engine.dialect.name = "mysql"
     conn = MagicMock()
     engine.connect.return_value.__enter__.return_value = conn
     

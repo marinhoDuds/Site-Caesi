@@ -4,6 +4,7 @@ from pypika import Table, Query
 from sqlalchemy import Engine, text
 
 from src.service.database import run_query
+from src.service.attachment_service import AttachmentService
 from src.service.s3 import upload_fileobj_to_s3
 from src.routes.portal.schemas import (
     OperationCreate,
@@ -47,14 +48,14 @@ class PortalService:
         ----------
         row : Any
             The database row — a tuple of
-            (id, created_at, value, description, operation_type, previous, attachment_url).
+            (id, created_at, value, description, operation_type, previous, attachment_id).
 
         Returns
         -------
         OperationResponse
             The mapped pydantic response model.
         """
-        op_id, created_at, value, description, op_type, previous, attachment_url = row
+        op_id, created_at, value, description, op_type, previous, attachment_id = row
         return OperationResponse(
             id=op_id,
             created_at=created_at,
@@ -62,7 +63,7 @@ class PortalService:
             description=description,
             operation_type=op_type,
             previous=previous,
-            attachment_url=attachment_url,
+            attachment_url=f"/attachments/{attachment_id}" if attachment_id else None,
         )
 
     def _insert_attachment_owner(self) -> int:
@@ -82,22 +83,34 @@ class PortalService:
             conn.commit()
         return int(owner_id or 0)
 
-    def _insert_attachment(self, owner_id: int, midia_url: str) -> None:
+    def _insert_attachment(
+        self, owner_id: int, object_key: str, filename: str, content_type: str
+    ) -> int:
         """Insert an attachment record linking the owner to a media URL.
 
         Parameters
         ----------
         owner_id : int
             The attachment_owner id (same as the operation id).
-        midia_url : str
-            The URL or object key of the uploaded file in S3.
+        object_key : str
+            The private S3 object key.
         """
-        query = (
-            Query.into(attachment_table)
-            .columns("owner_id", "midia_url")
-            .insert(owner_id, midia_url)
-        )
-        run_query(self.engine, query)
+        with self.engine.connect() as conn:
+            conn.execute(
+                text(
+                    "INSERT INTO attachment (owner_id, object_key, filename, content_type) "
+                    "VALUES (:owner_id, :object_key, :filename, :content_type)"
+                ),
+                {
+                    "owner_id": owner_id,
+                    "object_key": object_key,
+                    "filename": filename,
+                    "content_type": content_type,
+                },
+            )
+            attachment_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+            conn.commit()
+        return int(attachment_id or 0)
 
     def _fetch_attachment_url(self, operation_id: int) -> Optional[str]:
         """Retrieve the attachment URL for a given operation id.
@@ -110,17 +123,17 @@ class PortalService:
         Returns
         -------
         Optional[str]
-            The midia_url of the first attachment found, or None.
+            The application download path of the first attachment found, or None.
         """
         query = (
             Query.from_(attachment_table)
-            .select("midia_url")
+            .select("id")
             .where(attachment_table.owner_id == operation_id)
             .limit(1)
         )
         result = run_query(self.engine, query)
         if result:
-            return result[0][0]
+            return f"/attachments/{result[0][0]}"
         return None
 
     def _upload_file(
@@ -149,10 +162,13 @@ class PortalService:
             The S3 URL on success, None if upload failed.
         """
         object_name = f"portal/{operation_id}/{filename}"
-        url = upload_fileobj_to_s3(file_obj, object_name, content_type)
-        if url:
-            self._insert_attachment(operation_id, url)
-        return url
+        object_key = upload_fileobj_to_s3(file_obj, object_name, content_type)
+        if object_key:
+            attachment_id = self._insert_attachment(
+                operation_id, object_key, filename, content_type
+            )
+            return f"/attachments/{attachment_id}"
+        return None
 
     def create_operation(
         self,
@@ -320,7 +336,7 @@ class PortalService:
                 operation_table.description,
                 operation_table.operation_type,
                 operation_table.previous,
-                attachment_table.midia_url,
+                attachment_table.id,
             )
             .where(operation_table.id == operation_id)
         )
@@ -346,7 +362,7 @@ class PortalService:
                     operation_table.description,
                     operation_table.operation_type,
                     operation_table.previous,
-                    attachment_table.midia_url,
+                    attachment_table.id,
                 )
                 .where(operation_table.id == prev_id)
             )
@@ -390,7 +406,7 @@ class PortalService:
                 operation_table.description,
                 operation_table.operation_type,
                 operation_table.previous,
-                attachment_table.midia_url,
+                attachment_table.id,
             )
         )
         if operation_type:
@@ -422,8 +438,8 @@ class PortalService:
             return False
 
         with self.engine.connect() as conn:
+            AttachmentService(self.engine).delete_for_owner(operation_id)
             conn.execute(text("DELETE FROM operation WHERE id = :id"), {"id": operation_id})
             conn.execute(text("DELETE FROM attachment_owner WHERE id = :id"), {"id": operation_id})
             conn.commit()
         return True
-

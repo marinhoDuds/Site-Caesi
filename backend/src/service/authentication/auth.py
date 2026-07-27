@@ -7,26 +7,14 @@ from fastapi.security import OAuth2PasswordBearer
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "supersecretkey_change_me_in_production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create a new JWT access token.
-
-    Parameters
-    ----------
-    data : dict
-        The payload to encode in the token.
-    expires_delta : Optional[timedelta], optional
-        Custom expiration time, by default None.
-
-    Returns
-    -------
-    str
-        The encoded JWT token.
-    """
+    """Create a new JWT access token."""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -34,29 +22,25 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.now(timezone.utc) + timedelta(
             minutes=ACCESS_TOKEN_EXPIRE_MINUTES
         )
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "type": "access"})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Create a new JWT refresh token."""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp": expire, "type": "refresh"})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
 def verify_token(token: str) -> dict:
-    """Verify a JWT token and return its payload.
-
-    Parameters
-    ----------
-    token : str
-        The JWT token to verify.
-
-    Returns
-    -------
-    dict
-        The decoded payload.
-
-    Raises
-    ------
-    HTTPException
-        If the token is expired or invalid.
-    """
+    """Verify a JWT token and return its payload."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
@@ -74,19 +58,20 @@ def verify_token(token: str) -> dict:
         )
 
 
+def verify_refresh_token(refresh_token: str) -> dict:
+    """Verify a JWT refresh token and return its payload."""
+    payload = verify_token(refresh_token)
+    if payload.get("type") != "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return payload
+
+
 def get_current_admin(token: str = Depends(oauth2_scheme)) -> dict:
-    """Dependency to get the current authenticated administrator.
-
-    Parameters
-    ----------
-    token : str
-        The JWT token extracted by OAuth2PasswordBearer.
-
-    Returns
-    -------
-    dict
-        A dictionary containing the admin's ID ('sub').
-    """
+    """Dependency to get the current authenticated administrator."""
     payload = verify_token(token)
     admin_id = payload.get("sub")
     if admin_id is None:

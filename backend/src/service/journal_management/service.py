@@ -15,6 +15,25 @@ class JournalService:
     def __init__(self, engine: Engine) -> None:
         self.engine = engine
 
+    def _get_attachments(self, post_id: int) -> List[dict]:
+        with self.engine.connect() as conn:
+            rows = conn.execute(
+                text(
+                    "SELECT id, filename, content_type "
+                    "FROM attachment WHERE owner_id = :owner_id ORDER BY id"
+                ),
+                {"owner_id": post_id},
+            ).all()
+        return [
+            {
+                "id": r[0],
+                "filename": r[1],
+                "content_type": r[2],
+                "url": f"/attachments/{r[0]}",
+            }
+            for r in rows
+        ]
+
     def _map_row_to_response(self, row: Any) -> PostResponse:
         """Map a raw database tuple to a PostResponse schema."""
         op_id, title, post_type, created_at, updated_at, caption = row
@@ -25,6 +44,7 @@ class JournalService:
             created_at=created_at,
             updated_at=updated_at,
             caption=caption,
+            attachments=self._get_attachments(op_id),
         )
 
     def _insert_attachment_owner(self) -> int:
@@ -34,10 +54,7 @@ class JournalService:
                 text("INSERT INTO attachment_owner (owner_type) VALUES (:t)"),
                 {"t": "post"},
             )
-            if self.engine.dialect.name == "sqlite":
-                owner_id = conn.execute(text("SELECT last_insert_rowid()")).scalar()
-            else:
-                owner_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+            owner_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
             conn.commit()
         return int(owner_id or 0)
 

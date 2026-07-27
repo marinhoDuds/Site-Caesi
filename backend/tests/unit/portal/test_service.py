@@ -76,20 +76,17 @@ def test_create_operation_with_attachment(portal_service, mock_engine):
     with patch(
         "src.service.portal_management.service.upload_fileobj_to_s3"
     ) as mock_upload:
-        mock_upload.return_value = "http://s3/portal/2/nota.pdf"
+        mock_upload.return_value = "attachments/2/nota.pdf"
 
-        with patch("src.service.portal_management.service.run_query") as mock_run:
-            mock_run.return_value = None  
-
-            result = portal_service.create_operation(
-                payload,
-                file_obj=file_obj,
-                filename="nota.pdf",
-                content_type="application/pdf",
-            )
+        result = portal_service.create_operation(
+            payload,
+            file_obj=file_obj,
+            filename="nota.pdf",
+            content_type="application/pdf",
+        )
 
     assert result.id == 2
-    assert result.attachment_url == "http://s3/portal/2/nota.pdf"
+    assert result.attachment_url == "/attachments/2"
     mock_upload.assert_called_once()
 
 
@@ -108,13 +105,13 @@ def test_update_operation_append_only_inherits_attachment(portal_service, mock_e
 
     
     with patch("src.service.portal_management.service.run_query") as mock_run:
-        mock_run.return_value = [("http://s3/portal/1/nota.pdf",)]
+        mock_run.return_value = [(1,)]
 
         result = portal_service.update_operation(previous_id=1, payload=payload)
 
     assert result.id == 3
     assert result.previous == 1
-    assert result.attachment_url == "http://s3/portal/1/nota.pdf"
+    assert result.attachment_url == "/attachments/1"
 
 
 def test_update_operation_with_new_attachment(portal_service, mock_engine):
@@ -134,22 +131,19 @@ def test_update_operation_with_new_attachment(portal_service, mock_engine):
     with patch(
         "src.service.portal_management.service.upload_fileobj_to_s3"
     ) as mock_upload:
-        mock_upload.return_value = "http://s3/portal/4/new.pdf"
+        mock_upload.return_value = "attachments/4/new.pdf"
 
-        with patch("src.service.portal_management.service.run_query") as mock_run:
-            mock_run.return_value = None
-
-            result = portal_service.update_operation(
-                previous_id=1,
-                payload=payload,
-                file_obj=file_obj,
-                filename="new.pdf",
-                content_type="application/pdf",
-            )
+        result = portal_service.update_operation(
+            previous_id=1,
+            payload=payload,
+            file_obj=file_obj,
+            filename="new.pdf",
+            content_type="application/pdf",
+        )
 
     assert result.id == 4
     assert result.previous == 1
-    assert result.attachment_url == "http://s3/portal/4/new.pdf"
+    assert result.attachment_url == "/attachments/4"
 
 
 def test_get_operation_not_found(portal_service, mock_engine):

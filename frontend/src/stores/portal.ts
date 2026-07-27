@@ -28,6 +28,7 @@ function mapTipoToOperationType(tipo: string): string {
 
 export interface Anexo {
   nome: string
+  url: string
 }
 
 export interface HistoricoItem {
@@ -50,7 +51,7 @@ export interface NovoArtefato {
   tipo: string
   descricao: string
   valor?: number | null
-  anexo?: Anexo | null
+  arquivo?: File | null
 }
 
 const _artefatos = ref<Artefato[]>([])
@@ -77,7 +78,10 @@ export async function fetchArtefatos() {
         tipo: op.operation_type,
         descricao: op.description,
         valor: op.value,
-        anexo: op.attachment_url ? { nome: op.attachment_url } : null,
+        anexo: op.attachment_url ? {
+          nome: op.attachment_url.split('/').at(-1) ?? 'Documento',
+          url: `${API_BASE}${op.attachment_url}`,
+        } : null,
         criadoEm: op.created_at || hoje(),
         editadoEm: op.previous ? hoje() : null,
         historico: [{ data: op.created_at || hoje(), resumo: 'Artefato criado' }]
@@ -88,13 +92,15 @@ export async function fetchArtefatos() {
   }
 }
 
-export async function addArtefato({ tipo, descricao, valor = null, anexo = null }: NovoArtefato): Promise<Artefato> {
+export async function addArtefato({ tipo, descricao, valor = null, arquivo = null }: NovoArtefato): Promise<Artefato> {
   const formData = new FormData()
   formData.append('value', String(valor ?? 0))
   formData.append('description', descricao)
   formData.append('operation_type', mapTipoToOperationType(tipo))
+  if (arquivo) formData.append('attachment', arquivo)
 
   let newId = Date.now()
+  let attachmentUrl: string | null = null
   const res = await fetch(`${API_BASE}/operations`, {
     method: 'POST',
     headers: getHeaders(),
@@ -104,6 +110,7 @@ export async function addArtefato({ tipo, descricao, valor = null, anexo = null 
   if (res && res.ok) {
     const data = await res.json()
     newId = data.id
+    attachmentUrl = data.attachment_url
   }
 
   const novo: Artefato = {
@@ -111,7 +118,7 @@ export async function addArtefato({ tipo, descricao, valor = null, anexo = null 
     tipo,
     descricao,
     valor,
-    anexo,
+    anexo: arquivo ? { nome: arquivo.name, url: attachmentUrl ? `${API_BASE}${attachmentUrl}` : '' } : null,
     criadoEm: hoje(),
     editadoEm: null,
     historico: [{ data: hoje(), resumo: 'Artefato criado' }],
@@ -120,7 +127,7 @@ export async function addArtefato({ tipo, descricao, valor = null, anexo = null 
   return novo
 }
 
-export async function updateArtefato(id: number, updates: Partial<Artefato>) {
+export async function updateArtefato(id: number, updates: Partial<Artefato>, arquivo: File | null = null) {
   const atual = _artefatos.value.find(a => a.id === id)
   if (!atual) return
 
@@ -135,15 +142,23 @@ export async function updateArtefato(id: number, updates: Partial<Artefato>) {
   formData.append('value', String(updates.valor ?? atual.valor ?? 0))
   formData.append('description', updates.descricao ?? atual.descricao)
   formData.append('operation_type', mapTipoToOperationType(updates.tipo ?? atual.tipo))
+  if (arquivo) formData.append('attachment', arquivo)
 
-  await fetch(`${API_BASE}/operations/${id}`, {
+  const res = await fetch(`${API_BASE}/operations/${id}`, {
     method: 'PUT',
     headers: getHeaders(),
     body: formData
   })
 
+  const response = res.ok ? await res.json() : null
   _artefatos.value = _artefatos.value.map(a => a.id === id
-    ? { ...a, ...updates, editadoEm: alterados.length ? hoje() : a.editadoEm, historico: novoHistorico }
+    ? {
+      ...a,
+      ...updates,
+      anexo: arquivo ? { nome: arquivo.name, url: `${API_BASE}${response?.attachment_url}` } : a.anexo,
+      editadoEm: alterados.length ? hoje() : a.editadoEm,
+      historico: novoHistorico,
+    }
     : a
   )
 }

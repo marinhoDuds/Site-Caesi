@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { isValidImageFile } from '../utils/validation.ts'
-import { comprimirImagem } from '../utils/imagem.ts'
+import { uploadImagemS3 } from '../utils/imagem.ts'
 import { showToast } from '../stores/toast.ts'
 
 const modelValue = defineModel<string[]>({ required: true })
@@ -26,7 +26,7 @@ async function onChange(e: Event) {
   const novas: string[] = []
   for (const file of target.files ?? []) {
     if (!isValidImageFile(file)) { invalido = true; continue }
-    novas.push(await comprimirImagem(file))
+    novas.push(await uploadImagemS3(file))
   }
   if (novas.length) modelValue.value = [...modelValue.value, ...novas]
   if (invalido) showToast('Alguns arquivos foram ignorados (precisam ser imagens de até 8MB).', 'error')

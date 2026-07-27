@@ -78,17 +78,17 @@ def test_create_ticket_route():
     assert response.json()["protocol"] == "PROT123"
 
 def test_get_ticket_route():
-    mock_service.get_ticket_by_protocol.return_value = _make_ticket()
+    mock_service.get_ticket_by_protocol_and_password.return_value = _make_ticket()
 
-    response = client.get("/tickets/PROT123")
+    response = client.get("/tickets/PROT123?password=PASS12")
 
     assert response.status_code == 200
     assert response.json()["protocol"] == "PROT123"
 
 def test_get_ticket_not_found():
-    mock_service.get_ticket_by_protocol.return_value = None
+    mock_service.get_ticket_by_protocol_and_password.return_value = None
 
-    response = client.get("/tickets/UNKNOWN")
+    response = client.get("/tickets/UNKNOWN?password=PASS12")
 
     assert response.status_code == 404
 

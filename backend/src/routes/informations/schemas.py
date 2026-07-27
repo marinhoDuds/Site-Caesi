@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 class InformationBase(BaseModel):
     information_type: str = Field(..., description="Type of the information (e.g., announcements, laboratories, professors, tamburetei)")
@@ -13,5 +13,4 @@ class InformationUpdate(InformationBase):
 class InformationResponse(InformationBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

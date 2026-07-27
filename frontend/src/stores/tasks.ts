@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 
 const API_BASE = 'http://localhost:8000'
 
-function getHeaders() {
+function getHeaders(): Record<string, string> {
   const token = localStorage.getItem('caesi_admin_token')
   return token ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } : { 'Content-Type': 'application/json' }
 }
@@ -48,21 +48,27 @@ export interface Membro {
   db_id?: number
 }
 
+interface RegistroArmazenado {
+  id: number
+  content: string
+}
+
 const _tasks = ref<Task[]>([])
 const _membros = ref<Membro[]>([])
 
 export const tasks = computed(() => _tasks.value)
 export const membros = computed(() => _membros.value)
 
+function parseRegistro<T>(registro: RegistroArmazenado): T & { db_id: number } {
+  return { ...JSON.parse(registro.content) as T, db_id: registro.id }
+}
+
 export async function fetchTasks() {
   try {
     const res = await fetch(`${API_BASE}/informations/type/tasks`)
     if (res.ok) {
       const data = await res.json()
-      _tasks.value = data.map((d: any) => ({
-        db_id: d.id,
-        ...JSON.parse(d.content)
-      }))
+      _tasks.value = data.map((registro: RegistroArmazenado) => parseRegistro<Task>(registro))
     }
   } catch (error) {
     console.error(error)
@@ -74,10 +80,7 @@ export async function fetchMembros() {
     const res = await fetch(`${API_BASE}/informations/type/task_membros`)
     if (res.ok) {
       const data = await res.json()
-      _membros.value = data.map((d: any) => ({
-        db_id: d.id,
-        ...JSON.parse(d.content)
-      }))
+      _membros.value = data.map((registro: RegistroArmazenado) => parseRegistro<Membro>(registro))
     }
   } catch (error) {
     console.error(error)
@@ -97,7 +100,7 @@ export async function addMembro(nome: string): Promise<Membro> {
     body: JSON.stringify({ information_type: 'task_membros', content: JSON.stringify(membro) })
   })
 
-  if (res && res.ok) {
+  if (res.ok) {
     const data = await res.json()
     membro.db_id = data.id
   }
@@ -159,7 +162,7 @@ export async function criarTask(dados: NovaTask): Promise<Task> {
     body: JSON.stringify({ information_type: 'tasks', content: JSON.stringify(task) })
   })
 
-  if (res && res.ok) {
+  if (res.ok) {
     const data = await res.json()
     task.db_id = data.id
   }

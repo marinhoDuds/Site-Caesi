@@ -1,8 +1,7 @@
 from datetime import date
 from enum import Enum
 from typing import Optional
-from pydantic import BaseModel, Field
-
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PostType(str, Enum):
@@ -10,7 +9,7 @@ class PostType(str, Enum):
     evento = "evento"
     vaga = "vaga"
     oportunidade = "oportunidade"
-    
+
 
 class PostCreate(BaseModel):
     title: str = Field(..., min_length=3, max_length=255)
@@ -22,6 +21,12 @@ class PostUpdate(BaseModel):
     post_type: Optional[str] = Field(None, max_length=100)
     caption: Optional[str] = Field(None, min_length=10, max_length=2200)
 
+class AttachmentInfo(BaseModel):
+    id: int
+    filename: str
+    content_type: str
+    url: str
+
 class PostResponse(BaseModel):
     id: int
     title: str
@@ -29,6 +34,6 @@ class PostResponse(BaseModel):
     caption: str
     created_at: date
     updated_at: Optional[date] = None
+    attachments: list[AttachmentInfo] = Field(default_factory=list)
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

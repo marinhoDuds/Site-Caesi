@@ -13,7 +13,7 @@ function formatValor(valor: number) {
 
 const mostrarForm = ref(false)
 const fileAddRef  = ref<HTMLInputElement | null>(null)
-const formAdd = reactive({ tipo: '', descricao: '', valor: '', anexoNome: '' })
+const formAdd = reactive({ tipo: '', descricao: '', valor: '', anexoNome: '', arquivo: null as File | null })
 const erros   = reactive({ descricao: '', valor: '' })
 
 function parseValor(str: string): { valor: number | null; error: string | null } {
@@ -34,24 +34,25 @@ function validar(form: { descricao: string; valor: string }) {
 }
 
 function onArquivoAdd(e: Event) {
-  formAdd.anexoNome = (e.target as HTMLInputElement).files?.[0]?.name ?? ''
+  formAdd.arquivo = (e.target as HTMLInputElement).files?.[0] ?? null
+  formAdd.anexoNome = formAdd.arquivo?.name ?? ''
 }
 
-function publicar() {
+async function publicar() {
   if (!validar(formAdd)) return
   addArtefato({
     tipo: formAdd.tipo.trim(),
     descricao: formAdd.descricao.trim(),
     valor: parseValor(formAdd.valor).valor,
-    anexo: formAdd.anexoNome ? { nome: formAdd.anexoNome } : null,
+    arquivo: formAdd.arquivo,
   })
-  Object.assign(formAdd, { tipo: '', descricao: '', valor: '', anexoNome: '' })
+  Object.assign(formAdd, { tipo: '', descricao: '', valor: '', anexoNome: '', arquivo: null })
   mostrarForm.value = false
   showToast('Artefato adicionado ao portal.', 'success')
 }
 
 function cancelarAdd() {
-  Object.assign(formAdd, { tipo: '', descricao: '', valor: '', anexoNome: '' })
+  Object.assign(formAdd, { tipo: '', descricao: '', valor: '', anexoNome: '', arquivo: null })
   erros.descricao = ''
   erros.valor = ''
   mostrarForm.value = false
@@ -59,7 +60,7 @@ function cancelarAdd() {
 
 const editandoId  = ref<number | null>(null)
 const fileEditRef = ref<HTMLInputElement | null>(null)
-const formEdit = reactive({ tipo: '', descricao: '', valor: '', anexoNome: '' })
+const formEdit = reactive({ tipo: '', descricao: '', valor: '', anexoNome: '', arquivo: null as File | null })
 const errosEdit = reactive({ descricao: '', valor: '' })
 
 function triggerFileEdit() {
@@ -75,14 +76,16 @@ function abrirEdit(a: Artefato) {
     descricao: a.descricao,
     valor: a.valor ?? '',
     anexoNome: a.anexo?.nome ?? '',
+    arquivo: null,
   })
 }
 
 function onArquivoEdit(e: Event) {
-  formEdit.anexoNome = (e.target as HTMLInputElement).files?.[0]?.name ?? ''
+  formEdit.arquivo = (e.target as HTMLInputElement).files?.[0] ?? null
+  formEdit.anexoNome = formEdit.arquivo?.name ?? ''
 }
 
-function salvarEdit(id: number) {
+async function salvarEdit(id: number) {
   errosEdit.descricao = validarDescricao(formEdit.descricao)
   const { valor, error } = parseValor(formEdit.valor)
   errosEdit.valor = error ?? ''
@@ -91,8 +94,7 @@ function salvarEdit(id: number) {
     tipo: formEdit.tipo.trim(),
     descricao: formEdit.descricao.trim(),
     valor,
-    anexo: formEdit.anexoNome ? { nome: formEdit.anexoNome } : null,
-  })
+  }, formEdit.arquivo)
   editandoId.value = null
   showToast('Artefato atualizado.', 'success')
 }

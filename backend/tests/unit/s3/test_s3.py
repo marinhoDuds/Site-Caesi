@@ -6,7 +6,7 @@ from src.service.s3 import upload_fileobj_to_s3, generate_presigned_url
 
 
 class TestUploadFileobjToS3:
-    def test_upload_returns_full_url_when_endpoint_set(self, monkeypatch):
+    def test_upload_returns_object_key_when_endpoint_set(self, monkeypatch):
         monkeypatch.setenv("GARAGE_DEFAULT_BUCKET", "test-bucket")
         monkeypatch.setenv("AWS_ENDPOINT_URL", "http://localhost:3900")
 
@@ -19,7 +19,7 @@ class TestUploadFileobjToS3:
                 "application/pdf",
             )
 
-        assert result == "http://localhost:3900/test-bucket/portal/1/file.pdf"
+        assert result == "portal/1/file.pdf"
         mock_client.upload_fileobj.assert_called_once()
 
     def test_upload_returns_object_name_when_no_endpoint(self, monkeypatch):

@@ -7,7 +7,7 @@ def test_ensure_default_admin_seeds_when_empty():
     engine = MagicMock()
     conn_mock = MagicMock()
     engine.connect.return_value.__enter__.return_value = conn_mock
-    engine.dialect.name = "sqlite"
+    engine.dialect.name = "mysql"
     conn_mock.execute.side_effect = [
         MagicMock(scalar=lambda: 0),
         MagicMock(),
@@ -25,6 +25,7 @@ def test_login_returns_token_on_valid_credentials():
     conn_mock = MagicMock()
     engine.connect.return_value.__enter__.return_value = conn_mock
     service = AdminAuthService(engine)
+    service.reset_failed_attempts("caesi@ccc.ufcg.edu.br")
 
     conn_mock.execute.side_effect = [
         MagicMock(scalar=lambda: 1),
@@ -32,10 +33,11 @@ def test_login_returns_token_on_valid_credentials():
     ]
 
     with patch("src.service.authentication.admin_auth_service.verify_password", return_value=True), \
-         patch("src.service.authentication.admin_auth_service.create_access_token", return_value="token.xyz"):
-        token = service.login("caesi@ccc.ufcg.edu.br", "caesi2025")
+         patch("src.service.authentication.admin_auth_service.create_access_token", return_value="access.xyz"), \
+         patch("src.service.authentication.admin_auth_service.create_refresh_token", return_value="refresh.xyz"):
+        tokens = service.login("caesi@ccc.ufcg.edu.br", "caesi2025")
 
-    assert token == "token.xyz"
+    assert tokens == ("access.xyz", "refresh.xyz")
 
 
 def test_login_returns_none_on_wrong_password():

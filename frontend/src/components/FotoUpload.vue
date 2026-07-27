@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { isValidImageFile } from '../utils/validation.ts'
-import { comprimirImagem } from '../utils/imagem.ts'
+import { uploadImagemS3 } from '../utils/imagem.ts'
 import { showToast } from '../stores/toast.ts'
 
 const modelValue = defineModel<string>({ required: true })
@@ -27,7 +27,7 @@ async function onChange(e: Event) {
     target.value = ''
     return
   }
-  modelValue.value = await comprimirImagem(file)
+  modelValue.value = await uploadImagemS3(file)
   target.value = ''
 }
 
