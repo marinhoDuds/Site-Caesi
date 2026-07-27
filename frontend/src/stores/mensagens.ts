@@ -106,5 +106,16 @@ export async function updateNota(id: number, nota: string) {
 }
 
 export async function deleteMensagem(id: number) {
+  const mensagem = _list.value.find(m => m.id === id)
+  if (mensagem) {
+    try {
+      await fetch(`${API_BASE}/admin/tickets/${mensagem.protocolo}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders(),
+      })
+    } catch (error) {
+      console.error('Erro ao deletar ticket:', error)
+    }
+  }
   _list.value = _list.value.filter(m => m.id !== id)
 }

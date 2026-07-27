@@ -93,6 +93,7 @@ function ariaCurrent(path: string) {
       <RouterLink to="/ouvidoria"   class="nav-link" :class="{ 'router-link-active': isAdmin && ariaCurrent('/admin/ouvidoria') }" :aria-current="ariaCurrent(isAdmin ? '/admin/ouvidoria' : '/ouvidoria')"   @click="menuOpen = false">Ouvidoria</RouterLink>
       <RouterLink to="/mural"       class="nav-link" :aria-current="ariaCurrent('/mural')"       @click="menuOpen = false">Mural</RouterLink>
       <RouterLink to="/mapa"        class="nav-link" :aria-current="ariaCurrent('/mapa')"        @click="menuOpen = false">Mapa</RouterLink>
+      <RouterLink :to="isAdmin ? '/admin/portal' : '/portal'" class="nav-link" :aria-current="ariaCurrent(isAdmin ? '/admin/portal' : '/portal')" @click="menuOpen = false">Portal</RouterLink>
       <RouterLink to="/informacoes" class="nav-link" :aria-current="ariaCurrent('/informacoes')" @click="menuOpen = false">Informações</RouterLink>
       <RouterLink :to="isAdmin ? '/admin/formularios' : '/formularios'" class="nav-link" :aria-current="ariaCurrent(isAdmin ? '/admin/formularios' : '/formularios')" @click="menuOpen = false">Formulários</RouterLink>
 

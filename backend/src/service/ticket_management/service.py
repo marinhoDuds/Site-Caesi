@@ -223,3 +223,16 @@ class TicketService:
             conn.commit()
 
         return self.get_ticket_by_protocol(protocol)
+
+    def delete_ticket(self, protocol: str) -> bool:
+        """Delete a ticket and its attachment owner from the database."""
+        ticket = self.get_ticket_by_protocol(protocol)
+        if not ticket:
+            return False
+
+        with self.engine.connect() as conn:
+            conn.execute(text("DELETE FROM ticket WHERE id = :id"), {"id": ticket.id})
+            conn.execute(text("DELETE FROM attachment_owner WHERE id = :id"), {"id": ticket.id})
+            conn.commit()
+            
+        return True

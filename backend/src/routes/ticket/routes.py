@@ -178,3 +178,17 @@ def update_ticket_admin(
             payload.admin_notes,
         )
     return updated_ticket
+
+@admin_router.delete("/{protocol}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_ticket_admin(
+    protocol: str,
+    service: TicketService = Depends(get_ticket_service),
+    _admin: dict = Depends(get_current_admin),
+):
+    """Delete a ticket (Admin only)."""
+    success = service.delete_ticket(protocol)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found"
+        )
+    return None
