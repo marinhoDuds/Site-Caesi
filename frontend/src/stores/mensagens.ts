@@ -34,6 +34,14 @@ export interface Mensagem extends NovaMensagem {
   complementos?: Complemento[]
 }
 
+function normalizeStatus(st: unknown): StatusMensagem {
+  const str = String(st || '').toLowerCase().trim()
+  if (str === 'atendida' || str === 'concluida' || str === 'fechado' || str === 'resolvido') {
+    return 'atendida'
+  }
+  return 'pendente'
+}
+
 function mapTicketToMensagem(t: Record<string, unknown>): Mensagem {
   const corpo = String(t.content ?? '')
   return {
@@ -44,7 +52,7 @@ function mapTicketToMensagem(t: Record<string, unknown>): Mensagem {
     corpo,
     nome: t.author ? String(t.author) : null,
     email: t.email ? String(t.email) : null,
-    status: (t.status as StatusMensagem) ?? 'pendente',
+    status: normalizeStatus(t.status),
     nota: String(t.admin_notes ?? ''),
     data: t.updated_at ? String(t.updated_at) : new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
     preview: corpo.slice(0, 110) + (corpo.length > 110 ? '…' : ''),

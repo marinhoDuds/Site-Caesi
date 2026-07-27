@@ -30,22 +30,45 @@ const TIPO_LABEL: Record<string, string> = {
   ofertas:        'Ofertas e horários',
   grupos:         'Grupos estudantis',
   outros:         'Outros',
+
+  classmates:     'Colegas de curso',
+  infrastructure: 'Infraestrutura',
+  professors:    'Professores',
+  schedules:     'Ofertas e horários',
+  student_groups: 'Grupos estudantis',
+  subjects:       'Disciplina',
+  other:          'Outros',
+}
+
+const isPendente = (st: string) => {
+  const s = (st || '').toLowerCase().trim()
+  return s === 'pendente' || s === 'aberto'
+}
+
+const isAtendida = (st: string) => {
+  const s = (st || '').toLowerCase().trim()
+  return s === 'atendida' || s === 'concluido' || s === 'fechado' || s === 'resolvido'
 }
 
 const mensagensFiltradas = computed(() => {
   return mensagens.value.filter(m => {
-    const matchFiltro = filtro.value === 'todas' || m.status === filtro.value
+    let matchFiltro = filtro.value === 'todas'
+    if (filtro.value === 'pendentes' || filtro.value === 'pendente') {
+      matchFiltro = isPendente(m.status)
+    } else if (filtro.value === 'atendidas' || filtro.value === 'atendida') {
+      matchFiltro = isAtendida(m.status)
+    }
     const termo = busca.value.toLowerCase()
     const matchBusca = !termo ||
       (m.preview ?? '').toLowerCase().includes(termo) ||
       (m.nome ?? '').toLowerCase().includes(termo) ||
-      (TIPO_LABEL[m.tipo] ?? '').toLowerCase().includes(termo)
+      (TIPO_LABEL[m.tipo] ?? m.tipo ?? '').toLowerCase().includes(termo)
     return matchFiltro && matchBusca
   })
 })
 
-const totalPendente = computed(() => mensagens.value.filter(m => m.status === 'pendente').length)
-const totalAtendida = computed(() => mensagens.value.filter(m => m.status === 'atendida').length)
+const totalPendente = computed(() => mensagens.value.filter(m => isPendente(m.status)).length)
+const totalAtendida = computed(() => mensagens.value.filter(m => isAtendida(m.status)).length)
 
 const { page, totalPages, paginated: mensagensPaginadas, next, prev, goTo } = usePagination(mensagensFiltradas, 15)
 
@@ -74,13 +97,21 @@ function exportarCSV() {
 }
 
 const TIPO_COR: Record<string, string> = {
-  disciplina:     '#2050A0',
-  professores:    '#1A5A50',
-  colegas:        '#1A6040',
-  infraestrutura: '#904010',
-  ofertas:        '#4B3591',
-  grupos:         '#701860',
-  outros:         '#404060',
+  disciplina:     '#4F46E5', // Indigo
+  professores:    '#059669', // Emerald Green
+  colegas:        '#D97706', // Amber / Warm Gold
+  infraestrutura: '#DC2626', // Crimson Red
+  ofertas:        '#2563EB', // Royal Blue
+  grupos:         '#9333EA', // Purple
+  outros:         '#6B7280', // Slate Gray
+
+  subjects:       '#4F46E5', // Indigo
+  professors:     '#059669', // Emerald Green
+  classmates:     '#D97706', // Amber / Warm Gold
+  infrastructure: '#DC2626', // Crimson Red
+  schedules:      '#2563EB', // Royal Blue
+  student_groups: '#9333EA', // Purple
+  other:          '#6B7280', // Slate Gray
 }
 
 const donutData = computed(() => {
@@ -93,7 +124,7 @@ const donutData = computed(() => {
     labels: tipos.map(t => TIPO_LABEL[t] ?? t),
     datasets: [{
       data: tipos.map(t => contagem[t]),
-      backgroundColor: tipos.map(t => TIPO_COR[t] ?? '#A0A0A0'),
+      backgroundColor: tipos.map(t => TIPO_COR[t?.toLowerCase()] ?? '#4F46E5'),
       borderWidth: 2,
       borderColor: '#FEFAF4',
     }],

@@ -15,6 +15,14 @@ const TIPO_LABEL: Record<string, string> = {
   ofertas:        'Ofertas e horários',
   grupos:         'Grupos estudantis',
   outros:         'Outros',
+
+  classmates:     'Colegas de curso',
+  infrastructure: 'Infraestrutura',
+  professors:    'Professores',
+  schedules:     'Ofertas e horários',
+  student_groups: 'Grupos estudantis',
+  subjects:       'Disciplina',
+  other:          'Outros',
 }
 
 const route = useRoute()
